@@ -1,0 +1,11 @@
+name = "calendario-personal"
+compatibility_date = "2026-03-25"
+compatibility_flags = ["nodejs_compat"]
+
+routes = [
+  { pattern = "calendario.exegestion.com/*", zone_name = "exegestion.com" }
+]
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"

@@ -1,0 +1,263 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Sora:wght@300;400;500;600&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --obsidian: #0D0D0F;
+  --obsidian-2: #141418;
+  --obsidian-3: #1C1C22;
+  --obsidian-4: #242430;
+  --border: #2A2A38;
+  --border-light: #353548;
+  --amber: #F0A500;
+  --amber-dim: #C48600;
+  --amber-glow: rgba(240, 165, 0, 0.12);
+  --cream: #F5EDD6;
+  --cream-dim: #C8BC9E;
+  --cream-muted: #7A7060;
+  --sage: #5FAD8E;
+  --sage-dim: rgba(95, 173, 142, 0.15);
+  --coral: #E05C5C;
+  --coral-dim: rgba(224, 92, 92, 0.15);
+  --blue: #6B8FD4;
+  --blue-dim: rgba(107, 143, 212, 0.15);
+  --font-display: 'Cormorant Garamond', serif;
+  --font-body: 'Sora', sans-serif;
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--obsidian);
+  color: var(--cream);
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--cream-muted); }
+
+button {
+  cursor: pointer;
+  font-family: var(--font-body);
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+input, textarea, select {
+  font-family: var(--font-body);
+  color: inherit;
+}
+
+/* ──────────── KEYFRAMES ──────────── */
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes springIn {
+  0%   { opacity: 0; transform: scale(0.85) translateY(8px); }
+  60%  { opacity: 1; transform: scale(1.03) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOutRight {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(28px); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Month change: new grid slides in */
+@keyframes monthEnterNext {
+  from { opacity: 0; transform: translateX(24px) scale(0.98); }
+  to   { opacity: 1; transform: translateX(0)    scale(1); }
+}
+
+@keyframes monthEnterPrev {
+  from { opacity: 0; transform: translateX(-24px) scale(0.98); }
+  to   { opacity: 1; transform: translateX(0)     scale(1); }
+}
+
+/* Staggered cell pop-in */
+@keyframes cellIn {
+  from { opacity: 0; transform: scale(0.92) translateY(6px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+/* Checkbox spring bounce */
+@keyframes checkBounce {
+  0%   { transform: scale(0.6); }
+  55%  { transform: scale(1.25); }
+  75%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+/* Item slide-out on delete */
+@keyframes itemOut {
+  from { opacity: 1; transform: translateX(0)    scale(1); max-height: 80px; }
+  to   { opacity: 0; transform: translateX(16px) scale(0.95); max-height: 0; padding: 0; margin: 0; }
+}
+
+/* Chip pop */
+@keyframes chipPop {
+  0%   { transform: scale(0); opacity: 0; }
+  65%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* Sidebar stat entrance */
+@keyframes statIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Pulse ring for today */
+@keyframes pulseRing {
+  0%   { box-shadow: 0 0 0 0   rgba(240, 165, 0, 0.45); }
+  70%  { box-shadow: 0 0 0 8px rgba(240, 165, 0, 0); }
+  100% { box-shadow: 0 0 0 0   rgba(240, 165, 0, 0); }
+}
+
+/* Float for logo icon */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-3px); }
+}
+
+/* Shimmer for progress bar */
+@keyframes shimmerBar {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* Number count flash */
+@keyframes numFlash {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.2); color: var(--amber); }
+  100% { transform: scale(1); }
+}
+
+/* Tab indicator slide */
+@keyframes tabSlide {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* View transition */
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.99); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* ──────────── UTILITY CLASSES ──────────── */
+
+.animate-fadeUp   { animation: fadeUp   0.28s var(--ease-out) both; }
+.animate-fadeIn   { animation: fadeIn   0.2s  ease both; }
+.animate-scaleIn  { animation: scaleIn  0.25s var(--ease-spring) both; }
+.animate-springIn { animation: springIn 0.35s var(--ease-spring) both; }
+.animate-slideInRight { animation: slideInRight 0.3s var(--ease-spring) both; }
+.animate-viewIn   { animation: viewIn   0.3s  var(--ease-out) both; }
+
+/* Staggered children: parent adds .stagger, children get delay via --i */
+.stagger > * { animation: fadeUp 0.22s var(--ease-out) both; }
+.stagger > *:nth-child(1)  { animation-delay: 0.02s; }
+.stagger > *:nth-child(2)  { animation-delay: 0.05s; }
+.stagger > *:nth-child(3)  { animation-delay: 0.08s; }
+.stagger > *:nth-child(4)  { animation-delay: 0.11s; }
+.stagger > *:nth-child(5)  { animation-delay: 0.14s; }
+.stagger > *:nth-child(6)  { animation-delay: 0.17s; }
+
+/* Logo float */
+.logo-icon { animation: float 3.5s ease-in-out infinite; }
+
+/* Today pulse */
+.today-badge { animation: pulseRing 2s ease-out infinite; }
+
+/* Check bounce */
+.check-done { animation: checkBounce 0.38s var(--ease-spring) both; }
+
+/* Chip pop */
+.chip-pop { animation: chipPop 0.3s var(--ease-spring) both; }
+
+/* Stat row entrance */
+.stat-in { animation: statIn 0.3s var(--ease-out) both; }
+
+/* Calendar cell stagger */
+.cal-cell {
+  animation: cellIn 0.25s var(--ease-spring) both;
+}
+
+/* Month grid animation */
+.month-enter-next { animation: monthEnterNext 0.32s var(--ease-out) both; }
+.month-enter-prev { animation: monthEnterPrev 0.32s var(--ease-out) both; }
+
+/* Tab content */
+.tab-content { animation: fadeUp 0.22s var(--ease-out) both; }
+
+/* Form spring in */
+.form-spring { animation: springIn 0.3s var(--ease-spring) both; }
+
+/* Item out on delete */
+.item-out {
+  animation: itemOut 0.22s var(--ease-in-out) forwards;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Shimmer progress bar */
+.progress-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--amber) 0%,
+    #FFD166 40%,
+    var(--amber) 80%
+  );
+  background-size: 200% auto;
+  animation: shimmerBar 2s linear infinite;
+}
