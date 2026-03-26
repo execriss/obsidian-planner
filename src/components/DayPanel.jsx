@@ -58,7 +58,7 @@ export default function DayPanel({ date, tasks, expenses, onAddTask, onToggleTas
       done:     false,
       priority: taskPriority,
       category: taskCategory,
-      date:     date.toISOString(),
+      date:     format(date, 'yyyy-MM-dd'),
     });
     setNewTask('');
     setShowTaskForm(false);
@@ -82,7 +82,7 @@ export default function DayPanel({ date, tasks, expenses, onAddTask, onToggleTas
       amount:   n,
       desc:     finDesc.trim(),
       category: finCat,
-      date:     date.toISOString(),
+      date:     format(date, 'yyyy-MM-dd'),
     });
     setFinAmount('');
     setFinDesc('');
