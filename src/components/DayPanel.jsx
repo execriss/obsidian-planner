@@ -796,10 +796,10 @@ function IconBtn({ icon: Icon, color, hoverBg, onClick }) {
       style={{
         width: '26px', height: '26px', borderRadius: '7px', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: 'transparent', transition: 'all 0.15s var(--ease-spring)',
+        color: 'var(--cream-muted)', transition: 'all 0.15s var(--ease-spring)',
       }}
       onMouseEnter={e => { e.currentTarget.style.color = color; e.currentTarget.style.background = hoverBg; e.currentTarget.style.transform = 'scale(1.1)'; }}
-      onMouseLeave={e => { e.currentTarget.style.color = 'transparent'; e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'scale(1)'; }}
+      onMouseLeave={e => { e.currentTarget.style.color = 'var(--cream-muted)'; e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'scale(1)'; }}
     >
       <Icon size={12} />
     </button>

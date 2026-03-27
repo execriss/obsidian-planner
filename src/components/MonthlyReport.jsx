@@ -27,7 +27,7 @@ export default function MonthlyReport({ expenses }) {
   const totalIncome = monthItems.filter(e => e.type === 'income').reduce((s, e) => s + e.amount, 0);
   const totalExpense = monthItems.filter(e => e.type === 'expense').reduce((s, e) => s + e.amount, 0);
   const balance = totalIncome - totalExpense;
-  const savingRate = totalIncome > 0 ? ((balance / totalIncome) * 100).toFixed(1) : 0;
+
 
   // Gastos por categoría
   const byCategory = useMemo(() => {
@@ -98,7 +98,6 @@ export default function MonthlyReport({ expenses }) {
           { label: 'Ingresos totales', value: totalIncome, icon: TrendingUp, color: 'var(--sage)', bg: 'var(--sage-dim)' },
           { label: 'Gastos totales', value: totalExpense, icon: TrendingDown, color: 'var(--coral)', bg: 'var(--coral-dim)' },
           { label: 'Balance neto', value: balance, icon: Wallet, color: balance >= 0 ? 'var(--amber)' : 'var(--coral)', bg: balance >= 0 ? 'var(--amber-glow)' : 'var(--coral-dim)' },
-          { label: 'Tasa de ahorro', value: `${savingRate}%`, icon: BarChart3, color: 'var(--blue)', bg: 'var(--blue-dim)', isText: true },
         ].map(({ label, value, icon: Icon, color, bg, isText }) => (
           <div key={label} style={{
             background: bg, border: `1px solid ${color}33`,

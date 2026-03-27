@@ -227,6 +227,8 @@ export default function DayView({
         <div style={{ flex: 1, maxWidth: '420px' }}>
           <SectionTitle>Finanzas</SectionTitle>
 
+          <AddBtn active={showFinForm} onClick={() => setShowFinForm(!showFinForm)} label="Agregar movimiento" />
+
           {/* Balance cards */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
             {[
@@ -256,8 +258,6 @@ export default function DayView({
               {balance >= 0 ? '+' : ''}{fmt(balance)}
             </span>
           </div>
-
-          <AddBtn active={showFinForm} onClick={() => setShowFinForm(!showFinForm)} label="Agregar movimiento" />
 
           {showFinForm && (
             <div className="form-spring" style={{ ...cardSt, marginBottom: '12px' }}>

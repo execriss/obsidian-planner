@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
   Calendar, BarChart3, ChevronLeft, ChevronRight,
-  Sparkles, CheckSquare, TrendingUp, TrendingDown, LogOut, User, Settings2, ShoppingCart,
+  Sparkles, CheckSquare, TrendingUp, TrendingDown, LogOut, User, Settings2,
+  ShoppingCart, Receipt, Flame, StickyNote, FileKey2,
 } from 'lucide-react';
 import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfWeek, isToday, isSameMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -14,6 +15,10 @@ import DayView from './components/DayView.jsx';
 import DayPanel from './components/DayPanel.jsx';
 import MonthlyReport from './components/MonthlyReport.jsx';
 import GroceryList from './components/GroceryList.jsx';
+import Servicios from './components/Servicios.jsx';
+import Habitos from './components/Habitos.jsx';
+import QuickNotes from './components/QuickNotes.jsx';
+import Documentos from './components/Documentos.jsx';
 import Settings from './components/Settings.jsx';
 
 export default function App() {
@@ -221,10 +226,14 @@ function Planner({ user, onSignOut }) {
         <div style={{ padding: '12px 10px' }}>
           <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cream-muted)', marginBottom: '8px', fontWeight: 600, paddingLeft: '6px' }}>Vista</div>
           {[
-            { id: 'calendar', icon: Calendar,      label: 'Calendario' },
-            { id: 'monthly',  icon: BarChart3,      label: 'Reporte' },
-            { id: 'grocery',  icon: ShoppingCart,   label: 'Compras' },
-            { id: 'settings', icon: Settings2,      label: 'Ajustes' },
+            { id: 'calendar',  icon: Calendar,     label: 'Calendario' },
+            { id: 'monthly',   icon: BarChart3,     label: 'Reporte' },
+            { id: 'grocery',   icon: ShoppingCart,  label: 'Compras' },
+            { id: 'servicios', icon: Receipt,       label: 'Servicios' },
+            { id: 'habitos',   icon: Flame,         label: 'Hábitos' },
+            { id: 'notas',     icon: StickyNote,    label: 'Notas' },
+            { id: 'docs',      icon: FileKey2,      label: 'Documentos' },
+            { id: 'settings',  icon: Settings2,     label: 'Ajustes' },
           ].map(({ id, icon: Icon, label }) => (
             <button
               key={id}
@@ -445,9 +454,13 @@ function Planner({ user, onSignOut }) {
           </>
         ) : (
           <div key={viewKey} className="animate-viewIn" style={{ flex: 1, overflow: 'auto', padding: '40px 48px' }}>
-            {view === 'monthly'  && <MonthlyReport expenses={expenses} />}
-            {view === 'grocery'  && <GroceryList />}
-            {view === 'settings' && <Settings user={user} />}
+            {view === 'monthly'   && <MonthlyReport expenses={expenses} />}
+            {view === 'grocery'   && <GroceryList />}
+            {view === 'servicios' && <Servicios onAddExpense={addExpense} />}
+            {view === 'habitos'   && <Habitos />}
+            {view === 'notas'     && <QuickNotes />}
+            {view === 'docs'      && <Documentos />}
+            {view === 'settings'  && <Settings user={user} />}
           </div>
         )}
       </div>
