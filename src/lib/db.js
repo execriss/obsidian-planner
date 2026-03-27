@@ -121,7 +121,7 @@ function dbToExpense(row) {
     amount:   Number(row.amount),
     desc:     row.description,
     category: row.category,
-    date:     row.date + 'T00:00:00.000Z',
+    date:     row.date + 'T12:00:00',
   };
 }
 
