@@ -62,6 +62,17 @@ export async function createExpense(userId, expense) {
   return dbToExpense(data);
 }
 
+export async function updateExpense(expenseId, updates) {
+  const { data, error } = await supabase
+    .from('expenses')
+    .update(expenseToDb(updates))
+    .eq('id', expenseId)
+    .select()
+    .single();
+  if (error) throw error;
+  return dbToExpense(data);
+}
+
 export async function deleteExpense(expenseId) {
   const { error } = await supabase.from('expenses').delete().eq('id', expenseId);
   if (error) throw error;

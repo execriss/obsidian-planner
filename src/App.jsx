@@ -31,8 +31,8 @@ function Planner({ user, onSignOut }) {
 
   const {
     tasks, expenses, loading,
-    addTask, toggleTask, removeTask,
-    addExpense, removeExpense,
+    addTask, toggleTask, removeTask, editTask,
+    addExpense, removeExpense, editExpense,
     migrateFromLocalStorage,
   } = useData(user.id);
 
@@ -302,8 +302,10 @@ function Planner({ user, onSignOut }) {
                 onAddTask={addTask}
                 onToggleTask={toggleTask}
                 onDeleteTask={removeTask}
+                onEditTask={editTask}
                 onAddExpense={addExpense}
                 onDeleteExpense={removeExpense}
+                onEditExpense={editExpense}
                 onClose={() => setSelectedDate(null)}
               />
             )}

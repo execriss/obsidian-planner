@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   fetchTasks, createTask, updateTask, deleteTask,
-  fetchExpenses, createExpense, deleteExpense,
+  fetchExpenses, createExpense, updateExpense, deleteExpense,
 } from '../lib/db.js';
 
 export function useData(userId) {
@@ -48,6 +48,18 @@ export function useData(userId) {
     }
   }, []);
 
+  const editTask = useCallback(async (id, updates) => {
+    const prev = tasks.find(t => t.id === id);
+    if (!prev) return;
+    setTasks(ts => ts.map(t => t.id === id ? { ...t, ...updates } : t));
+    try {
+      const updated = await updateTask(id, updates);
+      setTasks(ts => ts.map(t => t.id === id ? updated : t));
+    } catch {
+      setTasks(ts => ts.map(t => t.id === id ? prev : t));
+    }
+  }, [tasks]);
+
   // ── Expense actions ───────────────────────────────────
 
   const addExpense = useCallback(async (expenseData) => {
@@ -64,6 +76,18 @@ export function useData(userId) {
       setExpenses(prev => [...prev]);
     }
   }, []);
+
+  const editExpense = useCallback(async (id, updates) => {
+    const prev = expenses.find(e => e.id === id);
+    if (!prev) return;
+    setExpenses(es => es.map(e => e.id === id ? { ...e, ...updates } : e));
+    try {
+      const updated = await updateExpense(id, updates);
+      setExpenses(es => es.map(e => e.id === id ? updated : e));
+    } catch {
+      setExpenses(es => es.map(e => e.id === id ? prev : e));
+    }
+  }, [expenses]);
 
   // ── localStorage migration (one-time) ────────────────
 
@@ -93,8 +117,8 @@ export function useData(userId) {
 
   return {
     tasks, expenses, loading,
-    addTask, toggleTask, removeTask,
-    addExpense, removeExpense,
+    addTask, toggleTask, removeTask, editTask,
+    addExpense, removeExpense, editExpense,
     migrateFromLocalStorage,
   };
 }

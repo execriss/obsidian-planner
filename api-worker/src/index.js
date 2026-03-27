@@ -91,6 +91,7 @@ export default {
     const expenseMatch = path.match(/^\/expenses\/([^/]+)$/);
     if (expenseMatch) {
       const id = expenseMatch[1];
+      if (method === 'PATCH')  return updateExpense(id, request, userId, supabase);
       if (method === 'DELETE') return deleteExpense(id, userId, supabase);
     }
 
@@ -204,6 +205,26 @@ async function createExpense(request, userId, supabase) {
     .select().single();
 
   if (error) return err(error.message, 500);
+  return ok(toExpense(data));
+}
+
+async function updateExpense(id, request, userId, supabase) {
+  let body;
+  try { body = await request.json(); } catch { return err('JSON inválido', 400); }
+
+  const allowed = ['type', 'amount', 'description', 'category', 'date'];
+  const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)));
+  if (updates.amount !== undefined) updates.amount = Number(updates.amount);
+  if (Object.keys(updates).length === 0) return err('No hay campos válidos para actualizar', 400);
+
+  const { data, error } = await supabase
+    .from('expenses')
+    .update(updates)
+    .eq('id', id)
+    .eq('user_id', userId)
+    .select().single();
+
+  if (error || !data) return err('Movimiento no encontrado', 404);
   return ok(toExpense(data));
 }
 
@@ -440,6 +461,16 @@ function docs() {
   "description": "Almuerzo",        // requerido
   "date":        "2026-03-26",      // requerido (YYYY-MM-DD)
   "category":    "Alimentación"     // opcional (default: "Otro")
+}</code></pre>
+
+  <h3><span class="badge PATCH">PATCH</span> /expenses/:id</h3>
+  <p>Actualiza campos de un movimiento. Enviá solo los que querés cambiar.</p>
+  <pre><code>{
+  "type":        "income",
+  "amount":      2000,
+  "description": "Nuevo texto",
+  "category":    "Salario",
+  "date":        "2026-03-27"
 }</code></pre>
 
   <h3><span class="badge DELETE">DELETE</span> /expenses/:id</h3>
