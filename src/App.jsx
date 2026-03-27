@@ -3,12 +3,14 @@ import {
   Calendar, BarChart3, ChevronLeft, ChevronRight,
   Sparkles, CheckSquare, TrendingUp, TrendingDown, LogOut, User, Settings2,
 } from 'lucide-react';
-import { format, addMonths, subMonths, isToday, isSameMonth } from 'date-fns';
+import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfWeek, isToday, isSameMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from './contexts/AuthContext.jsx';
 import { useData } from './hooks/useData.js';
 import AuthGate from './components/AuthGate.jsx';
 import BigCalendar from './components/BigCalendar.jsx';
+import WeekView from './components/WeekView.jsx';
+import DayView from './components/DayView.jsx';
 import DayPanel from './components/DayPanel.jsx';
 import MonthlyReport from './components/MonthlyReport.jsx';
 import Settings from './components/Settings.jsx';
@@ -25,6 +27,8 @@ function Planner({ user, onSignOut }) {
   const [viewMonth, setViewMonth]     = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [view, setView]               = useState('calendar');
+  const [calView, setCalView]         = useState('month'); // 'month' | 'week' | 'day'
+  const [viewWeek, setViewWeek]       = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [viewKey, setViewKey]         = useState(0);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [migrationMsg, setMigrationMsg] = useState('');
@@ -66,6 +70,26 @@ function Planner({ user, onSignOut }) {
       prev && format(prev, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') ? null : day
     );
     if (!isSameMonth(day, viewMonth)) setViewMonth(day);
+    setViewWeek(startOfWeek(day, { weekStartsOn: 1 }));
+  };
+
+  const handlePrevNav = () => {
+    if (calView === 'month') changeMonth('prev');
+    else if (calView === 'week') setViewWeek(w => subWeeks(w, 1));
+    else setSelectedDate(d => subDays(d || new Date(), 1));
+  };
+
+  const handleNextNav = () => {
+    if (calView === 'month') changeMonth('next');
+    else if (calView === 'week') setViewWeek(w => addWeeks(w, 1));
+    else setSelectedDate(d => addDays(d || new Date(), 1));
+  };
+
+  const handleToday = () => {
+    const today = new Date();
+    setViewMonth(today);
+    setSelectedDate(today);
+    setViewWeek(startOfWeek(today, { weekStartsOn: 1 }));
   };
 
   const pendingToday = tasks.filter(t => isToday(new Date(t.date)) && !t.done).length;
@@ -283,32 +307,139 @@ function Planner({ user, onSignOut }) {
       </aside>
 
       {/* ── MAIN ── */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
         {view === 'calendar' ? (
           <>
-            <BigCalendar
-              viewMonth={viewMonth}
-              selectedDate={selectedDate}
-              onSelectDate={handleSelectDate}
-              tasks={tasks}
-              expenses={expenses}
-            />
-            {selectedDate && (
-              <DayPanel
-                key={format(selectedDate, 'yyyy-MM-dd')}
-                date={selectedDate}
-                tasks={tasks}
-                expenses={expenses}
-                onAddTask={addTask}
-                onToggleTask={toggleTask}
-                onDeleteTask={removeTask}
-                onEditTask={editTask}
-                onAddExpense={addExpense}
-                onDeleteExpense={removeExpense}
-                onEditExpense={editExpense}
-                onClose={() => setSelectedDate(null)}
-              />
-            )}
+            {/* View switcher bar */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '8px 16px',
+              borderBottom: '1px solid var(--border)',
+              background: 'var(--obsidian-2)', flexShrink: 0,
+            }}>
+              {/* Prev / Today / Next */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <NavBtn onClick={handlePrevNav}><ChevronLeft size={13} /></NavBtn>
+                <button
+                  onClick={handleToday}
+                  style={{
+                    padding: '5px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 500,
+                    color: 'var(--cream-muted)', border: '1px solid var(--border)',
+                    background: 'transparent', transition: 'all 0.2s var(--ease-spring)',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--amber-glow)'; e.currentTarget.style.color = 'var(--amber)'; e.currentTarget.style.borderColor = 'var(--amber-dim)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--cream-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+                >
+                  Hoy
+                </button>
+                <NavBtn onClick={handleNextNav}><ChevronRight size={13} /></NavBtn>
+              </div>
+
+              {/* Month/Week/Day segmented control */}
+              <div style={{
+                display: 'flex', background: 'var(--obsidian-4)',
+                borderRadius: '10px', padding: '3px', gap: '2px',
+              }}>
+                {[['month', 'Mes'], ['week', 'Semana'], ['day', 'Día']].map(([id, label]) => (
+                  <button
+                    key={id}
+                    onClick={() => setCalView(id)}
+                    style={{
+                      padding: '5px 14px', borderRadius: '8px',
+                      fontSize: '11px', fontWeight: calView === id ? 600 : 400,
+                      color: calView === id ? 'var(--amber)' : 'var(--cream-muted)',
+                      background: calView === id ? 'var(--amber-glow)' : 'transparent',
+                      border: calView === id ? '1px solid var(--amber-dim)' : '1px solid transparent',
+                      transition: 'all 0.2s var(--ease-spring)',
+                    }}
+                    onMouseEnter={e => { if (calView !== id) { e.currentTarget.style.color = 'var(--cream)'; e.currentTarget.style.background = 'var(--obsidian-3)'; } }}
+                    onMouseLeave={e => { if (calView !== id) { e.currentTarget.style.color = 'var(--cream-muted)'; e.currentTarget.style.background = 'transparent'; } }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Spacer para centrar el segmented control */}
+              <div style={{ width: '100px' }} />
+            </div>
+
+            {/* Calendar content */}
+            <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+              {calView === 'month' && (
+                <>
+                  <BigCalendar
+                    viewMonth={viewMonth}
+                    selectedDate={selectedDate}
+                    onSelectDate={handleSelectDate}
+                    tasks={tasks}
+                    expenses={expenses}
+                  />
+                  {selectedDate && (
+                    <DayPanel
+                      key={format(selectedDate, 'yyyy-MM-dd')}
+                      date={selectedDate}
+                      tasks={tasks}
+                      expenses={expenses}
+                      onAddTask={addTask}
+                      onToggleTask={toggleTask}
+                      onDeleteTask={removeTask}
+                      onEditTask={editTask}
+                      onAddExpense={addExpense}
+                      onDeleteExpense={removeExpense}
+                      onEditExpense={editExpense}
+                      onClose={() => setSelectedDate(null)}
+                    />
+                  )}
+                </>
+              )}
+
+              {calView === 'week' && (
+                <>
+                  <WeekView
+                    weekStart={viewWeek}
+                    selectedDate={selectedDate}
+                    onSelectDate={handleSelectDate}
+                    tasks={tasks}
+                    expenses={expenses}
+                  />
+                  {selectedDate && (
+                    <DayPanel
+                      key={format(selectedDate, 'yyyy-MM-dd')}
+                      date={selectedDate}
+                      tasks={tasks}
+                      expenses={expenses}
+                      onAddTask={addTask}
+                      onToggleTask={toggleTask}
+                      onDeleteTask={removeTask}
+                      onEditTask={editTask}
+                      onAddExpense={addExpense}
+                      onDeleteExpense={removeExpense}
+                      onEditExpense={editExpense}
+                      onClose={() => setSelectedDate(null)}
+                    />
+                  )}
+                </>
+              )}
+
+              {calView === 'day' && (
+                <DayView
+                  key={format(selectedDate || new Date(), 'yyyy-MM-dd')}
+                  date={selectedDate || new Date()}
+                  tasks={tasks}
+                  expenses={expenses}
+                  onAddTask={addTask}
+                  onToggleTask={toggleTask}
+                  onDeleteTask={removeTask}
+                  onEditTask={editTask}
+                  onAddExpense={addExpense}
+                  onDeleteExpense={removeExpense}
+                  onEditExpense={editExpense}
+                  onPrevDay={handlePrevNav}
+                  onNextDay={handleNextNav}
+                />
+              )}
+            </div>
           </>
         ) : (
           <div key={viewKey} className="animate-viewIn" style={{ flex: 1, overflow: 'auto', padding: '40px 48px' }}>
