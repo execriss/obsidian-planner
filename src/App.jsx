@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   Calendar, BarChart3, ChevronLeft, ChevronRight,
-  Sparkles, CheckSquare, TrendingUp, TrendingDown, LogOut, User, Settings2,
+  Sparkles, CheckSquare, TrendingUp, TrendingDown, LogOut, User, Settings2, ShoppingCart,
 } from 'lucide-react';
 import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfWeek, isToday, isSameMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -13,6 +13,7 @@ import WeekView from './components/WeekView.jsx';
 import DayView from './components/DayView.jsx';
 import DayPanel from './components/DayPanel.jsx';
 import MonthlyReport from './components/MonthlyReport.jsx';
+import GroceryList from './components/GroceryList.jsx';
 import Settings from './components/Settings.jsx';
 
 export default function App() {
@@ -220,9 +221,10 @@ function Planner({ user, onSignOut }) {
         <div style={{ padding: '12px 10px' }}>
           <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cream-muted)', marginBottom: '8px', fontWeight: 600, paddingLeft: '6px' }}>Vista</div>
           {[
-            { id: 'calendar', icon: Calendar,  label: 'Calendario' },
-            { id: 'monthly',  icon: BarChart3,  label: 'Reporte' },
-            { id: 'settings', icon: Settings2, label: 'Ajustes' },
+            { id: 'calendar', icon: Calendar,      label: 'Calendario' },
+            { id: 'monthly',  icon: BarChart3,      label: 'Reporte' },
+            { id: 'grocery',  icon: ShoppingCart,   label: 'Compras' },
+            { id: 'settings', icon: Settings2,      label: 'Ajustes' },
           ].map(({ id, icon: Icon, label }) => (
             <button
               key={id}
@@ -444,6 +446,7 @@ function Planner({ user, onSignOut }) {
         ) : (
           <div key={viewKey} className="animate-viewIn" style={{ flex: 1, overflow: 'auto', padding: '40px 48px' }}>
             {view === 'monthly'  && <MonthlyReport expenses={expenses} />}
+            {view === 'grocery'  && <GroceryList />}
             {view === 'settings' && <Settings user={user} />}
           </div>
         )}
