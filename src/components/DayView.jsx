@@ -31,6 +31,7 @@ export default function DayView({
   onAddTask, onToggleTask, onDeleteTask, onEditTask,
   onAddExpense, onDeleteExpense, onEditExpense,
   onPrevDay, onNextDay,
+  isMobile,
 }) {
   const dayTasks    = tasks.filter(t => isSameDay(new Date(t.date), date));
   const dayExpenses = expenses.filter(e => isSameDay(new Date(e.date), date));
@@ -56,6 +57,9 @@ export default function DayView({
 
   // Deleting animation
   const [deletingIds, setDeletingIds] = useState(new Set());
+
+  // Mobile tab
+  const [mobileTab, setMobileTab] = useState('tasks');
 
   const addTask = async () => {
     if (!newTask.trim()) return;
@@ -91,22 +95,22 @@ export default function DayView({
       {/* Day header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '16px 32px',
+        padding: isMobile ? '10px 12px' : '16px 32px',
         borderBottom: '1px solid var(--border)',
         background: 'var(--obsidian-2)', flexShrink: 0,
         animation: 'fadeDown 0.3s var(--ease-out) both',
       }}>
         <NavArrow onClick={onPrevDay} dir="left" />
 
-        <div style={{ textAlign: 'center' }}>
+        <div style={{ textAlign: 'center', flex: isMobile ? 1 : 'none', minWidth: 0 }}>
           <div style={{
-            fontFamily: 'var(--font-display)', fontSize: '26px', fontWeight: 700,
+            fontFamily: 'var(--font-display)', fontSize: isMobile ? '20px' : '26px', fontWeight: 700,
             color: 'var(--cream)', letterSpacing: '-0.02em', lineHeight: 1,
           }}>
             {format(date, "d 'de' MMMM", { locale: es })}
           </div>
           <div style={{
-            fontSize: '10px', color: 'var(--cream-muted)',
+            fontSize: isMobile ? '9px' : '10px', color: 'var(--cream-muted)',
             letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '4px',
           }}>
             {format(date, 'EEEE · yyyy', { locale: es })}
@@ -146,14 +150,43 @@ export default function DayView({
         <NavArrow onClick={onNextDay} dir="right" />
       </div>
 
-      {/* Two-column content */}
+      {/* Mobile tabs */}
+      {isMobile && (
+        <div style={{
+          display: 'flex', borderBottom: '1px solid var(--border)',
+          flexShrink: 0, background: 'var(--obsidian-2)',
+        }}>
+          {[['tasks', 'Tareas'], ['finance', 'Finanzas']].map(([id, label]) => (
+            <button
+              key={id}
+              onClick={() => setMobileTab(id)}
+              style={{
+                flex: 1, padding: '10px', fontSize: '12px', fontWeight: 600,
+                color: mobileTab === id ? 'var(--amber)' : 'var(--cream-muted)',
+                borderBottom: mobileTab === id ? '2px solid var(--amber)' : '2px solid transparent',
+                transition: 'color 0.2s ease, border-color 0.25s var(--ease-out)',
+                letterSpacing: '0.04em', textTransform: 'uppercase',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Content */}
       <div style={{
         flex: 1, overflow: 'auto',
         display: 'flex', justifyContent: 'center',
-        padding: '32px 24px', gap: '24px',
+        padding: isMobile ? '16px 12px' : '32px 24px',
+        gap: isMobile ? 0 : '24px',
+        flexDirection: isMobile ? 'column' : 'row',
       }}>
         {/* Tasks column */}
-        <div style={{ flex: 1, maxWidth: '420px' }}>
+        <div style={{
+          flex: 1, maxWidth: isMobile ? 'none' : '420px',
+          display: isMobile && mobileTab !== 'tasks' ? 'none' : 'block',
+        }}>
           <SectionTitle>Tareas</SectionTitle>
 
           {/* Add task button */}
@@ -224,7 +257,10 @@ export default function DayView({
         </div>
 
         {/* Finance column */}
-        <div style={{ flex: 1, maxWidth: '420px' }}>
+        <div style={{
+          flex: 1, maxWidth: isMobile ? 'none' : '420px',
+          display: isMobile && mobileTab !== 'finance' ? 'none' : 'block',
+        }}>
           <SectionTitle>Finanzas</SectionTitle>
 
           <AddBtn active={showFinForm} onClick={() => setShowFinForm(!showFinForm)} label="Agregar movimiento" />

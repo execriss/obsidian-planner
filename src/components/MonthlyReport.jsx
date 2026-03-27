@@ -20,7 +20,7 @@ const CAT_COLORS = {
   'Regalo': '#E891A5',
 };
 
-export default function MonthlyReport({ expenses }) {
+export default function MonthlyReport({ expenses, isMobile }) {
   const [viewMonth, setViewMonth] = useState(new Date());
 
   const monthItems = expenses.filter(e => isSameMonth(new Date(e.date), viewMonth));
@@ -60,9 +60,9 @@ export default function MonthlyReport({ expenses }) {
   return (
     <div style={{ animation: 'scaleIn 0.3s ease' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '28px' }}>
+      <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'flex-end', justifyContent: 'space-between', marginBottom: isMobile ? '20px' : '28px', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '12px' : 0 }}>
         <div>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: '36px', fontWeight: 700, color: 'var(--cream)', lineHeight: 1, letterSpacing: '-0.02em' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '26px' : '36px', fontWeight: 700, color: 'var(--cream)', lineHeight: 1, letterSpacing: '-0.02em' }}>
             Reporte Mensual
           </div>
           <div style={{ fontSize: '11px', color: 'var(--cream-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '6px' }}>
@@ -93,7 +93,7 @@ export default function MonthlyReport({ expenses }) {
       </div>
 
       {/* Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '28px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: '12px', marginBottom: isMobile ? '20px' : '28px' }}>
         {[
           { label: 'Ingresos totales', value: totalIncome, icon: TrendingUp, color: 'var(--sage)', bg: 'var(--sage-dim)' },
           { label: 'Gastos totales', value: totalExpense, icon: TrendingDown, color: 'var(--coral)', bg: 'var(--coral-dim)' },
@@ -176,7 +176,7 @@ export default function MonthlyReport({ expenses }) {
       </div>
 
       {/* Categories breakdown */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
         {[
           { title: 'Gastos por categoría', data: byCategory, total: totalExpense, type: 'expense' },
           { title: 'Ingresos por categoría', data: incomeByCategory, total: totalIncome, type: 'income' },

@@ -16,7 +16,7 @@ const fmt = (n) =>
     style: 'currency', currency: 'ARS', minimumFractionDigits: 0,
   }).format(n);
 
-export default function DayPanel({ date, tasks, expenses, onAddTask, onToggleTask, onDeleteTask, onEditTask, onAddExpense, onDeleteExpense, onEditExpense, onClose }) {
+export default function DayPanel({ date, tasks, expenses, onAddTask, onToggleTask, onDeleteTask, onEditTask, onAddExpense, onDeleteExpense, onEditExpense, onClose, isModal }) {
   const [activeSection, setActiveSection] = useState('tasks');
   const [tabKey, setTabKey] = useState(0); // triggers re-mount for tab animation
 
@@ -99,12 +99,12 @@ export default function DayPanel({ date, tasks, expenses, onAddTask, onToggleTas
 
   return (
     <div
-      className="animate-slideInRight"
+      className={isModal ? '' : 'animate-slideInRight'}
       style={{
-        width: '340px',
+        width: isModal ? '100%' : '340px',
         flexShrink: 0,
-        borderLeft: '1px solid var(--border)',
-        background: 'var(--obsidian-2)',
+        borderLeft: isModal ? 'none' : '1px solid var(--border)',
+        background: isModal ? 'transparent' : 'var(--obsidian-2)',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
@@ -112,6 +112,7 @@ export default function DayPanel({ date, tasks, expenses, onAddTask, onToggleTas
       }}
     >
       {/* Header */}
+      {!isModal && (
       <div style={{
         padding: '20px 20px 16px',
         borderBottom: '1px solid var(--border)',
@@ -204,6 +205,35 @@ export default function DayPanel({ date, tasks, expenses, onAddTask, onToggleTas
           )}
         </div>
       </div>
+      )}
+
+      {/* Summary pills for modal mode */}
+      {isModal && (
+        <div style={{
+          display: 'flex', gap: '6px', flexWrap: 'wrap',
+          padding: '0 16px 10px', flexShrink: 0,
+        }}>
+          <div style={{
+            padding: '4px 10px', borderRadius: '8px',
+            background: 'var(--obsidian-4)', border: '1px solid var(--border)',
+            fontSize: '11px', color: 'var(--cream-dim)',
+            display: 'flex', alignItems: 'center', gap: '6px',
+          }}>
+            {dayTasks.length} tarea{dayTasks.length !== 1 ? 's' : ''}
+          </div>
+          {(dayIncome > 0 || dayExpense > 0) && (
+            <div style={{
+              padding: '4px 10px', borderRadius: '8px',
+              background: balance >= 0 ? 'var(--sage-dim)' : 'var(--coral-dim)',
+              border: `1px solid ${balance >= 0 ? 'var(--sage)' : 'var(--coral)'}33`,
+              fontSize: '11px', fontWeight: 600,
+              color: balance >= 0 ? 'var(--sage)' : 'var(--coral)',
+            }}>
+              {balance >= 0 ? '+' : ''}{fmt(balance)}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Section tabs */}
       <div style={{

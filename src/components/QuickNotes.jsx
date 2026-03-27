@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plus, Trash2, Pin, PinOff, StickyNote } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
+import { useIsMobile } from '../hooks/useIsMobile.js';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -17,6 +18,7 @@ const colorById = Object.fromEntries(COLORS.map(c => [c.id, c]));
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
 export default function QuickNotes() {
+  const isMobile = useIsMobile();
   const [notes, setNotes] = useLocalStorage('quick_notes', []);
   const [showNew, setShowNew]   = useState(false);
   const [editId, setEditId]     = useState(null);
@@ -190,7 +192,7 @@ export default function QuickNotes() {
           <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cream-muted)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Pin size={10} /> Fijadas
           </div>
-          <NoteGrid notes={pinned} deletingIds={deletingIds} onEdit={startEdit} onTogglePin={togglePin} onDelete={deleteNote} />
+          <NoteGrid notes={pinned} deletingIds={deletingIds} onEdit={startEdit} onTogglePin={togglePin} onDelete={deleteNote} isMobile={isMobile} />
         </div>
       )}
 
@@ -202,18 +204,18 @@ export default function QuickNotes() {
               Otras notas
             </div>
           )}
-          <NoteGrid notes={unpinned} deletingIds={deletingIds} onEdit={startEdit} onTogglePin={togglePin} onDelete={deleteNote} />
+          <NoteGrid notes={unpinned} deletingIds={deletingIds} onEdit={startEdit} onTogglePin={togglePin} onDelete={deleteNote} isMobile={isMobile} />
         </div>
       )}
     </div>
   );
 }
 
-function NoteGrid({ notes, deletingIds, onEdit, onTogglePin, onDelete }) {
+function NoteGrid({ notes, deletingIds, onEdit, onTogglePin, onDelete, isMobile }) {
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+      gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(240px, 1fr))',
       gap: '12px',
     }}>
       {notes.map((note, i) => {

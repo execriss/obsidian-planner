@@ -261,3 +261,102 @@ input, textarea, select {
   background-size: 200% auto;
   animation: shimmerBar 2s linear infinite;
 }
+
+/* ──────────── BOTTOM SHEET ──────────── */
+
+@keyframes bottomSheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes bottomSheetDown {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
+
+.bottom-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 50;
+  animation: fadeIn 0.2s ease both;
+}
+
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 90vh;
+  background: var(--obsidian-2);
+  border-radius: 20px 20px 0 0;
+  z-index: 51;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: bottomSheetUp 0.35s var(--ease-out) both;
+}
+
+.bottom-sheet-closing {
+  animation: bottomSheetDown 0.25s var(--ease-in-out) forwards;
+}
+
+.bottom-sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-light);
+  margin: 10px auto 6px;
+  flex-shrink: 0;
+}
+
+/* ──────────── RESPONSIVE ──────────── */
+
+@media (max-width: 639px) {
+  body {
+    overflow: auto;
+  }
+
+  /* Bottom nav overrides */
+  .mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: var(--obsidian-2);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 40;
+    padding: 0 4px;
+  }
+
+  .mobile-bottom-nav button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-size: 9px;
+    min-width: 44px;
+    transition: all 0.15s ease;
+  }
+
+  /* Calendar cells mobile: hide task text, only show dots */
+  .cal-cell-mobile-dots {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .cal-cell-mobile-dots .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+}

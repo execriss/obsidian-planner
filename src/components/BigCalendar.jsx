@@ -15,7 +15,7 @@ const fmt = (n) =>
     style: 'currency', currency: 'ARS', minimumFractionDigits: 0,
   }).format(n);
 
-export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tasks, expenses }) {
+export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tasks, expenses, isMobile }) {
   const prevMonthRef = useRef(viewMonth);
   const direction = viewMonth > prevMonthRef.current ? 'next' : 'prev';
   prevMonthRef.current = viewMonth;
@@ -26,7 +26,7 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
   const calEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: calStart, end: calEnd });
 
-  const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  const DAY_NAMES = isMobile ? ['L', 'M', 'X', 'J', 'V', 'S', 'D'] : ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
   const tasksByDay = useMemo(() => {
     const map = {};
@@ -64,13 +64,14 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
       }}>
         {DAY_NAMES.map((name, i) => (
           <div key={name} style={{
-            padding: '10px 14px',
-            fontSize: '10px',
+            padding: isMobile ? '6px 2px' : '10px 14px',
+            fontSize: isMobile ? '9px' : '10px',
             fontWeight: 600,
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             color: i >= 5 ? 'var(--amber-dim)' : 'var(--cream-muted)',
             borderRight: i < 6 ? '1px solid var(--border)' : 'none',
+            textAlign: isMobile ? 'center' : 'left',
           }}>
             {name}
           </div>
@@ -116,10 +117,11 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
                 animationDelay: staggerDelay,
                 borderRight: (i + 1) % 7 !== 0 ? '1px solid var(--border)' : 'none',
                 borderBottom: i < days.length - 7 ? '1px solid var(--border)' : 'none',
-                padding: '8px',
+                padding: isMobile ? '4px 2px' : '8px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '4px',
+                gap: isMobile ? '2px' : '4px',
+                alignItems: isMobile ? 'center' : 'stretch',
                 cursor: 'pointer',
                 background: selected
                   ? 'rgba(240,165,0,0.07)'
@@ -145,20 +147,20 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
               {/* Day number + progress */}
               <div style={{
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '2px',
+                alignItems: isMobile ? 'center' : 'center',
+                justifyContent: isMobile ? 'center' : 'space-between',
+                marginBottom: isMobile ? '1px' : '2px',
               }}>
                 <span
                   className={today ? 'today-badge' : ''}
                   style={{
-                    width: '26px',
-                    height: '26px',
-                    borderRadius: '8px',
+                    width: isMobile ? '22px' : '26px',
+                    height: isMobile ? '22px' : '26px',
+                    borderRadius: isMobile ? '50%' : '8px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '13px',
+                    fontSize: isMobile ? '11px' : '13px',
                     fontWeight: today ? 700 : 500,
                     color: today ? 'var(--obsidian)' : inMonth ? 'var(--cream)' : 'var(--cream-muted)',
                     background: today ? 'var(--amber)' : 'transparent',
@@ -170,7 +172,7 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
                   {format(day, 'd')}
                 </span>
 
-                {dayTasks.length > 0 && (
+                {!isMobile && dayTasks.length > 0 && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <div style={{
                       width: '28px', height: '4px',
@@ -199,6 +201,25 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
                 )}
               </div>
 
+              {/* Mobile: colored dots for tasks & finance */}
+              {isMobile ? (
+                <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                  {dayTasks.slice(0, 4).map(task => (
+                    <div key={task.id} style={{
+                      width: '5px', height: '5px', borderRadius: '50%',
+                      background: task.done ? 'var(--border-light)' : PRIORITY_COLORS[task.priority],
+                      opacity: task.done ? 0.5 : 0.8,
+                    }} />
+                  ))}
+                  {dayFin && dayFin.income > 0 && (
+                    <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--sage)', opacity: 0.8 }} />
+                  )}
+                  {dayFin && dayFin.expense > 0 && (
+                    <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--coral)', opacity: 0.8 }} />
+                  )}
+                </div>
+              ) : (
+                <>
               {/* Finance chips */}
               {dayFin && (dayFin.income > 0 || dayFin.expense > 0) && (
                 <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
@@ -285,6 +306,8 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
                 }}>
                   +{overflow} más
                 </div>
+              )}
+                </>
               )}
             </div>
           );

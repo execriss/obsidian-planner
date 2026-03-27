@@ -6,6 +6,7 @@ import {
   Zap, Flame, Droplets, Wifi, Phone, Shield, Tv, Building2, Receipt,
 } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
+import { useIsMobile } from '../hooks/useIsMobile.js';
 
 // ─── Presets ─────────────────────────────────────────────────────────────────
 
@@ -43,6 +44,7 @@ function fmtMoney(n) { return new Intl.NumberFormat('es-AR', { style: 'currency'
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function Servicios({ onAddExpense }) {
+  const isMobile = useIsMobile();
   const [services, setServices] = useLocalStorage('services', []);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId]     = useState(null);
@@ -183,7 +185,7 @@ export default function Servicios({ onAddExpense }) {
       {/* Month summary bar */}
       {services.length > 0 && (
         <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px',
+          display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '10px',
           marginBottom: '24px', animation: 'fadeUp 0.3s var(--ease-spring) 0.05s both',
         }}>
           {[
@@ -230,7 +232,7 @@ export default function Servicios({ onAddExpense }) {
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
             <input autoFocus value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               placeholder="Nombre del servicio" style={inputSt}
               onFocus={e => e.target.style.borderColor = '#A47BD4'} onBlur={e => e.target.style.borderColor = 'var(--border-light)'} />
@@ -245,7 +247,7 @@ export default function Servicios({ onAddExpense }) {
           </div>
 
           {/* Category */}
-          <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '6px', marginBottom: '14px' }}>
             {Object.entries(CAT_LABELS).map(([catId, meta]) => (
               <button key={catId} onClick={() => setForm(f => ({ ...f, cat: catId }))} style={{
                 flex: 1, padding: '7px 4px', borderRadius: '9px', fontSize: '10px', fontWeight: 600,
@@ -281,7 +283,7 @@ export default function Servicios({ onAddExpense }) {
         }} onClick={() => setPayingId(null)}>
           <div onClick={e => e.stopPropagation()} className="form-spring" style={{
             background: 'var(--obsidian-2)', border: '1px solid var(--border-light)',
-            borderRadius: '20px', padding: '28px', width: '340px',
+            borderRadius: isMobile ? '16px' : '20px', padding: isMobile ? '20px' : '28px', width: isMobile ? 'calc(100vw - 32px)' : '340px', maxWidth: '340px',
             boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
           }}>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: 700, color: 'var(--cream)', marginBottom: '6px' }}>
@@ -364,6 +366,7 @@ export default function Servicios({ onAddExpense }) {
                   onEdit={startEdit}
                   onDelete={deleteService}
                   onCopy={copyId}
+                  isMobile={isMobile}
                 />
               );
             })}
@@ -376,7 +379,7 @@ export default function Servicios({ onAddExpense }) {
 
 // ─── ServiceCard ──────────────────────────────────────────────────────────────
 
-function ServiceCard({ svc, i, paid, lastPayments, isDeleting, copied, onPay, onEdit, onDelete, onCopy }) {
+function ServiceCard({ svc, i, paid, lastPayments, isDeleting, copied, onPay, onEdit, onDelete, onCopy, isMobile }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -393,7 +396,7 @@ function ServiceCard({ svc, i, paid, lastPayments, isDeleting, copied, onPay, on
       onMouseLeave={e => e.currentTarget.style.transform = 'translateX(0)'}
     >
       {/* Main row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px' }}>
+      <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '10px' : '12px', padding: isMobile ? '12px' : '14px 16px', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
         {/* Icon */}
         <div style={{
           width: '42px', height: '42px', borderRadius: '12px', flexShrink: 0,

@@ -3,6 +3,7 @@ import { format, subDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Plus, Trash2, Flame, Check } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
+import { useIsMobile } from '../hooks/useIsMobile.js';
 
 const COLORS = [
   { id: 'sage',   color: '#5FAD8E', dim: 'rgba(95,173,142,0.18)' },
@@ -62,6 +63,7 @@ const inputSt = {
 };
 
 export default function Habitos() {
+  const isMobile = useIsMobile();
   const [habits, setHabits] = useLocalStorage('habits', []);
   const [showForm, setShowForm] = useState(false);
   const [name, setName]         = useState('');
@@ -277,7 +279,7 @@ export default function Habitos() {
                   onClick={() => toggleToday(habit.id)}
                   className={checkingIds.has(habit.id) ? 'check-done' : ''}
                   style={{
-                    width: '48px', height: '48px', borderRadius: '14px', flexShrink: 0,
+                    width: isMobile ? '40px' : '48px', height: isMobile ? '40px' : '48px', borderRadius: isMobile ? '11px' : '14px', flexShrink: 0,
                     border: `2px solid ${done ? c.color : c.color + '66'}`,
                     background: done ? c.color : 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',

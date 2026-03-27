@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   ShoppingCart, Plus, Trash2, Check, ChevronDown, ChevronUp, Sparkles,
 } from 'lucide-react';
+import { useIsMobile } from '../hooks/useIsMobile.js';
 
 // ─── Categories ───────────────────────────────────────────────────────────────
 
@@ -32,6 +33,7 @@ function uid() {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function GroceryList() {
+  const isMobile = useIsMobile();
   const [items, setItems]             = useState(loadItems);
   const [showForm, setShowForm]       = useState(false);
   const [newText, setNewText]         = useState('');
@@ -224,7 +226,7 @@ export default function GroceryList() {
 
           {/* Category grid */}
           <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+            display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
             gap: '6px', marginBottom: '14px',
           }}>
             {CATS.map(cat => (
@@ -305,6 +307,7 @@ export default function GroceryList() {
               isDeleting={deletingIds.has(item.id)}
               onToggle={toggleItem}
               onDelete={deleteItem}
+              isMobile={isMobile}
             />
           ))}
         </div>
@@ -411,7 +414,7 @@ export default function GroceryList() {
 
 // ─── ItemRow ──────────────────────────────────────────────────────────────────
 
-function ItemRow({ item, i, isChecking, isDeleting, onToggle, onDelete }) {
+function ItemRow({ item, i, isChecking, isDeleting, onToggle, onDelete, isMobile }) {
   const cat = catById[item.cat] || catById['otro'];
 
   return (
@@ -480,7 +483,7 @@ function ItemRow({ item, i, isChecking, isDeleting, onToggle, onDelete }) {
         display: 'flex', alignItems: 'center', gap: '3px',
         whiteSpace: 'nowrap',
       }}>
-        {cat.emoji} {cat.label}
+        {cat.emoji}{isMobile ? '' : ` ${cat.label}`}
       </span>
 
       {/* Delete */}

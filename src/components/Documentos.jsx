@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Copy, Check, Plus, Trash2, Pencil, Eye, EyeOff, FileKey2 } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
+import { useIsMobile } from '../hooks/useIsMobile.js';
 
 const CATS = [
   { id: 'personal',   label: 'Personal',   emoji: '🪪', color: '#6B8FD4', dim: 'rgba(107,143,212,0.15)' },
@@ -29,6 +30,7 @@ const inputSt = {
 };
 
 export default function Documentos() {
+  const isMobile = useIsMobile();
   const [docs, setDocs] = useLocalStorage('docs', []);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId]     = useState(null);
@@ -127,7 +129,7 @@ export default function Documentos() {
           borderRadius: '16px', padding: '20px', marginBottom: '20px',
           boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
         }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
             <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               placeholder="Nombre del documento" autoFocus style={inputSt}
               onFocus={e => e.target.style.borderColor = '#6B8FD4'} onBlur={e => e.target.style.borderColor = 'var(--border-light)'} />
@@ -156,7 +158,7 @@ export default function Documentos() {
           )}
 
           {/* Category */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px', marginBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(6, 1fr)', gap: '6px', marginBottom: '12px' }}>
             {CATS.map(cat => (
               <button key={cat.id} onClick={() => setForm(f => ({ ...f, cat: cat.id }))} style={{
                 padding: '7px 4px', borderRadius: '9px', fontSize: '9px', fontWeight: 600,
@@ -172,7 +174,7 @@ export default function Documentos() {
             ))}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px', marginBottom: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: '10px', marginBottom: '14px' }}>
             <input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               placeholder="Notas (opcional)" style={inputSt}
               onFocus={e => e.target.style.borderColor = '#6B8FD4'} onBlur={e => e.target.style.borderColor = 'var(--border-light)'} />
@@ -224,8 +226,9 @@ export default function Documentos() {
                 <div key={doc.id}
                   className={deletingIds.has(doc.id) ? 'item-out' : ''}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: '12px',
-                    padding: '13px 16px', borderRadius: '12px',
+                    display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '8px' : '12px',
+                    padding: isMobile ? '12px' : '13px 16px', borderRadius: '12px',
+                    flexWrap: isMobile ? 'wrap' : 'nowrap',
                     background: 'var(--obsidian-3)',
                     border: `1px solid ${cat.color}22`,
                     animation: `fadeUp 0.25s var(--ease-spring) ${i * 0.05}s both`,

@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Calendar, BarChart3, ChevronLeft, ChevronRight,
   Sparkles, CheckSquare, TrendingUp, TrendingDown, LogOut, User, Settings2,
-  ShoppingCart, Receipt, Flame, StickyNote, FileKey2,
+  ShoppingCart, Receipt, Flame, StickyNote, FileKey2, X,
 } from 'lucide-react';
+import { useIsMobile } from './hooks/useIsMobile.js';
 import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfWeek, isToday, isSameMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from './contexts/AuthContext.jsx';
@@ -30,6 +31,7 @@ export default function App() {
 }
 
 function Planner({ user, onSignOut }) {
+  const isMobile = useIsMobile();
   const [viewMonth, setViewMonth]     = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [view, setView]               = useState('calendar');
@@ -38,6 +40,7 @@ function Planner({ user, onSignOut }) {
   const [viewKey, setViewKey]         = useState(0);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [migrationMsg, setMigrationMsg] = useState('');
+  const [sheetClosing, setSheetClosing] = useState(false);
 
   const {
     tasks, expenses, loading,
@@ -66,7 +69,27 @@ function Planner({ user, onSignOut }) {
     if (v === view) return;
     setView(v);
     setViewKey(k => k + 1);
+    if (isMobile) setShowUserMenu(false);
   };
+
+  // On mobile, redirect week to day view
+  const handleCalViewChange = (v) => {
+    if (isMobile && v === 'week') {
+      setCalView('day');
+      if (!selectedDate) setSelectedDate(new Date());
+      return;
+    }
+    setCalView(v);
+    if (v === 'day' && !selectedDate) setSelectedDate(new Date());
+  };
+
+  const closeMobileSheet = useCallback(() => {
+    setSheetClosing(true);
+    setTimeout(() => {
+      setSelectedDate(null);
+      setSheetClosing(false);
+    }, 240);
+  }, []);
 
   const changeMonth = (dir) =>
     setViewMonth(m => dir === 'next' ? addMonths(m, 1) : subMonths(m, 1));
@@ -109,11 +132,23 @@ function Planner({ user, onSignOut }) {
   const name   = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario';
   const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 
+  const NAV_ITEMS = [
+    { id: 'calendar',  icon: Calendar,     label: 'Calendario', shortLabel: 'Inicio' },
+    { id: 'monthly',   icon: BarChart3,     label: 'Reporte',   shortLabel: 'Reporte' },
+    { id: 'grocery',   icon: ShoppingCart,  label: 'Compras',   shortLabel: 'Compras' },
+    { id: 'servicios', icon: Receipt,       label: 'Servicios', shortLabel: 'Serv.' },
+    { id: 'habitos',   icon: Flame,         label: 'Hábitos',   shortLabel: 'Hábitos' },
+    { id: 'notas',     icon: StickyNote,    label: 'Notas',     shortLabel: 'Notas' },
+    { id: 'docs',      icon: FileKey2,      label: 'Documentos',shortLabel: 'Docs' },
+    { id: 'settings',  icon: Settings2,     label: 'Ajustes',   shortLabel: 'Ajustes' },
+  ];
+
   return (
     <div style={{
       display: 'flex', height: '100vh', width: '100vw',
       background: 'var(--obsidian)', overflow: 'hidden',
       animation: 'fadeIn 0.4s ease',
+      flexDirection: isMobile ? 'column' : 'row',
     }}>
       {/* Ambient glow */}
       <div style={{
@@ -129,12 +164,14 @@ function Planner({ user, onSignOut }) {
         <div style={{
           position: 'fixed', top: '16px', left: '50%', transform: 'translateX(-50%)',
           background: 'var(--obsidian-3)', border: '1px solid var(--amber-dim)',
-          borderRadius: '12px', padding: '12px 20px',
-          display: 'flex', alignItems: 'center', gap: '12px',
+          borderRadius: '12px', padding: isMobile ? '10px 14px' : '12px 20px',
+          display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px',
           zIndex: 100, animation: 'fadeUp 0.3s var(--ease-spring)',
           boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          maxWidth: isMobile ? 'calc(100vw - 32px)' : 'none',
+          fontSize: isMobile ? '11px' : '12px',
         }}>
-          <span style={{ fontSize: '12px', color: 'var(--cream-dim)' }}>
+          <span style={{ fontSize: isMobile ? '11px' : '12px', color: 'var(--cream-dim)' }}>
             Tenés datos guardados localmente.
           </span>
           <button
@@ -144,9 +181,10 @@ function Planner({ user, onSignOut }) {
               background: 'var(--amber)', color: 'var(--obsidian)',
               fontSize: '11px', fontWeight: 700,
               transition: 'all 0.15s var(--ease-spring)',
+              flexShrink: 0,
             }}
           >
-            Importar a la nube
+            Importar
           </button>
           <button onClick={() => setMigrationMsg('')} style={{ color: 'var(--cream-muted)', fontSize: '16px' }}>×</button>
         </div>
@@ -164,7 +202,8 @@ function Planner({ user, onSignOut }) {
         </div>
       )}
 
-      {/* ── SIDEBAR ── */}
+      {/* ── SIDEBAR (desktop only) ── */}
+      {!isMobile && (
       <aside style={{
         width: '200px', flexShrink: 0,
         borderRight: '1px solid var(--border)',
@@ -225,16 +264,7 @@ function Planner({ user, onSignOut }) {
         {/* Nav views */}
         <div style={{ padding: '12px 10px' }}>
           <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cream-muted)', marginBottom: '8px', fontWeight: 600, paddingLeft: '6px' }}>Vista</div>
-          {[
-            { id: 'calendar',  icon: Calendar,     label: 'Calendario' },
-            { id: 'monthly',   icon: BarChart3,     label: 'Reporte' },
-            { id: 'grocery',   icon: ShoppingCart,  label: 'Compras' },
-            { id: 'servicios', icon: Receipt,       label: 'Servicios' },
-            { id: 'habitos',   icon: Flame,         label: 'Hábitos' },
-            { id: 'notas',     icon: StickyNote,    label: 'Notas' },
-            { id: 'docs',      icon: FileKey2,      label: 'Documentos' },
-            { id: 'settings',  icon: Settings2,     label: 'Ajustes' },
-          ].map(({ id, icon: Icon, label }) => (
+          {NAV_ITEMS.map(({ id, icon: Icon, label }) => (
             <button
               key={id}
               onClick={() => changeView(id)}
@@ -316,17 +346,23 @@ function Planner({ user, onSignOut }) {
           )}
         </div>
       </aside>
+      )}
 
       {/* ── MAIN ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
+      <div style={{
+        flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        position: 'relative', zIndex: 1,
+        paddingBottom: isMobile ? '56px' : 0,
+      }}>
         {view === 'calendar' ? (
           <>
             {/* View switcher bar */}
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '8px 16px',
+              padding: isMobile ? '6px 8px' : '8px 16px',
               borderBottom: '1px solid var(--border)',
               background: 'var(--obsidian-2)', flexShrink: 0,
+              gap: isMobile ? '4px' : 0,
             }}>
               {/* Prev / Today / Next */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -334,7 +370,8 @@ function Planner({ user, onSignOut }) {
                 <button
                   onClick={handleToday}
                   style={{
-                    padding: '5px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 500,
+                    padding: isMobile ? '5px 8px' : '5px 12px', borderRadius: '8px',
+                    fontSize: '11px', fontWeight: 500,
                     color: 'var(--cream-muted)', border: '1px solid var(--border)',
                     background: 'transparent', transition: 'all 0.2s var(--ease-spring)',
                   }}
@@ -346,17 +383,30 @@ function Planner({ user, onSignOut }) {
                 <NavBtn onClick={handleNextNav}><ChevronRight size={13} /></NavBtn>
               </div>
 
+              {/* Month label on mobile */}
+              {isMobile && (
+                <div style={{
+                  fontFamily: 'var(--font-display)', fontSize: '14px', fontWeight: 600,
+                  color: 'var(--cream)', textTransform: 'capitalize', flex: 1, textAlign: 'center',
+                }}>
+                  {format(viewMonth, 'MMM yyyy', { locale: es })}
+                </div>
+              )}
+
               {/* Month/Week/Day segmented control */}
               <div style={{
                 display: 'flex', background: 'var(--obsidian-4)',
                 borderRadius: '10px', padding: '3px', gap: '2px',
               }}>
-                {[['month', 'Mes'], ['week', 'Semana'], ['day', 'Día']].map(([id, label]) => (
+                {(isMobile
+                  ? [['month', 'Mes'], ['day', 'Día']]
+                  : [['month', 'Mes'], ['week', 'Semana'], ['day', 'Día']]
+                ).map(([id, label]) => (
                   <button
                     key={id}
-                    onClick={() => setCalView(id)}
+                    onClick={() => handleCalViewChange(id)}
                     style={{
-                      padding: '5px 14px', borderRadius: '8px',
+                      padding: isMobile ? '5px 10px' : '5px 14px', borderRadius: '8px',
                       fontSize: '11px', fontWeight: calView === id ? 600 : 400,
                       color: calView === id ? 'var(--amber)' : 'var(--cream-muted)',
                       background: calView === id ? 'var(--amber-glow)' : 'transparent',
@@ -371,8 +421,8 @@ function Planner({ user, onSignOut }) {
                 ))}
               </div>
 
-              {/* Spacer para centrar el segmented control */}
-              <div style={{ width: '100px' }} />
+              {/* Spacer para centrar el segmented control (desktop) */}
+              {!isMobile && <div style={{ width: '100px' }} />}
             </div>
 
             {/* Calendar content */}
@@ -385,8 +435,10 @@ function Planner({ user, onSignOut }) {
                     onSelectDate={handleSelectDate}
                     tasks={tasks}
                     expenses={expenses}
+                    isMobile={isMobile}
                   />
-                  {selectedDate && (
+                  {/* Desktop: side panel. Mobile: bottom sheet */}
+                  {selectedDate && !isMobile && (
                     <DayPanel
                       key={format(selectedDate, 'yyyy-MM-dd')}
                       date={selectedDate}
@@ -401,6 +453,47 @@ function Planner({ user, onSignOut }) {
                       onEditExpense={editExpense}
                       onClose={() => setSelectedDate(null)}
                     />
+                  )}
+                  {selectedDate && isMobile && (
+                    <>
+                      <div className="bottom-sheet-backdrop" onClick={closeMobileSheet} />
+                      <div className={`bottom-sheet ${sheetClosing ? 'bottom-sheet-closing' : ''}`}>
+                        <div className="bottom-sheet-handle" />
+                        <div style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '4px 16px 8px', flexShrink: 0,
+                        }}>
+                          <div style={{
+                            fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: 700,
+                            color: 'var(--cream)', letterSpacing: '-0.02em',
+                          }}>
+                            {format(selectedDate, "d 'de' MMMM", { locale: es })}
+                          </div>
+                          <button onClick={closeMobileSheet} style={{
+                            width: '30px', height: '30px', borderRadius: '9px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: 'var(--cream-muted)', background: 'var(--obsidian-4)',
+                          }}>
+                            <X size={15} />
+                          </button>
+                        </div>
+                        <DayPanel
+                          key={format(selectedDate, 'yyyy-MM-dd')}
+                          date={selectedDate}
+                          tasks={tasks}
+                          expenses={expenses}
+                          onAddTask={addTask}
+                          onToggleTask={toggleTask}
+                          onDeleteTask={removeTask}
+                          onEditTask={editTask}
+                          onAddExpense={addExpense}
+                          onDeleteExpense={removeExpense}
+                          onEditExpense={editExpense}
+                          onClose={closeMobileSheet}
+                          isModal
+                        />
+                      </div>
+                    </>
                   )}
                 </>
               )}
@@ -448,13 +541,17 @@ function Planner({ user, onSignOut }) {
                   onEditExpense={editExpense}
                   onPrevDay={handlePrevNav}
                   onNextDay={handleNextNav}
+                  isMobile={isMobile}
                 />
               )}
             </div>
           </>
         ) : (
-          <div key={viewKey} className="animate-viewIn" style={{ flex: 1, overflow: 'auto', padding: '40px 48px' }}>
-            {view === 'monthly'   && <MonthlyReport expenses={expenses} />}
+          <div key={viewKey} className="animate-viewIn" style={{
+            flex: 1, overflow: 'auto',
+            padding: isMobile ? '20px 12px' : '40px 48px',
+          }}>
+            {view === 'monthly'   && <MonthlyReport expenses={expenses} isMobile={isMobile} />}
             {view === 'grocery'   && <GroceryList />}
             {view === 'servicios' && <Servicios onAddExpense={addExpense} />}
             {view === 'habitos'   && <Habitos />}
@@ -464,6 +561,81 @@ function Planner({ user, onSignOut }) {
           </div>
         )}
       </div>
+
+      {/* ── MOBILE BOTTOM NAV ── */}
+      {isMobile && (
+        <nav className="mobile-bottom-nav">
+          {NAV_ITEMS.slice(0, 5).map(({ id, icon: Icon, shortLabel }) => (
+            <button
+              key={id}
+              onClick={() => changeView(id)}
+              style={{
+                color: view === id ? 'var(--amber)' : 'var(--cream-muted)',
+                background: view === id ? 'var(--amber-glow)' : 'transparent',
+              }}
+            >
+              <Icon size={18} />
+              <span>{shortLabel}</span>
+            </button>
+          ))}
+          {/* More menu with remaining items */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+                padding: '6px 8px', borderRadius: '8px', fontSize: '9px', minWidth: '44px',
+                color: ['notas', 'docs', 'settings'].includes(view) ? 'var(--amber)' : 'var(--cream-muted)',
+                background: ['notas', 'docs', 'settings'].includes(view) ? 'var(--amber-glow)' : 'transparent',
+              }}
+            >
+              <Settings2 size={18} />
+              <span>Más</span>
+            </button>
+            {showUserMenu && (
+              <>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 59 }} onClick={() => setShowUserMenu(false)} />
+                <div style={{
+                  position: 'absolute', bottom: '52px', right: '-8px',
+                  background: 'var(--obsidian-3)', border: '1px solid var(--border-light)',
+                  borderRadius: '12px', padding: '6px', minWidth: '160px',
+                  animation: 'fadeUp 0.2s var(--ease-spring)',
+                  zIndex: 60,
+                  boxShadow: '0 -8px 32px rgba(0,0,0,0.5)',
+                }}>
+                  {NAV_ITEMS.filter(n => ['notas', 'docs', 'settings'].includes(n.id)).map(({ id, icon: Icon, label }) => (
+                    <button
+                      key={id}
+                      onClick={() => { changeView(id); setShowUserMenu(false); }}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+                        padding: '10px 12px', borderRadius: '8px',
+                        fontSize: '12px', fontWeight: view === id ? 600 : 400,
+                        color: view === id ? 'var(--amber)' : 'var(--cream-dim)',
+                        background: view === id ? 'var(--amber-glow)' : 'transparent',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <Icon size={14} /> {label}
+                    </button>
+                  ))}
+                  <div style={{ height: '1px', background: 'var(--border)', margin: '4px 6px' }} />
+                  <button
+                    onClick={() => { setShowUserMenu(false); onSignOut(); }}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+                      padding: '10px 12px', borderRadius: '8px',
+                      fontSize: '12px', color: 'var(--coral)', fontWeight: 500,
+                    }}
+                  >
+                    <LogOut size={13} /> Cerrar sesión
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </nav>
+      )}
     </div>
   );
 }
