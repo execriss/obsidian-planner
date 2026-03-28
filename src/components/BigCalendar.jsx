@@ -70,7 +70,7 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
       {/* Calendar grid */}
       <div
         key={gridKey}
-        className={direction === 'next' ? 'month-enter-next' : 'month-enter-prev'}
+        className={`${styles.grid} ${direction === 'next' ? 'month-enter-next' : 'month-enter-prev'}`}
         style={{ '--grid-rows': `repeat(${days.length / 7}, 1fr)` }}
       >
         {days.map((day, i) => {
