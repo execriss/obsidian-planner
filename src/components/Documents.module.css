@@ -1,0 +1,361 @@
+/* ─── Documents ─── */
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+/* ─── Header ─── */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  animation: fadeDown 0.35s var(--ease-out) both;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6B8FD4, #4A6CB8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 24px rgba(107, 143, 212, 0.25);
+  animation: float 3.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--cream);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.subtitle {
+  font-size: 11px;
+  color: var(--cream-muted);
+  margin-top: 3px;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--obsidian-3);
+  border: 1px solid var(--border);
+  color: var(--cream);
+  transition: all 0.2s var(--ease-spring);
+}
+
+.addBtnActive {
+  background: rgba(107, 143, 212, 0.15);
+  border-color: #6B8FD4;
+  color: #6B8FD4;
+}
+
+.addBtnIcon {
+  transition: transform 0.2s var(--ease-spring);
+}
+
+.addBtnIconRotated {
+  transform: rotate(45deg);
+}
+
+/* ─── Form ─── */
+
+.form {
+  background: var(--obsidian-3);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.formGrid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.formGrid2Bottom {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.input {
+  width: 100%;
+  background: var(--obsidian-4);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--cream);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input:focus {
+  border-color: #6B8FD4;
+}
+
+/* ─── Suggestions ─── */
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.suggestionChip {
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  border: 1px solid var(--border);
+  color: var(--cream-muted);
+  background: transparent;
+  transition: all 0.15s ease;
+}
+
+.suggestionChipActive {
+  background: var(--obsidian-4);
+}
+
+/* ─── Category picker ─── */
+
+.catGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.catBtn {
+  padding: 7px 4px;
+  border-radius: 9px;
+  font-size: 9px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--cream-muted);
+  transition: all 0.18s var(--ease-spring);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.catBtnActive {
+  border-color: var(--cat-color);
+  background: var(--cat-dim);
+  color: var(--cat-color);
+}
+
+.catEmoji {
+  font-size: 14px;
+}
+
+/* ─── Form actions ─── */
+
+.formActions {
+  display: flex;
+  gap: 8px;
+}
+
+.submitBtn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  background: #6B8FD4;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.2s var(--ease-spring);
+}
+
+.submitBtn:hover {
+  transform: scale(1.02);
+}
+
+.cancelBtn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  color: var(--cream-muted);
+  font-size: 12px;
+}
+
+/* ─── Empty state ─── */
+
+.empty {
+  text-align: center;
+  padding: 64px 0;
+  animation: fadeIn 0.4s ease both;
+}
+
+.emptyIcon {
+  font-size: 52px;
+  margin-bottom: 16px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.emptyTitle {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--cream-dim);
+  margin-bottom: 8px;
+}
+
+.emptyDesc {
+  font-size: 12px;
+  color: var(--cream-muted);
+}
+
+/* ─── Category group ─── */
+
+.catGroup {
+  margin-bottom: 24px;
+}
+
+.catGroupHeader {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.catGroupEmoji {
+  font-size: 14px;
+}
+
+.catGroupLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cat-color);
+}
+
+.docList {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* ─── Document row ─── */
+
+.docRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  background: var(--obsidian-3);
+  border: 1px solid var(--cat-border);
+  transition: border-color 0.15s ease, transform 0.2s var(--ease-spring);
+}
+
+.docRow:hover {
+  border-color: var(--cat-border-hover);
+  transform: translateX(3px);
+}
+
+.docInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.docName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cream);
+  margin-bottom: 3px;
+}
+
+.docNumber {
+  font-family: monospace;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  transition: color 0.2s ease;
+  color: var(--cat-color);
+}
+
+.docNumberHidden {
+  color: var(--cream-muted);
+}
+
+.docNotes {
+  font-size: 10px;
+  color: var(--cream-muted);
+  margin-top: 3px;
+}
+
+.expiresBadge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--obsidian-4);
+  color: var(--cream-muted);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ─── Icon button ─── */
+
+.iconBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream-muted);
+  flex-shrink: 0;
+  transition: all 0.15s var(--ease-spring);
+}
+
+.iconBtn:hover {
+  color: var(--cream);
+  background: var(--obsidian-4);
+  transform: scale(1.1);
+}
+
+.iconBtnDanger:hover {
+  color: var(--coral);
+  background: var(--coral-dim);
+  transform: scale(1.1);
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 639px) {
+  .container      { padding: 24px 16px; }
+  .formGrid2      { grid-template-columns: 1fr; }
+  .formGrid2Bottom { grid-template-columns: 1fr; }
+  .catGrid        { grid-template-columns: repeat(3, 1fr); }
+  .docRow         { align-items: flex-start; flex-wrap: wrap; gap: 8px; padding: 12px; }
+}

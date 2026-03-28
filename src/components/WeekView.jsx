@@ -3,6 +3,7 @@ import {
   format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday,
 } from 'date-fns';
 import { es } from 'date-fns/locale';
+import styles from './WeekView.module.css';
 
 const PRIORITY_COLORS = { high: '#E05C5C', medium: '#F0A500', low: '#5FAD8E' };
 const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
@@ -40,14 +41,10 @@ export default function WeekView({ weekStart, selectedDate, onSelectDate, tasks,
   }, [expenses]);
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div className={styles.container}>
 
       {/* Day headers */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)',
-        borderBottom: '1px solid var(--border)',
-        background: 'var(--obsidian-2)', flexShrink: 0,
-      }}>
+      <div className={styles.dayHeaders}>
         {days.map((day, i) => {
           const today    = isToday(day);
           const selected = selectedDate && isSameDay(day, selectedDate);
@@ -57,34 +54,16 @@ export default function WeekView({ weekStart, selectedDate, onSelectDate, tasks,
             <div
               key={i}
               onClick={() => onSelectDate(day)}
-              style={{
-                padding: '12px 14px',
-                borderRight: i < 6 ? '1px solid var(--border)' : 'none',
-                cursor: 'pointer',
-                background: selected ? 'rgba(240,165,0,0.07)' : 'transparent',
-                transition: 'background 0.15s ease',
-                outline: selected ? '1.5px solid rgba(240,165,0,0.35)' : '1.5px solid transparent',
-                outlineOffset: '-1px',
-              }}
-              onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'var(--obsidian-3)'; }}
-              onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'transparent'; }}
+              className={`${styles.headerCell} ${selected ? styles.headerCellSelected : ''}`}
             >
-              <div style={{
-                fontSize: '9px', fontWeight: 600, letterSpacing: '0.1em',
-                textTransform: 'uppercase', marginBottom: '6px',
-                color: isWeekend ? 'rgba(240,165,0,0.5)' : 'var(--cream-muted)',
-              }}>
+              <div className={`${styles.dayLabel} ${isWeekend ? styles.dayLabelWeekend : ''}`}>
                 {DAY_NAMES[i]}
               </div>
-              <div style={{
-                width: '32px', height: '32px', borderRadius: '10px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--font-display)', fontSize: '19px',
-                fontWeight: today ? 700 : 500,
-                color: today ? 'var(--obsidian)' : selected ? 'var(--amber)' : 'var(--cream)',
-                background: today ? 'var(--amber)' : 'transparent',
-                transition: 'transform 0.2s var(--ease-spring)',
-              }}>
+              <div className={[
+                styles.dayNumber,
+                today ? styles.dayNumberToday : '',
+                selected && !today ? styles.dayNumberSelected : '',
+              ].filter(Boolean).join(' ')}>
                 {format(day, 'd')}
               </div>
             </div>
@@ -93,11 +72,7 @@ export default function WeekView({ weekStart, selectedDate, onSelectDate, tasks,
       </div>
 
       {/* Week content grid */}
-      <div style={{
-        flex: 1,
-        display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)',
-        overflow: 'auto',
-      }}>
+      <div className={styles.contentGrid}>
         {days.map((day, i) => {
           const key      = format(day, 'yyyy-MM-dd');
           const dayTasks = tasksByDay[key]    || [];
@@ -109,39 +84,21 @@ export default function WeekView({ weekStart, selectedDate, onSelectDate, tasks,
             <div
               key={key}
               onClick={() => onSelectDate(day)}
-              style={{
-                borderRight: i < 6 ? '1px solid var(--border)' : 'none',
-                borderBottom: '1px solid var(--border)',
-                padding: '10px 8px',
-                cursor: 'pointer',
-                minHeight: '140px',
-                background: selected
-                  ? 'rgba(240,165,0,0.04)'
-                  : today
-                    ? 'rgba(240,165,0,0.02)'
-                    : 'transparent',
-                transition: 'background 0.15s ease',
-                display: 'flex', flexDirection: 'column', gap: '4px',
-              }}
-              onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'var(--obsidian-3)'; }}
-              onMouseLeave={e => { if (!selected) e.currentTarget.style.background = selected ? 'rgba(240,165,0,0.04)' : today ? 'rgba(240,165,0,0.02)' : 'transparent'; }}
+              className={[
+                styles.contentCell,
+                selected ? styles.contentCellSelected : today ? styles.contentCellToday : '',
+              ].filter(Boolean).join(' ')}
             >
               {/* Finance chips */}
               {dayFin && (dayFin.income > 0 || dayFin.expense > 0) && (
-                <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', marginBottom: '2px' }}>
+                <div className={styles.financeRow}>
                   {dayFin.income > 0 && (
-                    <span style={{
-                      fontSize: '9px', fontWeight: 600, color: 'var(--sage)',
-                      background: 'var(--sage-dim)', borderRadius: '4px', padding: '2px 5px',
-                    }}>
+                    <span className={styles.chipIncome}>
                       +{fmtCompact(dayFin.income)}
                     </span>
                   )}
                   {dayFin.expense > 0 && (
-                    <span style={{
-                      fontSize: '9px', fontWeight: 600, color: 'var(--coral)',
-                      background: 'var(--coral-dim)', borderRadius: '4px', padding: '2px 5px',
-                    }}>
+                    <span className={styles.chipExpense}>
                       -{fmtCompact(dayFin.expense)}
                     </span>
                   )}
@@ -150,23 +107,20 @@ export default function WeekView({ weekStart, selectedDate, onSelectDate, tasks,
 
               {/* Task pills */}
               {dayTasks.map(task => (
-                <div key={task.id} style={{
-                  display: 'flex', alignItems: 'center', gap: '4px',
-                  padding: '3px 6px', borderRadius: '5px', flexShrink: 0,
-                  background: task.done ? 'rgba(255,255,255,0.03)' : `${PRIORITY_COLORS[task.priority]}18`,
-                  borderLeft: `2px solid ${task.done ? 'var(--border-light)' : PRIORITY_COLORS[task.priority]}`,
-                }}>
+                <div
+                  key={task.id}
+                  className={`${styles.taskPill} ${task.done ? styles.taskPillDone : ''}`}
+                  style={{
+                    '--pill-accent': task.done ? undefined : PRIORITY_COLORS[task.priority],
+                    '--pill-bg': task.done ? undefined : `${PRIORITY_COLORS[task.priority]}18`,
+                  }}
+                >
                   {task.done && (
-                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none" style={{ flexShrink: 0 }}>
+                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none" className={styles.checkIcon}>
                       <path d="M1 4l2 2 4-4" stroke="var(--sage)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   )}
-                  <span style={{
-                    fontSize: '10px', lineHeight: 1.3,
-                    color: task.done ? 'var(--cream-muted)' : 'var(--cream-dim)',
-                    textDecoration: task.done ? 'line-through' : 'none',
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  }}>
+                  <span className={`${styles.taskText} ${task.done ? styles.taskTextDone : ''}`}>
                     {task.text}
                   </span>
                 </div>

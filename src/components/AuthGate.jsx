@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Calendar, Mail, Lock, Eye, EyeOff, Sparkles, ArrowRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import styles from './AuthGate.module.css';
 
 export default function AuthGate() {
   const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth();
-  const [mode, setMode]         = useState('login');   // 'login' | 'register'
+  const [mode, setMode]         = useState('login');
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
@@ -14,9 +15,7 @@ export default function AuthGate() {
 
   const handleEmail = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-    setLoading(true);
+    setError(''); setSuccess(''); setLoading(true);
     try {
       if (mode === 'login') {
         const { error } = await signInWithEmail(email, password);
@@ -32,8 +31,7 @@ export default function AuthGate() {
   };
 
   const handleGoogle = async () => {
-    setError('');
-    setLoading(true);
+    setError(''); setLoading(true);
     try {
       const { error } = await signInWithGoogle();
       if (error) setError(error.message);
@@ -43,85 +41,26 @@ export default function AuthGate() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh', width: '100vw',
-      background: 'var(--obsidian)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      position: 'relative', overflow: 'hidden',
-    }}>
-      {/* Ambient glow */}
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: `
-          radial-gradient(ellipse 60% 60% at 30% 40%, rgba(240,165,0,0.06) 0%, transparent 60%),
-          radial-gradient(ellipse 50% 50% at 75% 65%, rgba(107,143,212,0.05) 0%, transparent 60%)
-        `,
-      }} />
+    <div className={styles.page}>
+      <div className={styles.ambientGlow} />
+      <div className={styles.decorativeGrid} />
 
-      {/* Decorative grid */}
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        backgroundImage: `linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)`,
-        backgroundSize: '48px 48px',
-        opacity: 0.3,
-        maskImage: 'radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 80%)',
-      }} />
-
-      <div style={{
-        width: '100%', maxWidth: '420px',
-        padding: '0 24px',
-        animation: 'springIn 0.5s var(--ease-spring) both',
-        position: 'relative', zIndex: 1,
-      }}>
+      <div className={styles.wrapper}>
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-          <div style={{
-            width: '52px', height: '52px', borderRadius: '16px',
-            background: 'linear-gradient(135deg, var(--amber), var(--amber-dim))',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 16px',
-            boxShadow: '0 0 40px rgba(240,165,0,0.25)',
-            animation: 'float 3.5s ease-in-out infinite',
-          }}>
+        <div className={styles.logoSection}>
+          <div className={styles.logoIcon}>
             <Calendar size={24} color="var(--obsidian)" />
           </div>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: '32px', fontWeight: 700, color: 'var(--cream)', letterSpacing: '-0.02em', lineHeight: 1 }}>
-            Obsidian Planner
-          </div>
-          <div style={{ fontSize: '12px', color: 'var(--cream-muted)', marginTop: '8px', letterSpacing: '0.08em' }}>
+          <div className={styles.title}>Obsidian Planner</div>
+          <div className={styles.subtitle}>
             {mode === 'login' ? 'Iniciá sesión para continuar' : 'Creá tu cuenta'}
           </div>
         </div>
 
         {/* Card */}
-        <div style={{
-          background: 'var(--obsidian-2)',
-          border: '1px solid var(--border-light)',
-          borderRadius: '20px',
-          padding: '28px',
-          boxShadow: '0 32px 64px rgba(0,0,0,0.4)',
-        }}>
-
+        <div className={styles.card}>
           {/* Google */}
-          <button
-            onClick={handleGoogle}
-            disabled={loading}
-            style={{
-              width: '100%', padding: '12px',
-              borderRadius: '12px',
-              border: '1px solid var(--border-light)',
-              background: 'var(--obsidian-3)',
-              color: 'var(--cream)',
-              fontSize: '13px', fontWeight: 600,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-              transition: 'all 0.2s var(--ease-spring)',
-              marginBottom: '20px',
-              opacity: loading ? 0.6 : 1,
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--obsidian-4)'; e.currentTarget.style.transform = 'scale(1.01)'; e.currentTarget.style.borderColor = 'var(--border-light)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'var(--obsidian-3)'; e.currentTarget.style.transform = 'scale(1)'; }}
-          >
-            {/* Google icon */}
+          <button onClick={handleGoogle} disabled={loading} className={styles.googleBtn}>
             <svg width="16" height="16" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -132,109 +71,50 @@ export default function AuthGate() {
           </button>
 
           {/* Divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-            <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
-            <span style={{ fontSize: '10px', color: 'var(--cream-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>o</span>
-            <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+          <div className={styles.divider}>
+            <div className={styles.dividerLine} />
+            <span className={styles.dividerText}>o</span>
+            <div className={styles.dividerLine} />
           </div>
 
           {/* Email form */}
-          <form onSubmit={handleEmail} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ position: 'relative' }}>
-              <Mail size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--cream-muted)', pointerEvents: 'none' }} />
+          <form onSubmit={handleEmail} className={styles.form}>
+            <div className={styles.inputWrap}>
+              <Mail size={14} className={styles.inputIcon} />
               <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="Email"
-                required
-                style={{ ...inputSt, paddingLeft: '36px' }}
-                onFocus={e => e.target.style.borderColor = 'var(--amber-dim)'}
-                onBlur={e => e.target.style.borderColor = 'var(--border-light)'}
+                type="email" value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="Email" required className={styles.inputEmail}
               />
             </div>
 
-            <div style={{ position: 'relative' }}>
-              <Lock size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--cream-muted)', pointerEvents: 'none' }} />
+            <div className={styles.inputWrap}>
+              <Lock size={14} className={styles.inputIcon} />
               <input
-                type={showPass ? 'text' : 'password'}
-                value={password}
+                type={showPass ? 'text' : 'password'} value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="Contraseña"
-                required
-                style={{ ...inputSt, paddingLeft: '36px', paddingRight: '36px' }}
-                onFocus={e => e.target.style.borderColor = 'var(--amber-dim)'}
-                onBlur={e => e.target.style.borderColor = 'var(--border-light)'}
+                placeholder="Contraseña" required className={styles.inputPassword}
               />
-              <button
-                type="button"
-                onClick={() => setShowPass(!showPass)}
-                style={{
-                  position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
-                  color: 'var(--cream-muted)', transition: 'color 0.15s',
-                }}
-                onMouseEnter={e => e.currentTarget.style.color = 'var(--cream)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'var(--cream-muted)'}
-              >
+              <button type="button" onClick={() => setShowPass(!showPass)} className={styles.togglePassBtn}>
                 {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
             </div>
 
-            {error && (
-              <div style={{
-                padding: '10px 12px', borderRadius: '9px',
-                background: 'var(--coral-dim)', border: '1px solid var(--coral)44',
-                fontSize: '12px', color: 'var(--coral)',
-                animation: 'fadeUp 0.2s ease',
-              }}>
-                {error}
-              </div>
-            )}
-            {success && (
-              <div style={{
-                padding: '10px 12px', borderRadius: '9px',
-                background: 'var(--sage-dim)', border: '1px solid var(--sage)44',
-                fontSize: '12px', color: 'var(--sage)',
-                animation: 'fadeUp 0.2s ease',
-              }}>
-                {success}
-              </div>
-            )}
+            {error   && <div className={styles.alertError}>{error}</div>}
+            {success && <div className={styles.alertSuccess}>{success}</div>}
 
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: '100%', marginTop: '4px', padding: '12px',
-                borderRadius: '12px',
-                background: 'var(--amber)',
-                color: 'var(--obsidian)',
-                fontSize: '13px', fontWeight: 700,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                transition: 'all 0.2s var(--ease-spring)',
-                opacity: loading ? 0.7 : 1,
-              }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(240,165,0,0.3)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
-              onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
-            >
+            <button type="submit" disabled={loading} className={styles.submitBtn}>
               {loading ? 'Cargando...' : mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
               {!loading && <ArrowRight size={14} />}
             </button>
           </form>
 
           {/* Toggle */}
-          <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '12px', color: 'var(--cream-muted)' }}>
+          <div className={styles.toggleSection}>
             {mode === 'login' ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}
             {' '}
             <button
               onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setSuccess(''); }}
-              style={{
-                color: 'var(--amber)', fontWeight: 600, fontSize: '12px',
-                transition: 'opacity 0.15s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
-              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+              className={styles.toggleBtn}
             >
               {mode === 'login' ? 'Registrate' : 'Iniciá sesión'}
             </button>
@@ -242,30 +122,11 @@ export default function AuthGate() {
         </div>
 
         {/* Footer */}
-        <div style={{
-          textAlign: 'center', marginTop: '20px',
-          fontSize: '11px', color: 'var(--cream-muted)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-        }}>
+        <div className={styles.footer}>
           <Sparkles size={10} color="var(--amber)" />
-          <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
-            Tu planner personal, siempre seguro
-          </span>
+          <span className={styles.footerText}>Tu planner personal, siempre seguro</span>
         </div>
       </div>
     </div>
   );
 }
-
-const inputSt = {
-  width: '100%',
-  background: 'var(--obsidian-3)',
-  border: '1px solid var(--border-light)',
-  borderRadius: '10px',
-  padding: '11px 14px',
-  fontSize: '13px',
-  color: 'var(--cream)',
-  outline: 'none',
-  transition: 'border-color 0.2s ease',
-  display: 'block',
-};

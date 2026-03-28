@@ -1,0 +1,322 @@
+/* QuickNotes */
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  animation: fadeDown 0.35s var(--ease-out) both;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #F0A500, #C88500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 24px rgba(240, 165, 0, 0.25);
+  animation: float 3.5s ease-in-out infinite;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--cream);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.count {
+  font-size: 11px;
+  color: var(--cream-muted);
+  margin-top: 3px;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s var(--ease-spring);
+}
+
+.addBtn:not(.addBtnActive) {
+  background: var(--obsidian-3);
+  border: 1px solid var(--border);
+  color: var(--cream);
+}
+
+.addBtnActive {
+  background: rgba(240, 165, 0, 0.12);
+  border: 1px solid var(--amber-dim);
+  color: var(--amber);
+}
+
+.plusIcon {
+  transition: transform 0.2s var(--ease-spring);
+}
+
+.plusIconRotated {
+  transform: rotate(45deg);
+}
+
+/* ── Form ── */
+.form {
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-left-color: var(--note-accent);
+  background: var(--note-bg);
+  border-top: 1px solid var(--note-border);
+  border-right: 1px solid var(--note-border);
+  border-bottom: 1px solid var(--note-border);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.formTitleInput {
+  width: 100%;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--note-accent);
+  outline: none;
+  margin-bottom: 10px;
+  font-family: var(--font-display);
+}
+
+.formTextarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  color: var(--cream);
+  outline: none;
+  resize: vertical;
+  line-height: 1.6;
+  font-family: var(--font-body);
+}
+
+.formFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+
+.colorPicker {
+  display: flex;
+  gap: 6px;
+}
+
+.colorDot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--dot-color);
+  border: 2px solid transparent;
+  transition: all 0.18s var(--ease-spring);
+}
+
+.colorDotSelected {
+  border-color: white;
+  transform: scale(1.2);
+  box-shadow: var(--dot-glow);
+}
+
+.formActions {
+  display: flex;
+  gap: 8px;
+}
+
+.cancelBtn {
+  padding: 7px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  color: var(--cream-muted);
+  font-size: 12px;
+}
+
+.saveBtn {
+  padding: 7px 18px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--note-accent);
+  color: white;
+  transition: all 0.2s var(--ease-spring);
+  box-shadow: var(--save-glow);
+}
+
+.saveBtn:hover {
+  transform: scale(1.04);
+}
+
+/* ── Empty state ── */
+.empty {
+  text-align: center;
+  padding: 64px 0;
+  animation: fadeIn 0.4s ease both;
+}
+
+.emptyEmoji {
+  font-size: 52px;
+  margin-bottom: 16px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.emptyTitle {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--cream-dim);
+  margin-bottom: 8px;
+}
+
+.emptyText {
+  font-size: 12px;
+  color: var(--cream-muted);
+}
+
+/* ── Sections ── */
+.section {
+  margin-bottom: 20px;
+}
+
+.sectionLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cream-muted);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Note Grid ── */
+.noteGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 639px) {
+  .container { padding: 24px 16px; }
+  .noteGrid  { grid-template-columns: 1fr; }
+}
+
+.noteGridDesktop {
+  composes: noteGrid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.noteGridMobile {
+  composes: noteGrid;
+  grid-template-columns: 1fr;
+}
+
+/* ── Note Card ── */
+.noteCard {
+  border-radius: 14px;
+  padding: 16px;
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-left-color: var(--note-accent);
+  background: var(--note-bg);
+  border-top: 1px solid var(--note-border);
+  border-right: 1px solid var(--note-border);
+  border-bottom: 1px solid var(--note-border);
+  transition: transform 0.2s var(--ease-spring), box-shadow 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.noteCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--note-accent-44);
+}
+
+.noteTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--note-accent);
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+}
+
+.noteContent {
+  font-size: 12px;
+  color: var(--cream-dim);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.noteFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.noteDate {
+  font-size: 9px;
+  color: var(--cream-muted);
+}
+
+.noteActions {
+  display: flex;
+  gap: 2px;
+}
+
+/* ── Note Button ── */
+.noteBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream-muted);
+  transition: all 0.15s var(--ease-spring);
+}
+
+.noteBtn:hover {
+  color: var(--note-accent);
+  background: rgba(255, 255, 255, 0.08);
+  transform: scale(1.15);
+}
+
+.noteBtnDanger:hover {
+  color: var(--coral);
+  background: var(--coral-dim);
+  transform: scale(1.15);
+}

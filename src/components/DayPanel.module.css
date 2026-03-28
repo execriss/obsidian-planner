@@ -1,0 +1,759 @@
+/* ─── DayPanel layout ─── */
+
+.panel {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.panelDesktop {
+  composes: panel;
+  width: 340px;
+  border-left: 1px solid var(--border);
+  background: var(--obsidian-2);
+  animation: slideInRight 0.3s var(--ease-spring) both;
+}
+
+.panelModal {
+  composes: panel;
+  width: 100%;
+  background: transparent;
+}
+
+/* ─── Header ─── */
+
+.header {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  animation: fadeDown 0.3s var(--ease-out) both;
+}
+
+.headerTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.dateTitle {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--cream);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  animation: fadeUp 0.35s var(--ease-spring) 0.05s both;
+}
+
+.dateSubtitle {
+  font-size: 10px;
+  color: var(--cream-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 5px;
+  animation: fadeUp 0.3s var(--ease-out) 0.12s both;
+}
+
+.closeBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream-muted);
+  transition: all 0.2s var(--ease-spring);
+}
+
+.closeBtn:hover {
+  background: var(--obsidian-4);
+  color: var(--cream);
+  transform: rotate(90deg) scale(1.1);
+}
+
+/* ─── Summary pills ─── */
+
+.pillsRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  animation: fadeUp 0.3s var(--ease-out) 0.18s both;
+}
+
+.pillsRowModal {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 0 16px 10px;
+  flex-shrink: 0;
+}
+
+.taskPill {
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--obsidian-4);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--cream-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.progressTrack {
+  width: 28px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s var(--ease-spring);
+}
+
+.balancePill {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.balancePillPositive {
+  composes: balancePill;
+  background: var(--sage-dim);
+  border: 1px solid rgba(95, 173, 142, 0.2);
+  color: var(--sage);
+}
+
+.balancePillNegative {
+  composes: balancePill;
+  background: var(--coral-dim);
+  border: 1px solid rgba(224, 92, 92, 0.2);
+  color: var(--coral);
+}
+
+/* ─── Section tabs ─── */
+
+.tabBar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--obsidian-2);
+}
+
+.tabBtn {
+  flex: 1;
+  padding: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cream-muted);
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s ease, border-color 0.25s var(--ease-out);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  position: relative;
+}
+
+.tabBtn:hover {
+  color: var(--cream-dim);
+  background: var(--obsidian-3);
+}
+
+.tabBtnActive {
+  composes: tabBtn;
+  color: var(--amber);
+  border-bottom-color: var(--amber);
+}
+
+.tabBtnActive:hover {
+  color: var(--amber);
+  background: transparent;
+}
+
+.tabBadge {
+  margin-left: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 10px;
+  background: var(--obsidian-4);
+  color: var(--cream-muted);
+  transition: all 0.2s ease;
+}
+
+.tabBadgeActive {
+  composes: tabBadge;
+  background: var(--amber);
+  color: var(--obsidian);
+}
+
+/* ─── Content area ─── */
+
+.tabContent {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+/* ─── Add button ─── */
+
+.addBtn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px dashed var(--border-light);
+  background: transparent;
+  color: var(--cream-muted);
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s var(--ease-spring);
+  margin-bottom: 12px;
+}
+
+.addBtn:hover {
+  border-color: var(--amber-dim);
+  color: var(--amber);
+  transform: scale(1.01);
+}
+
+.addBtnActive {
+  composes: addBtn;
+  border-color: var(--amber-dim);
+  background: var(--amber-glow);
+  color: var(--amber);
+}
+
+.addBtnActive:hover {
+  transform: none;
+}
+
+/* ─── Form card ─── */
+
+.formCard {
+  background: var(--obsidian-3);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+/* ─── Input ─── */
+
+.input {
+  width: 100%;
+  background: var(--obsidian-4);
+  border: 1px solid var(--border-light);
+  border-radius: 9px;
+  padding: 9px 12px;
+  font-size: 12px;
+  color: var(--cream);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  display: block;
+}
+
+.input:focus {
+  border-color: var(--amber-dim);
+}
+
+.inputSpaced {
+  composes: input;
+  margin-bottom: 8px;
+}
+
+.inputSpacedLg {
+  composes: input;
+  margin-bottom: 10px;
+}
+
+.selectSmall {
+  composes: input;
+  padding: 4px 8px;
+  font-size: 10px;
+}
+
+.selectSpaced {
+  composes: input;
+  margin-bottom: 8px;
+  appearance: none;
+}
+
+/* ─── Priority buttons ─── */
+
+.priorityRow {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.priorityBtn {
+  padding: 4px 10px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--cream-muted);
+  transition: all 0.18s var(--ease-spring);
+}
+
+.priorityBtnActive {
+  composes: priorityBtn;
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+  transform: scale(1.05);
+}
+
+/* ─── Submit button ─── */
+
+.submitBtn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 9px;
+  border-radius: 9px;
+  background: var(--amber);
+  color: var(--obsidian);
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.2s var(--ease-spring);
+}
+
+.submitBtn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(240, 165, 0, 0.3);
+}
+
+.submitBtn:active {
+  transform: scale(0.97);
+}
+
+/* ─── Empty state ─── */
+
+.emptyState {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--cream-muted);
+  font-size: 12px;
+  animation: fadeIn 0.3s ease;
+}
+
+.emptyIcon {
+  font-size: 32px;
+  opacity: 0.2;
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+  animation: float 3s ease-in-out infinite;
+}
+
+/* ─── Task list ─── */
+
+.taskList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.separator {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+  animation: fadeIn 0.3s ease;
+}
+
+/* ─── Task row ─── */
+
+.taskRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--obsidian-3);
+  border: 1px solid var(--accent-border, var(--border));
+  opacity: 1;
+  transition: opacity 0.2s ease, border-color 0.2s ease, transform 0.2s var(--ease-spring);
+}
+
+.taskRow:hover {
+  border-color: var(--accent-hover, var(--border));
+  transform: translateX(2px);
+}
+
+.taskRowDone {
+  composes: taskRow;
+  opacity: 0.65;
+}
+
+.taskRowDone:hover {
+  border-color: var(--accent-border, var(--border));
+  transform: none;
+}
+
+/* ─── Checkbox ─── */
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--accent);
+  background: transparent;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s var(--ease-spring);
+}
+
+.checkbox:hover {
+  transform: scale(1.15);
+}
+
+.checkboxDone {
+  composes: checkbox;
+  border-color: var(--sage);
+  background: var(--sage);
+}
+
+.checkboxDone:hover {
+  transform: none;
+}
+
+/* ─── Task text ─── */
+
+.taskContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.taskText {
+  font-size: 13px;
+  color: var(--cream);
+  line-height: 1.4;
+  transition: color 0.2s ease;
+}
+
+.taskTextDone {
+  composes: taskText;
+  color: var(--cream-muted);
+  text-decoration: line-through;
+}
+
+.taskMeta {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  align-items: center;
+}
+
+.priorityBadge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 5px;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.categoryLabel {
+  font-size: 10px;
+  color: var(--cream-muted);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* ─── Icon button ─── */
+
+.iconBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream-muted);
+  transition: all 0.15s var(--ease-spring);
+}
+
+.iconBtn:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
+  transform: scale(1.1);
+}
+
+/* ─── Finance section ─── */
+
+.balanceGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.balanceCard {
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  transition: transform 0.2s var(--ease-spring);
+}
+
+.balanceCard:hover {
+  transform: translateY(-2px);
+}
+
+.balanceCardLabel {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--accent);
+}
+
+.balanceCardValue {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--accent);
+}
+
+.balanceTotal {
+  padding: 10px 14px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+}
+
+.balanceTotalLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cream-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.balanceTotalValue {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--accent);
+  transition: color 0.3s ease;
+  animation: numFlash 0.4s var(--ease-spring);
+}
+
+/* ─── Finance type toggle ─── */
+
+.finTypeRow {
+  display: flex;
+  background: var(--obsidian-4);
+  border-radius: 9px;
+  padding: 3px;
+  margin-bottom: 12px;
+}
+
+.finTypeBtn {
+  flex: 1;
+  padding: 7px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  background: transparent;
+  color: var(--cream-muted);
+  border: 1px solid transparent;
+  transition: all 0.2s var(--ease-spring);
+}
+
+.finTypeBtnActive {
+  composes: finTypeBtn;
+  background: var(--obsidian-2);
+  color: var(--accent);
+  border-color: var(--accent-border);
+  transform: scale(1.02);
+}
+
+/* ─── Finance submit button ─── */
+
+.finSubmitBtn {
+  width: 100%;
+  padding: 9px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--obsidian);
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.2s var(--ease-spring);
+}
+
+.finSubmitBtn:hover {
+  transform: scale(1.02);
+}
+
+.finSubmitBtn:active {
+  transform: scale(0.97);
+}
+
+/* ─── Expense row ─── */
+
+.expenseRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--obsidian-3);
+  border: 1px solid var(--accent-border);
+  transition: border-color 0.15s, transform 0.2s var(--ease-spring);
+}
+
+.expenseRow:hover {
+  border-color: var(--accent-hover);
+  transform: translateX(2px);
+}
+
+.expenseIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-bg);
+}
+
+.expenseContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.expenseDesc {
+  font-size: 12px;
+  color: var(--cream);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expenseCategory {
+  font-size: 10px;
+  color: var(--cream-muted);
+  margin-top: 1px;
+}
+
+.expenseAmount {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+/* ─── Edit form for task/expense ─── */
+
+.editFormCard {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--obsidian-3);
+  border: 1px solid var(--accent-border, var(--border-light));
+}
+
+.editPriorityRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.editPriorityBtn {
+  padding: 3px 9px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--cream-muted);
+  transition: all 0.18s var(--ease-spring);
+}
+
+.editActions {
+  display: flex;
+  gap: 6px;
+}
+
+.saveBtn {
+  flex: 1;
+  padding: 7px;
+  border-radius: 8px;
+  background: var(--accent, var(--amber));
+  color: var(--obsidian);
+  font-size: 11px;
+  font-weight: 700;
+  transition: all 0.2s var(--ease-spring);
+}
+
+.cancelBtn {
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  color: var(--cream-muted);
+  font-size: 11px;
+  transition: all 0.2s var(--ease-spring);
+}
+
+.editSelectSmall {
+  composes: input;
+  padding: 3px 8px;
+  font-size: 10px;
+}
+
+.editFinTypeRow {
+  display: flex;
+  background: var(--obsidian-4);
+  border-radius: 9px;
+  padding: 3px;
+  margin-bottom: 10px;
+}
+
+.editFinTypeBtn {
+  flex: 1;
+  padding: 6px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  background: transparent;
+  color: var(--cream-muted);
+  border: 1px solid transparent;
+  transition: all 0.2s var(--ease-spring);
+}
+
+.editFinTypeBtnActive {
+  composes: editFinTypeBtn;
+  background: var(--obsidian-2);
+  color: var(--accent);
+  border-color: var(--accent-border);
+}

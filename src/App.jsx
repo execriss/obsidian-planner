@@ -16,11 +16,12 @@ import DayView from './components/DayView.jsx';
 import DayPanel from './components/DayPanel.jsx';
 import MonthlyReport from './components/MonthlyReport.jsx';
 import GroceryList from './components/GroceryList.jsx';
-import Servicios from './components/Servicios.jsx';
-import Habitos from './components/Habitos.jsx';
+import Services from './components/Services.jsx';
+import Habits from './components/Habits.jsx';
 import QuickNotes from './components/QuickNotes.jsx';
-import Documentos from './components/Documentos.jsx';
+import Documents from './components/Documents.jsx';
 import Settings from './components/Settings.jsx';
+import styles from './App.module.css';
 
 export default function App() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -32,12 +33,12 @@ export default function App() {
 
 function Planner({ user, onSignOut }) {
   const isMobile = useIsMobile();
-  const [viewMonth, setViewMonth]     = useState(new Date());
+  const [viewMonth, setViewMonth]       = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
-  const [view, setView]               = useState('calendar');
-  const [calView, setCalView]         = useState('month'); // 'month' | 'week' | 'day'
-  const [viewWeek, setViewWeek]       = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
-  const [viewKey, setViewKey]         = useState(0);
+  const [view, setView]                 = useState('calendar');
+  const [calView, setCalView]           = useState('month');
+  const [viewWeek, setViewWeek]         = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [viewKey, setViewKey]           = useState(0);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [migrationMsg, setMigrationMsg] = useState('');
   const [sheetClosing, setSheetClosing] = useState(false);
@@ -49,13 +50,10 @@ function Planner({ user, onSignOut }) {
     migrateFromLocalStorage,
   } = useData(user.id);
 
-  // Detectar datos legacy en localStorage y ofrecer migración
   useEffect(() => {
     if (loading) return;
     const hasLegacy = localStorage.getItem('obsidian_tasks') || localStorage.getItem('obsidian_expenses');
-    if (hasLegacy && tasks.length === 0) {
-      setMigrationMsg('pending');
-    }
+    if (hasLegacy && tasks.length === 0) setMigrationMsg('pending');
   }, [loading]);
 
   const handleMigrate = async () => {
@@ -72,7 +70,6 @@ function Planner({ user, onSignOut }) {
     if (isMobile) setShowUserMenu(false);
   };
 
-  // On mobile, redirect week to day view
   const handleCalViewChange = (v) => {
     if (isMobile && v === 'week') {
       setCalView('day');
@@ -122,14 +119,14 @@ function Planner({ user, onSignOut }) {
   };
 
   const pendingToday = tasks.filter(t => isToday(new Date(t.date)) && !t.done).length;
-  const monthIncome  = expenses.filter(e => e.type === 'income' && isSameMonth(new Date(e.date), viewMonth)).reduce((s, e) => s + e.amount, 0);
-  const monthExpense = expenses.filter(e => e.type === 'expense' && isSameMonth(new Date(e.date), viewMonth)).reduce((s, e) => s + e.amount, 0);
+  const monthIncome  = expenses.filter(e => e.type === 'income'   && isSameMonth(new Date(e.date), viewMonth)).reduce((s, e) => s + e.amount, 0);
+  const monthExpense = expenses.filter(e => e.type === 'expense'  && isSameMonth(new Date(e.date), viewMonth)).reduce((s, e) => s + e.amount, 0);
 
   const fmtCompact = (n) =>
     new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0, notation: 'compact' }).format(n);
 
-  const avatar = user.user_metadata?.avatar_url;
-  const name   = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario';
+  const avatar   = user.user_metadata?.avatar_url;
+  const name     = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario';
   const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 
   const NAV_ITEMS = [
@@ -143,60 +140,34 @@ function Planner({ user, onSignOut }) {
     { id: 'settings',  icon: Settings2,     label: 'Ajustes',   shortLabel: 'Ajustes' },
   ];
 
-  return (
-    <div style={{
-      display: 'flex', height: '100vh', width: '100vw',
-      background: 'var(--obsidian)', overflow: 'hidden',
-      animation: 'fadeIn 0.4s ease',
-      flexDirection: isMobile ? 'column' : 'row',
-    }}>
-      {/* Ambient glow */}
-      <div style={{
-        position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0,
-        background: `
-          radial-gradient(ellipse 50% 40% at 10% 50%, rgba(240,165,0,0.04) 0%, transparent 60%),
-          radial-gradient(ellipse 40% 50% at 92% 15%, rgba(107,143,212,0.035) 0%, transparent 60%)
-        `,
-      }} />
+  const moreIds = ['notas', 'docs', 'settings'];
+  const isMoreActive = moreIds.includes(view);
 
-      {/* Migration banner */}
+  return (
+    <div className={isMobile ? styles.plannerRootMobile : styles.plannerRootDesktop}>
+      {/* Ambient glow */}
+      <div className={styles.ambientGlow} />
+
+      {/* Migration banners */}
       {migrationMsg === 'pending' && (
-        <div style={{
-          position: 'fixed', top: '16px', left: '50%', transform: 'translateX(-50%)',
-          background: 'var(--obsidian-3)', border: '1px solid var(--amber-dim)',
-          borderRadius: '12px', padding: isMobile ? '10px 14px' : '12px 20px',
-          display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px',
-          zIndex: 100, animation: 'fadeUp 0.3s var(--ease-spring)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-          maxWidth: isMobile ? 'calc(100vw - 32px)' : 'none',
-          fontSize: isMobile ? '11px' : '12px',
-        }}>
-          <span style={{ fontSize: isMobile ? '11px' : '12px', color: 'var(--cream-dim)' }}>
+        <div className={isMobile ? styles.bannerPendingMobile : styles.bannerPending}>
+          <span className={isMobile ? styles.bannerTextMobile : styles.bannerText}>
             Tenés datos guardados localmente.
           </span>
-          <button
-            onClick={handleMigrate}
-            style={{
-              padding: '5px 14px', borderRadius: '8px',
-              background: 'var(--amber)', color: 'var(--obsidian)',
-              fontSize: '11px', fontWeight: 700,
-              transition: 'all 0.15s var(--ease-spring)',
-              flexShrink: 0,
-            }}
-          >
+          <button onClick={handleMigrate} className={styles.bannerImportBtn}>
             Importar
           </button>
-          <button onClick={() => setMigrationMsg('')} style={{ color: 'var(--cream-muted)', fontSize: '16px' }}>×</button>
+          <button onClick={() => setMigrationMsg('')} className={styles.bannerCloseBtn}>×</button>
         </div>
       )}
       {migrationMsg === 'loading' && (
-        <div style={bannerStyle}>
-          <span style={{ fontSize: '12px', color: 'var(--cream-dim)' }}>Importando datos...</span>
+        <div className={styles.banner}>
+          <span className={styles.bannerLoadingText}>Importando datos...</span>
         </div>
       )}
       {migrationMsg.startsWith('done:') && (
-        <div style={{ ...bannerStyle, borderColor: 'var(--sage)44' }}>
-          <span style={{ fontSize: '12px', color: 'var(--sage)' }}>
+        <div className={styles.bannerDone}>
+          <span className={styles.bannerSuccessText}>
             ✓ {migrationMsg.split(':')[1]} registros importados correctamente
           </span>
         </div>
@@ -204,200 +175,119 @@ function Planner({ user, onSignOut }) {
 
       {/* ── SIDEBAR (desktop only) ── */}
       {!isMobile && (
-      <aside style={{
-        width: '200px', flexShrink: 0,
-        borderRight: '1px solid var(--border)',
-        background: 'var(--obsidian-2)',
-        display: 'flex', flexDirection: 'column',
-        zIndex: 10,
-        animation: 'slideInLeft 0.4s var(--ease-out) both',
-      }}>
-        {/* Logo */}
-        <div style={{ padding: '22px 18px 18px', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div className="logo-icon" style={{
-              width: '32px', height: '32px', borderRadius: '9px',
-              background: 'linear-gradient(135deg, var(--amber), var(--amber-dim))',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 20px rgba(240,165,0,0.25)', flexShrink: 0,
-            }}>
-              <Calendar size={15} color="var(--obsidian)" />
-            </div>
-            <div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: '17px', fontWeight: 700, color: 'var(--cream)', letterSpacing: '-0.01em', lineHeight: 1 }}>
-                Obsidian
+        <aside className={styles.sidebar}>
+          {/* Logo */}
+          <div className={styles.sidebarLogo}>
+            <div className={styles.sidebarLogoRow}>
+              <div className={styles.sidebarLogoIcon}>
+                <Calendar size={15} color="var(--obsidian)" />
               </div>
-              <div style={{ fontSize: '9px', color: 'var(--amber)', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: '2px' }}>
-                Planner
+              <div>
+                <div className={styles.sidebarBrandName}>Obsidian</div>
+                <div className={styles.sidebarBrandSub}>Planner</div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Month navigator */}
-        <div style={{ padding: '16px 14px', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <NavBtn onClick={() => changeMonth('prev')}><ChevronLeft size={13} /></NavBtn>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 600, color: 'var(--cream)', lineHeight: 1, textTransform: 'capitalize' }}>
-                {format(viewMonth, 'MMMM', { locale: es })}
+          {/* Month navigator */}
+          <div className={styles.monthNav}>
+            <div className={styles.monthNavRow}>
+              <NavBtn onClick={() => changeMonth('prev')}><ChevronLeft size={13} /></NavBtn>
+              <div className={styles.monthNavCenter}>
+                <div className={styles.monthLabel}>
+                  {format(viewMonth, 'MMMM', { locale: es })}
+                </div>
+                <div className={styles.yearLabel}>{format(viewMonth, 'yyyy')}</div>
               </div>
-              <div style={{ fontSize: '10px', color: 'var(--cream-muted)', marginTop: '2px' }}>{format(viewMonth, 'yyyy')}</div>
+              <NavBtn onClick={() => changeMonth('next')}><ChevronRight size={13} /></NavBtn>
             </div>
-            <NavBtn onClick={() => changeMonth('next')}><ChevronRight size={13} /></NavBtn>
-          </div>
-          <button
-            onClick={() => { setViewMonth(new Date()); setSelectedDate(new Date()); }}
-            style={{
-              width: '100%', marginTop: '8px', padding: '6px', borderRadius: '8px',
-              fontSize: '11px', fontWeight: 500, color: 'var(--cream-muted)',
-              border: '1px solid var(--border)', background: 'transparent',
-              transition: 'all 0.2s var(--ease-spring)',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--amber-glow)'; e.currentTarget.style.color = 'var(--amber)'; e.currentTarget.style.borderColor = 'var(--amber-dim)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--cream-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
-          >
-            Hoy
-          </button>
-        </div>
-
-        {/* Nav views */}
-        <div style={{ padding: '12px 10px' }}>
-          <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cream-muted)', marginBottom: '8px', fontWeight: 600, paddingLeft: '6px' }}>Vista</div>
-          {NAV_ITEMS.map(({ id, icon: Icon, label }) => (
             <button
-              key={id}
-              onClick={() => changeView(id)}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '9px 10px', borderRadius: '9px',
-                fontSize: '12px', fontWeight: view === id ? 600 : 400,
-                color: view === id ? 'var(--amber)' : 'var(--cream-dim)',
-                background: view === id ? 'var(--amber-glow)' : 'transparent',
-                border: view === id ? '1px solid rgba(196,134,0,0.25)' : '1px solid transparent',
-                transition: 'all 0.22s var(--ease-spring)',
-                marginBottom: '2px', textAlign: 'left',
-              }}
-              onMouseEnter={e => { if (view !== id) { e.currentTarget.style.background = 'var(--obsidian-3)'; e.currentTarget.style.color = 'var(--cream)'; e.currentTarget.style.transform = 'translateX(3px)'; } }}
-              onMouseLeave={e => { if (view !== id) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--cream-dim)'; e.currentTarget.style.transform = 'translateX(0)'; } }}
+              onClick={() => { setViewMonth(new Date()); setSelectedDate(new Date()); }}
+              className={styles.todayBtn}
             >
-              <Icon size={14} /> {label}
+              Hoy
             </button>
-          ))}
-        </div>
-
-        {/* Stats */}
-        <div style={{ padding: '12px 14px', borderTop: '1px solid var(--border)', marginTop: 'auto' }}>
-          <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cream-muted)', marginBottom: '10px', fontWeight: 600 }}>
-            {format(viewMonth, 'MMM yyyy', { locale: es })}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {pendingToday > 0 && <StatRow icon={CheckSquare} label="Pendientes" value={pendingToday} color="var(--amber)" />}
-            {monthIncome  > 0 && <StatRow icon={TrendingUp}  label="Ingresos"   value={fmtCompact(monthIncome)}  color="var(--sage)" />}
-            {monthExpense > 0 && <StatRow icon={TrendingDown} label="Gastos"     value={fmtCompact(monthExpense)} color="var(--coral)" />}
-          </div>
-        </div>
 
-        {/* User */}
-        <div style={{ padding: '12px 14px', borderTop: '1px solid var(--border)', position: 'relative' }}>
-          <button
-            onClick={() => setShowUserMenu(!showUserMenu)}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '6px 8px', borderRadius: '9px',
-              border: '1px solid transparent',
-              background: 'transparent',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--obsidian-3)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}
-          >
-            <UserAvatar avatar={avatar} initials={initials} size={26} />
-            <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--cream)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</div>
-              <div style={{ fontSize: '9px', color: 'var(--cream-muted)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                <Sparkles size={8} color="var(--amber)" /> Free plan
-              </div>
-            </div>
-          </button>
-
-          {showUserMenu && (
-            <div style={{
-              position: 'absolute', bottom: '56px', left: '10px', right: '10px',
-              background: 'var(--obsidian-3)', border: '1px solid var(--border-light)',
-              borderRadius: '12px', padding: '6px',
-              animation: 'fadeUp 0.2s var(--ease-spring)',
-              zIndex: 20,
-            }}>
+          {/* Nav items */}
+          <div className={styles.navSection}>
+            <div className={styles.navSectionLabel}>Vista</div>
+            {NAV_ITEMS.map(({ id, icon: Icon, label }) => (
               <button
-                onClick={() => { setShowUserMenu(false); onSignOut(); }}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
-                  padding: '9px 10px', borderRadius: '8px',
-                  fontSize: '12px', color: 'var(--coral)', fontWeight: 500,
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--coral-dim)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                key={id}
+                onClick={() => changeView(id)}
+                className={view === id ? styles.navItemActive : styles.navItem}
               >
-                <LogOut size={13} /> Cerrar sesión
+                <Icon size={14} /> {label}
               </button>
+            ))}
+          </div>
+
+          {/* Stats */}
+          <div className={styles.statsSection}>
+            <div className={styles.statsLabel}>
+              {format(viewMonth, 'MMM yyyy', { locale: es })}
             </div>
-          )}
-        </div>
-      </aside>
+            <div className={styles.statsGrid}>
+              {pendingToday > 0 && <StatRow icon={CheckSquare} label="Pendientes" value={pendingToday} color="var(--amber)" />}
+              {monthIncome  > 0 && <StatRow icon={TrendingUp}  label="Ingresos"   value={fmtCompact(monthIncome)}  color="var(--sage)" />}
+              {monthExpense > 0 && <StatRow icon={TrendingDown} label="Gastos"     value={fmtCompact(monthExpense)} color="var(--coral)" />}
+            </div>
+          </div>
+
+          {/* User */}
+          <div className={styles.userSection}>
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className={styles.userBtn}
+            >
+              <UserAvatar avatar={avatar} initials={initials} size={26} />
+              <div className={styles.userInfo}>
+                <div className={styles.userName}>{name}</div>
+                <div className={styles.userPlan}>
+                  <Sparkles size={8} color="var(--amber)" /> Free plan
+                </div>
+              </div>
+            </button>
+
+            {showUserMenu && (
+              <div className={styles.userMenu}>
+                <button
+                  onClick={() => { setShowUserMenu(false); onSignOut(); }}
+                  className={styles.logoutBtn}
+                >
+                  <LogOut size={13} /> Cerrar sesión
+                </button>
+              </div>
+            )}
+          </div>
+        </aside>
       )}
 
       {/* ── MAIN ── */}
-      <div style={{
-        flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        position: 'relative', zIndex: 1,
-        paddingBottom: isMobile ? '56px' : 0,
-      }}>
+      <div className={isMobile ? styles.mainMobile : styles.main}>
         {view === 'calendar' ? (
           <>
             {/* View switcher bar */}
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: isMobile ? '6px 8px' : '8px 16px',
-              borderBottom: '1px solid var(--border)',
-              background: 'var(--obsidian-2)', flexShrink: 0,
-              gap: isMobile ? '4px' : 0,
-            }}>
-              {/* Prev / Today / Next */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div className={isMobile ? styles.toolbarMobile : styles.toolbarDesktop}>
+              <div className={styles.toolbarNav}>
                 <NavBtn onClick={handlePrevNav}><ChevronLeft size={13} /></NavBtn>
                 <button
                   onClick={handleToday}
-                  style={{
-                    padding: isMobile ? '5px 8px' : '5px 12px', borderRadius: '8px',
-                    fontSize: '11px', fontWeight: 500,
-                    color: 'var(--cream-muted)', border: '1px solid var(--border)',
-                    background: 'transparent', transition: 'all 0.2s var(--ease-spring)',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--amber-glow)'; e.currentTarget.style.color = 'var(--amber)'; e.currentTarget.style.borderColor = 'var(--amber-dim)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--cream-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+                  className={isMobile ? styles.toolbarTodayBtnMobile : styles.toolbarTodayBtnDesktop}
                 >
                   Hoy
                 </button>
                 <NavBtn onClick={handleNextNav}><ChevronRight size={13} /></NavBtn>
               </div>
 
-              {/* Month label on mobile */}
               {isMobile && (
-                <div style={{
-                  fontFamily: 'var(--font-display)', fontSize: '14px', fontWeight: 600,
-                  color: 'var(--cream)', textTransform: 'capitalize', flex: 1, textAlign: 'center',
-                }}>
+                <div className={styles.mobileMonthLabel}>
                   {format(viewMonth, 'MMM yyyy', { locale: es })}
                 </div>
               )}
 
-              {/* Month/Week/Day segmented control */}
-              <div style={{
-                display: 'flex', background: 'var(--obsidian-4)',
-                borderRadius: '10px', padding: '3px', gap: '2px',
-              }}>
+              <div className={styles.segmentedControl}>
                 {(isMobile
                   ? [['month', 'Mes'], ['day', 'Día']]
                   : [['month', 'Mes'], ['week', 'Semana'], ['day', 'Día']]
@@ -405,28 +295,18 @@ function Planner({ user, onSignOut }) {
                   <button
                     key={id}
                     onClick={() => handleCalViewChange(id)}
-                    style={{
-                      padding: isMobile ? '5px 10px' : '5px 14px', borderRadius: '8px',
-                      fontSize: '11px', fontWeight: calView === id ? 600 : 400,
-                      color: calView === id ? 'var(--amber)' : 'var(--cream-muted)',
-                      background: calView === id ? 'var(--amber-glow)' : 'transparent',
-                      border: calView === id ? '1px solid var(--amber-dim)' : '1px solid transparent',
-                      transition: 'all 0.2s var(--ease-spring)',
-                    }}
-                    onMouseEnter={e => { if (calView !== id) { e.currentTarget.style.color = 'var(--cream)'; e.currentTarget.style.background = 'var(--obsidian-3)'; } }}
-                    onMouseLeave={e => { if (calView !== id) { e.currentTarget.style.color = 'var(--cream-muted)'; e.currentTarget.style.background = 'transparent'; } }}
+                    className={`${isMobile ? styles.segmentBtnMobile : styles.segmentBtnDesktop} ${calView === id ? styles.segmentBtnActive : ''}`}
                   >
                     {label}
                   </button>
                 ))}
               </div>
 
-              {/* Spacer para centrar el segmented control (desktop) */}
-              {!isMobile && <div style={{ width: '100px' }} />}
+              {!isMobile && <div className={styles.toolbarSpacer} />}
             </div>
 
             {/* Calendar content */}
-            <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+            <div className={styles.calendarContent}>
               {calView === 'month' && (
                 <>
                   <BigCalendar
@@ -437,7 +317,6 @@ function Planner({ user, onSignOut }) {
                     expenses={expenses}
                     isMobile={isMobile}
                   />
-                  {/* Desktop: side panel. Mobile: bottom sheet */}
                   {selectedDate && !isMobile && (
                     <DayPanel
                       key={format(selectedDate, 'yyyy-MM-dd')}
@@ -459,21 +338,11 @@ function Planner({ user, onSignOut }) {
                       <div className="bottom-sheet-backdrop" onClick={closeMobileSheet} />
                       <div className={`bottom-sheet ${sheetClosing ? 'bottom-sheet-closing' : ''}`}>
                         <div className="bottom-sheet-handle" />
-                        <div style={{
-                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                          padding: '4px 16px 8px', flexShrink: 0,
-                        }}>
-                          <div style={{
-                            fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: 700,
-                            color: 'var(--cream)', letterSpacing: '-0.02em',
-                          }}>
+                        <div className={styles.sheetHeader}>
+                          <div className={styles.sheetTitle}>
                             {format(selectedDate, "d 'de' MMMM", { locale: es })}
                           </div>
-                          <button onClick={closeMobileSheet} style={{
-                            width: '30px', height: '30px', borderRadius: '9px',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'var(--cream-muted)', background: 'var(--obsidian-4)',
-                          }}>
+                          <button onClick={closeMobileSheet} className={styles.sheetCloseBtn}>
                             <X size={15} />
                           </button>
                         </div>
@@ -547,16 +416,16 @@ function Planner({ user, onSignOut }) {
             </div>
           </>
         ) : (
-          <div key={viewKey} className="animate-viewIn" style={{
-            flex: 1, overflow: 'auto',
-            padding: isMobile ? '20px 12px' : '40px 48px',
-          }}>
+          <div
+            key={viewKey}
+            className={`animate-viewIn ${isMobile ? styles.viewContainerMobile : styles.viewContainerDesktop}`}
+          >
             {view === 'monthly'   && <MonthlyReport expenses={expenses} isMobile={isMobile} />}
-            {view === 'grocery'   && <GroceryList />}
-            {view === 'servicios' && <Servicios onAddExpense={addExpense} />}
-            {view === 'habitos'   && <Habitos />}
-            {view === 'notas'     && <QuickNotes />}
-            {view === 'docs'      && <Documentos />}
+            {view === 'grocery'   && <GroceryList userId={user.id} />}
+            {view === 'servicios' && <Services onAddExpense={addExpense} userId={user.id} />}
+            {view === 'habitos'   && <Habits userId={user.id} />}
+            {view === 'notas'     && <QuickNotes userId={user.id} />}
+            {view === 'docs'      && <Documents userId={user.id} />}
             {view === 'settings'  && <Settings user={user} />}
           </div>
         )}
@@ -569,64 +438,38 @@ function Planner({ user, onSignOut }) {
             <button
               key={id}
               onClick={() => changeView(id)}
-              style={{
-                color: view === id ? 'var(--amber)' : 'var(--cream-muted)',
-                background: view === id ? 'var(--amber-glow)' : 'transparent',
-              }}
+              className={view === id ? styles.mobileNavItemActive : styles.mobileNavItemInactive}
             >
               <Icon size={18} />
               <span>{shortLabel}</span>
             </button>
           ))}
-          {/* More menu with remaining items */}
-          <div style={{ position: 'relative' }}>
+          {/* More menu */}
+          <div className={styles.mobileMoreWrapper}>
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
-                padding: '6px 8px', borderRadius: '8px', fontSize: '9px', minWidth: '44px',
-                color: ['notas', 'docs', 'settings'].includes(view) ? 'var(--amber)' : 'var(--cream-muted)',
-                background: ['notas', 'docs', 'settings'].includes(view) ? 'var(--amber-glow)' : 'transparent',
-              }}
+              className={isMoreActive ? styles.mobileMoreBtnActive : styles.mobileMoreBtnInactive}
             >
               <Settings2 size={18} />
               <span>Más</span>
             </button>
             {showUserMenu && (
               <>
-                <div style={{ position: 'fixed', inset: 0, zIndex: 59 }} onClick={() => setShowUserMenu(false)} />
-                <div style={{
-                  position: 'absolute', bottom: '52px', right: '-8px',
-                  background: 'var(--obsidian-3)', border: '1px solid var(--border-light)',
-                  borderRadius: '12px', padding: '6px', minWidth: '160px',
-                  animation: 'fadeUp 0.2s var(--ease-spring)',
-                  zIndex: 60,
-                  boxShadow: '0 -8px 32px rgba(0,0,0,0.5)',
-                }}>
-                  {NAV_ITEMS.filter(n => ['notas', 'docs', 'settings'].includes(n.id)).map(({ id, icon: Icon, label }) => (
+                <div className={styles.mobileMenuOverlay} onClick={() => setShowUserMenu(false)} />
+                <div className={styles.mobileMenuPopup}>
+                  {NAV_ITEMS.filter(n => moreIds.includes(n.id)).map(({ id, icon: Icon, label }) => (
                     <button
                       key={id}
                       onClick={() => { changeView(id); setShowUserMenu(false); }}
-                      style={{
-                        width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
-                        padding: '10px 12px', borderRadius: '8px',
-                        fontSize: '12px', fontWeight: view === id ? 600 : 400,
-                        color: view === id ? 'var(--amber)' : 'var(--cream-dim)',
-                        background: view === id ? 'var(--amber-glow)' : 'transparent',
-                        textAlign: 'left',
-                      }}
+                      className={view === id ? styles.mobileMenuItemActive : styles.mobileMenuItem}
                     >
                       <Icon size={14} /> {label}
                     </button>
                   ))}
-                  <div style={{ height: '1px', background: 'var(--border)', margin: '4px 6px' }} />
+                  <div className={styles.mobileMenuDivider} />
                   <button
                     onClick={() => { setShowUserMenu(false); onSignOut(); }}
-                    style={{
-                      width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
-                      padding: '10px 12px', borderRadius: '8px',
-                      fontSize: '12px', color: 'var(--coral)', fontWeight: 500,
-                    }}
+                    className={styles.mobileLogoutBtn}
                   >
                     <LogOut size={13} /> Cerrar sesión
                   </button>
@@ -640,58 +483,43 @@ function Planner({ user, onSignOut }) {
   );
 }
 
+// ─── Loader ───────────────────────────────────────────────────────────────────
+
 function Loader() {
   return (
-    <div style={{
-      height: '100vh', width: '100vw',
-      background: 'var(--obsidian)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      <div style={{
-        width: '40px', height: '40px', borderRadius: '12px',
-        background: 'linear-gradient(135deg, var(--amber), var(--amber-dim))',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        animation: 'float 1.2s ease-in-out infinite',
-        boxShadow: '0 0 30px rgba(240,165,0,0.3)',
-      }}>
+    <div className={styles.loaderPage}>
+      <div className={styles.loaderIcon}>
         <Calendar size={20} color="var(--obsidian)" />
       </div>
     </div>
   );
 }
 
+// ─── NavBtn ───────────────────────────────────────────────────────────────────
+
 function NavBtn({ onClick, children }) {
   return (
-    <button
-      onClick={onClick}
-      style={{ width: '26px', height: '26px', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cream-muted)', transition: 'all 0.2s var(--ease-spring)', background: 'transparent' }}
-      onMouseEnter={e => { e.currentTarget.style.color = 'var(--amber)'; e.currentTarget.style.background = 'var(--amber-glow)'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-      onMouseLeave={e => { e.currentTarget.style.color = 'var(--cream-muted)'; e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'scale(1)'; }}
-    >
+    <button onClick={onClick} className={styles.navBtn}>
       {children}
     </button>
   );
 }
 
+// ─── StatRow ──────────────────────────────────────────────────────────────────
+
 function StatRow({ icon: Icon, label, value, color }) {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '6px 8px', borderRadius: '8px',
-      background: 'var(--obsidian-3)', border: '1px solid var(--border)',
-      transition: 'all 0.2s var(--ease-spring)',
-    }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = `${color}44`; e.currentTarget.style.transform = 'scale(1.02)'; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'scale(1)'; }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+    <div className={styles.statRow} style={{ '--accent-color': color }}>
+      <div className={styles.statRowLeft}>
         <Icon size={10} color={color} />
-        <span style={{ fontSize: '10px', color: 'var(--cream-muted)' }}>{label}</span>
+        <span className={styles.statRowLabel}>{label}</span>
       </div>
-      <span style={{ fontSize: '11px', fontWeight: 700, color, fontFamily: 'var(--font-display)' }}>{value}</span>
+      <span className={styles.statRowValue}>{value}</span>
     </div>
   );
 }
+
+// ─── UserAvatar ───────────────────────────────────────────────────────────────
 
 function UserAvatar({ avatar, initials, size = 26 }) {
   const [imgError, setImgError] = useState(false);
@@ -702,29 +530,15 @@ function UserAvatar({ avatar, initials, size = 26 }) {
       src={avatar}
       onError={() => setImgError(true)}
       referrerPolicy="no-referrer"
-      style={{ width: size, height: size, borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }}
+      className={styles.avatarImg}
+      style={{ width: size, height: size }}
     />
   ) : (
-    <div style={{
-      width: size, height: size, borderRadius: '8px', flexShrink: 0,
-      background: 'linear-gradient(135deg, var(--amber-dim), #8B5E00)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: size * 0.38 + 'px', fontWeight: 700,
-      color: 'var(--obsidian)',
-      fontFamily: 'var(--font-body)',
-      letterSpacing: '-0.02em',
-      userSelect: 'none',
-    }}>
+    <div
+      className={styles.avatarFallback}
+      style={{ width: size, height: size, fontSize: `${size * 0.38}px` }}
+    >
       {initials || <User size={size * 0.5} color="var(--obsidian)" />}
     </div>
   );
 }
-
-const bannerStyle = {
-  position: 'fixed', top: '16px', left: '50%', transform: 'translateX(-50%)',
-  background: 'var(--obsidian-3)', border: '1px solid var(--border-light)',
-  borderRadius: '12px', padding: '12px 20px',
-  display: 'flex', alignItems: 'center', gap: '12px',
-  zIndex: 100, animation: 'fadeUp 0.3s var(--ease-spring)',
-  boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-};

@@ -1,0 +1,298 @@
+/* BigCalendar — CSS Module */
+
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Day headers row ── */
+
+.dayHeaders {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--border);
+  background: var(--obsidian-2);
+  flex-shrink: 0;
+}
+
+.dayName {
+  padding: 10px 14px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cream-muted);
+  border-right: 1px solid var(--border);
+}
+
+.dayName:last-child {
+  border-right: none;
+}
+
+.dayNameWeekend {
+  color: var(--amber-dim);
+}
+
+.dayNameMobile {
+  padding: 6px 2px;
+  font-size: 9px;
+  text-align: center;
+}
+
+/* ── Calendar grid ── */
+
+.grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: var(--grid-rows);
+  overflow: hidden;
+}
+
+/* ── Day cell ── */
+
+.cell {
+  animation: cellIn 0.25s var(--ease-spring) both;
+  animation-delay: var(--stagger);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  transition: background 0.18s ease, outline-color 0.18s ease, opacity 0.2s ease;
+  outline: 1.5px solid transparent;
+  outline-offset: -1px;
+  overflow: hidden;
+  position: relative;
+  background: transparent;
+  opacity: 1;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.cell:nth-child(7n) {
+  border-right: none;
+}
+
+.cell:hover {
+  background: var(--obsidian-3);
+}
+
+.cellNoBorderBottom {
+  border-bottom: none;
+}
+
+.cellOutside {
+  opacity: 0.38;
+}
+
+.cellToday {
+  background: rgba(240, 165, 0, 0.03);
+}
+
+.cellToday:hover {
+  background: var(--obsidian-3);
+}
+
+.cellWeekend {
+  background: rgba(255, 255, 255, 0.005);
+}
+
+.cellSelected {
+  background: rgba(240, 165, 0, 0.07);
+  outline: 1.5px solid rgba(240, 165, 0, 0.35);
+}
+
+.cellSelected:hover {
+  background: rgba(240, 165, 0, 0.07);
+}
+
+.cellMobile {
+  padding: 4px 2px;
+  gap: 2px;
+  align-items: center;
+}
+
+/* ── Day number row ── */
+
+.dayNumberRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.dayNumberRowMobile {
+  justify-content: center;
+  margin-bottom: 1px;
+}
+
+/* ── Day badge ── */
+
+.dayBadge {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cream);
+  background: transparent;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: transform 0.2s var(--ease-spring);
+}
+
+.dayBadgeMobile {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 11px;
+}
+
+.dayBadgeToday {
+  font-weight: 700;
+  color: var(--obsidian);
+  background: var(--amber);
+}
+
+.dayBadgeOutside {
+  color: var(--cream-muted);
+}
+
+/* ── Progress indicator ── */
+
+.progressWrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.progressTrack {
+  width: 28px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  width: var(--progress);
+  border-radius: 2px;
+  transition: width 0.5s var(--ease-spring);
+}
+
+.progressComplete {
+  background: var(--sage);
+}
+
+.progressEmpty {
+  background: var(--border-light);
+}
+
+.progressCount {
+  font-size: 9px;
+  color: var(--cream-muted);
+  font-weight: 600;
+}
+
+/* ── Mobile dots ── */
+
+.mobileDots {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--dot-color);
+  opacity: var(--dot-opacity, 0.8);
+}
+
+/* ── Finance chips ── */
+
+.financeRow {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.chipBase {
+  font-size: 9px;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 2px 5px;
+  white-space: nowrap;
+  transition: transform 0.15s var(--ease-spring);
+  animation: chipPop 0.3s var(--ease-spring) both;
+  animation-delay: var(--stagger);
+}
+
+.chipIncome {
+  color: var(--sage);
+  background: var(--sage-dim);
+}
+
+.chipExpense {
+  color: var(--coral);
+  background: var(--coral-dim);
+}
+
+/* ── Task pills ── */
+
+.taskPill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  border-radius: 5px;
+  border-left: 2px solid var(--pill-accent);
+  background: var(--pill-bg);
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: opacity 0.2s ease, background 0.2s ease;
+  animation-delay: var(--stagger);
+}
+
+.taskPillDone {
+  background: rgba(255, 255, 255, 0.03);
+  border-left-color: var(--border-light);
+}
+
+.checkIcon {
+  flex-shrink: 0;
+}
+
+.taskText {
+  font-size: 10px;
+  color: var(--cream-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.taskTextDone {
+  color: var(--cream-muted);
+  text-decoration: line-through;
+}
+
+/* ── Overflow indicator ── */
+
+.overflow {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--cream-muted);
+  padding-left: 4px;
+  letter-spacing: 0.04em;
+  animation: fadeIn 0.2s ease var(--stagger) both;
+}

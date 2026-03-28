@@ -3,6 +3,7 @@ import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   startOfWeek, endOfWeek, isSameMonth, isSameDay, isToday,
 } from 'date-fns';
+import styles from './BigCalendar.module.css';
 
 const PRIORITY_COLORS = {
   high: '#E05C5C',
@@ -52,43 +53,25 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
   const gridKey = format(viewMonth, 'yyyy-MM');
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div className={styles.container}>
 
       {/* Day headers */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(7, 1fr)',
-        borderBottom: '1px solid var(--border)',
-        background: 'var(--obsidian-2)',
-        flexShrink: 0,
-      }}>
+      <div className={styles.dayHeaders}>
         {DAY_NAMES.map((name, i) => (
-          <div key={name} style={{
-            padding: isMobile ? '6px 2px' : '10px 14px',
-            fontSize: isMobile ? '9px' : '10px',
-            fontWeight: 600,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: i >= 5 ? 'var(--amber-dim)' : 'var(--cream-muted)',
-            borderRight: i < 6 ? '1px solid var(--border)' : 'none',
-            textAlign: isMobile ? 'center' : 'left',
-          }}>
+          <div
+            key={name}
+            className={`${styles.dayName} ${i >= 5 ? styles.dayNameWeekend : ''} ${isMobile ? styles.dayNameMobile : ''}`}
+          >
             {name}
           </div>
         ))}
       </div>
 
-      {/* Calendar grid — keyed so it re-mounts on month change → triggers stagger */}
+      {/* Calendar grid */}
       <div
         key={gridKey}
         className={direction === 'next' ? 'month-enter-next' : 'month-enter-prev'}
-        style={{
-          flex: 1,
-          display: 'grid',
-          gridTemplateColumns: 'repeat(7, 1fr)',
-          gridTemplateRows: `repeat(${days.length / 7}, 1fr)`,
-          overflow: 'hidden',
-        }}
+        style={{ '--grid-rows': `repeat(${days.length / 7}, 1fr)` }}
       >
         {days.map((day, i) => {
           const key = format(day, 'yyyy-MM-dd');
@@ -104,97 +87,50 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
           const VISIBLE_TASKS = 3;
           const overflow = dayTasks.length - VISIBLE_TASKS;
 
-          // Stagger delay: row-based so each row enters together, offset by row
           const row = Math.floor(i / 7);
           const staggerDelay = `${row * 0.04 + (i % 7) * 0.01}s`;
+          const isLastRow = i >= days.length - 7;
+
+          const cellClasses = [
+            styles.cell,
+            isMobile ? styles.cellMobile : '',
+            !inMonth ? styles.cellOutside : '',
+            selected ? styles.cellSelected : today ? styles.cellToday : (isWeekend && inMonth ? styles.cellWeekend : ''),
+            isLastRow ? styles.cellNoBorderBottom : '',
+          ].filter(Boolean).join(' ');
 
           return (
             <div
               key={key}
-              className="cal-cell"
+              className={cellClasses}
               onClick={() => onSelectDate(day)}
-              style={{
-                animationDelay: staggerDelay,
-                borderRight: (i + 1) % 7 !== 0 ? '1px solid var(--border)' : 'none',
-                borderBottom: i < days.length - 7 ? '1px solid var(--border)' : 'none',
-                padding: isMobile ? '4px 2px' : '8px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: isMobile ? '2px' : '4px',
-                alignItems: isMobile ? 'center' : 'stretch',
-                cursor: 'pointer',
-                background: selected
-                  ? 'rgba(240,165,0,0.07)'
-                  : today
-                    ? 'rgba(240,165,0,0.03)'
-                    : isWeekend && inMonth
-                      ? 'rgba(255,255,255,0.005)'
-                      : 'transparent',
-                opacity: inMonth ? 1 : 0.38,
-                transition: 'background 0.18s ease, outline-color 0.18s ease, opacity 0.2s ease',
-                outline: selected ? '1.5px solid rgba(240,165,0,0.35)' : '1.5px solid transparent',
-                outlineOffset: '-1px',
-                overflow: 'hidden',
-                position: 'relative',
-              }}
-              onMouseEnter={e => {
-                if (!selected) e.currentTarget.style.background = 'var(--obsidian-3)';
-              }}
-              onMouseLeave={e => {
-                if (!selected) e.currentTarget.style.background = today ? 'rgba(240,165,0,0.03)' : 'transparent';
-              }}
+              style={{ '--stagger': staggerDelay }}
             >
               {/* Day number + progress */}
-              <div style={{
-                display: 'flex',
-                alignItems: isMobile ? 'center' : 'center',
-                justifyContent: isMobile ? 'center' : 'space-between',
-                marginBottom: isMobile ? '1px' : '2px',
-              }}>
+              <div className={`${styles.dayNumberRow} ${isMobile ? styles.dayNumberRowMobile : ''}`}>
                 <span
-                  className={today ? 'today-badge' : ''}
-                  style={{
-                    width: isMobile ? '22px' : '26px',
-                    height: isMobile ? '22px' : '26px',
-                    borderRadius: isMobile ? '50%' : '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: isMobile ? '11px' : '13px',
-                    fontWeight: today ? 700 : 500,
-                    color: today ? 'var(--obsidian)' : inMonth ? 'var(--cream)' : 'var(--cream-muted)',
-                    background: today ? 'var(--amber)' : 'transparent',
-                    flexShrink: 0,
-                    lineHeight: 1,
-                    transition: 'transform 0.2s var(--ease-spring)',
-                  }}
+                  className={[
+                    styles.dayBadge,
+                    isMobile ? styles.dayBadgeMobile : '',
+                    today ? `${styles.dayBadgeToday} today-badge` : '',
+                    !inMonth && !today ? styles.dayBadgeOutside : '',
+                  ].filter(Boolean).join(' ')}
                 >
                   {format(day, 'd')}
                 </span>
 
                 {!isMobile && dayTasks.length > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <div style={{
-                      width: '28px', height: '4px',
-                      borderRadius: '2px', background: 'var(--border)',
-                      overflow: 'hidden',
-                    }}>
+                  <div className={styles.progressWrap}>
+                    <div className={styles.progressTrack}>
                       <div
-                        className={donePct > 0 ? 'progress-shimmer' : ''}
-                        style={{
-                          height: '100%',
-                          width: `${donePct * 100}%`,
-                          background: donePct === 1
-                            ? 'var(--sage)'
-                            : donePct > 0
-                              ? undefined   /* shimmer handles it */
-                              : 'var(--border-light)',
-                          borderRadius: '2px',
-                          transition: 'width 0.5s var(--ease-spring)',
-                        }}
+                        className={[
+                          styles.progressBar,
+                          donePct === 1 ? styles.progressComplete : donePct > 0 ? 'progress-shimmer' : styles.progressEmpty,
+                        ].filter(Boolean).join(' ')}
+                        style={{ '--progress': `${donePct * 100}%` }}
                       />
                     </div>
-                    <span style={{ fontSize: '9px', color: 'var(--cream-muted)', fontWeight: 600 }}>
+                    <span className={styles.progressCount}>
                       {dayTasks.filter(t => t.done).length}/{dayTasks.length}
                     </span>
                   </div>
@@ -203,54 +139,41 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
 
               {/* Mobile: colored dots for tasks & finance */}
               {isMobile ? (
-                <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <div className={styles.mobileDots}>
                   {dayTasks.slice(0, 4).map(task => (
-                    <div key={task.id} style={{
-                      width: '5px', height: '5px', borderRadius: '50%',
-                      background: task.done ? 'var(--border-light)' : PRIORITY_COLORS[task.priority],
-                      opacity: task.done ? 0.5 : 0.8,
-                    }} />
+                    <div
+                      key={task.id}
+                      className={styles.dot}
+                      style={{
+                        '--dot-color': task.done ? 'var(--border-light)' : PRIORITY_COLORS[task.priority],
+                        '--dot-opacity': task.done ? 0.5 : 0.8,
+                      }}
+                    />
                   ))}
                   {dayFin && dayFin.income > 0 && (
-                    <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--sage)', opacity: 0.8 }} />
+                    <div className={styles.dot} style={{ '--dot-color': 'var(--sage)' }} />
                   )}
                   {dayFin && dayFin.expense > 0 && (
-                    <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--coral)', opacity: 0.8 }} />
+                    <div className={styles.dot} style={{ '--dot-color': 'var(--coral)' }} />
                   )}
                 </div>
               ) : (
                 <>
               {/* Finance chips */}
               {dayFin && (dayFin.income > 0 || dayFin.expense > 0) && (
-                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                <div className={styles.financeRow}>
                   {dayFin.income > 0 && (
                     <div
-                      className="chip-pop"
-                      style={{
-                        animationDelay: `${staggerDelay}`,
-                        fontSize: '9px', fontWeight: 600,
-                        color: 'var(--sage)',
-                        background: 'var(--sage-dim)',
-                        borderRadius: '4px', padding: '2px 5px',
-                        whiteSpace: 'nowrap',
-                        transition: 'transform 0.15s var(--ease-spring)',
-                      }}
+                      className={`${styles.chipBase} ${styles.chipIncome}`}
+                      style={{ '--stagger': staggerDelay }}
                     >
                       +{fmt(dayFin.income)}
                     </div>
                   )}
                   {dayFin.expense > 0 && (
                     <div
-                      className="chip-pop"
-                      style={{
-                        animationDelay: `${staggerDelay}`,
-                        fontSize: '9px', fontWeight: 600,
-                        color: 'var(--coral)',
-                        background: 'var(--coral-dim)',
-                        borderRadius: '4px', padding: '2px 5px',
-                        whiteSpace: 'nowrap',
-                        transition: 'transform 0.15s var(--ease-spring)',
-                      }}
+                      className={`${styles.chipBase} ${styles.chipExpense}`}
+                      style={{ '--stagger': staggerDelay }}
                     >
                       -{fmt(dayFin.expense)}
                     </div>
@@ -262,48 +185,29 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
               {dayTasks.slice(0, VISIBLE_TASKS).map((task, ti) => (
                 <div
                   key={task.id}
+                  className={`${styles.taskPill} ${task.done ? styles.taskPillDone : ''}`}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    padding: '3px 7px',
-                    borderRadius: '5px',
-                    background: task.done
-                      ? 'rgba(255,255,255,0.03)'
-                      : `${PRIORITY_COLORS[task.priority]}18`,
-                    borderLeft: `2px solid ${task.done ? 'var(--border-light)' : PRIORITY_COLORS[task.priority]}`,
-                    overflow: 'hidden',
-                    flexShrink: 0,
-                    transition: 'opacity 0.2s ease, background 0.2s ease',
-                    animationDelay: `${parseFloat(staggerDelay) + ti * 0.03}s`,
+                    '--pill-accent': task.done ? undefined : PRIORITY_COLORS[task.priority],
+                    '--pill-bg': task.done ? undefined : `${PRIORITY_COLORS[task.priority]}18`,
+                    '--stagger': `${parseFloat(staggerDelay) + ti * 0.03}s`,
                   }}
                 >
                   {task.done && (
-                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none" style={{ flexShrink: 0 }}>
+                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none" className={styles.checkIcon}>
                       <path d="M1 4l2 2 4-4" stroke="var(--sage)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   )}
-                  <span style={{
-                    fontSize: '10px',
-                    color: task.done ? 'var(--cream-muted)' : 'var(--cream-dim)',
-                    textDecoration: task.done ? 'line-through' : 'none',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    lineHeight: 1.3,
-                  }}>
+                  <span className={`${styles.taskText} ${task.done ? styles.taskTextDone : ''}`}>
                     {task.text}
                   </span>
                 </div>
               ))}
 
               {overflow > 0 && (
-                <div style={{
-                  fontSize: '9px', fontWeight: 600,
-                  color: 'var(--cream-muted)', paddingLeft: '4px',
-                  letterSpacing: '0.04em',
-                  animation: `fadeIn 0.2s ease ${parseFloat(staggerDelay) + 0.1}s both`,
-                }}>
+                <div
+                  className={styles.overflow}
+                  style={{ '--stagger': `${parseFloat(staggerDelay) + 0.1}s` }}
+                >
                   +{overflow} más
                 </div>
               )}

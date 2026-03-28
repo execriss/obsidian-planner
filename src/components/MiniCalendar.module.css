@@ -1,0 +1,140 @@
+/* MiniCalendar — CSS Module */
+
+.wrapper {
+  padding: 24px 20px;
+}
+
+/* ── Header ── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.headerCenter {
+  text-align: center;
+}
+
+.monthLabel {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cream);
+  letter-spacing: 0.02em;
+}
+
+.yearLabel {
+  font-size: 11px;
+  color: var(--cream-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  display: block;
+  margin-top: 1px;
+}
+
+/* ── Nav button ── */
+
+.navBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream-muted);
+  transition: all 0.2s;
+  background: transparent;
+}
+
+.navBtn:hover {
+  color: var(--amber);
+  background: var(--amber-glow);
+}
+
+/* ── Grid ── */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.dayName {
+  text-align: center;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cream-muted);
+  padding-bottom: 8px;
+}
+
+/* ── Day button ── */
+
+.dayBtn {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--cream-dim);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+  opacity: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dayBtn:hover {
+  background: var(--obsidian-4);
+  color: var(--cream);
+}
+
+.dayBtnOutside {
+  opacity: 0.35;
+}
+
+.dayBtnToday {
+  font-weight: 600;
+  color: var(--amber);
+  background: var(--amber-glow);
+  border-color: var(--amber-dim);
+}
+
+.dayBtnToday:hover {
+  background: var(--obsidian-4);
+  color: var(--cream);
+}
+
+.dayBtnSelected {
+  font-weight: 600;
+  color: var(--obsidian);
+  background: var(--amber);
+  border-color: transparent;
+}
+
+.dayBtnSelected:hover {
+  background: var(--amber);
+  color: var(--obsidian);
+}
+
+/* ── Indicator dots ── */
+
+.indicators {
+  display: flex;
+  gap: 2px;
+}
+
+.indicatorDot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--dot-color);
+}

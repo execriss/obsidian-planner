@@ -1,0 +1,824 @@
+/* DayView — CSS Module */
+
+/* ── Layout ── */
+
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Day header ── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--border);
+  background: var(--obsidian-2);
+  flex-shrink: 0;
+  animation: fadeDown 0.3s var(--ease-out) both;
+}
+
+.headerCenter {
+  text-align: center;
+  min-width: 0;
+}
+
+.headerDate {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--cream);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.headerWeekday {
+  font-size: 10px;
+  color: var(--cream-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ── Summary pills ── */
+
+.summaryPills {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.taskPill {
+  padding: 3px 10px;
+  border-radius: 8px;
+  background: var(--obsidian-4);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--cream-dim);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.progressTrack {
+  width: 28px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s var(--ease-spring);
+}
+
+.progressFillPartial {
+  background: var(--amber);
+}
+
+.progressFillComplete {
+  background: var(--sage);
+}
+
+.balancePill {
+  padding: 3px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.balancePillPositive {
+  background: var(--sage-dim);
+  border: 1px solid rgba(95, 173, 142, 0.2);
+  color: var(--sage);
+}
+
+.balancePillNegative {
+  background: var(--coral-dim);
+  border: 1px solid rgba(224, 92, 92, 0.2);
+  color: var(--coral);
+}
+
+/* ── Nav arrow ── */
+
+.navArrow {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream-muted);
+  background: transparent;
+  transition: all 0.2s var(--ease-spring);
+}
+
+.navArrow:hover {
+  background: var(--obsidian-3);
+  color: var(--amber);
+  transform: scale(1.1);
+}
+
+/* ── Mobile tabs ── */
+
+.mobileTabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--obsidian-2);
+}
+
+.mobileTab {
+  flex: 1;
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cream-muted);
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s ease, border-color 0.25s var(--ease-out);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mobileTabActive {
+  color: var(--amber);
+  border-bottom-color: var(--amber);
+}
+
+/* ── Content area ── */
+
+.content {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  padding: 32px 24px;
+  gap: 24px;
+  flex-direction: row;
+}
+
+.column {
+  flex: 1;
+  max-width: 420px;
+  display: block;
+}
+
+.columnHidden {
+  display: none;
+}
+
+/* ── Section title ── */
+
+.sectionTitle {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cream-muted);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Add button ── */
+
+.addBtn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  border: 1px dashed var(--border-light);
+  background: transparent;
+  color: var(--cream-muted);
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s var(--ease-spring);
+  cursor: pointer;
+}
+
+.addBtn:hover {
+  border-color: var(--amber-dim);
+  color: var(--amber);
+}
+
+.addBtnActive {
+  border: 1px dashed var(--amber-dim);
+  background: var(--amber-glow);
+  color: var(--amber);
+}
+
+.addBtnActive:hover {
+  border-color: var(--amber-dim);
+  color: var(--amber);
+}
+
+/* ── Form card ── */
+
+.formCard {
+  background: var(--obsidian-3);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+/* ── Form input ── */
+
+.formInput {
+  width: 100%;
+  background: var(--obsidian-4);
+  border: 1px solid var(--border-light);
+  border-radius: 9px;
+  padding: 9px 12px;
+  font-size: 12px;
+  color: var(--cream);
+  outline: none;
+  transition: border-color 0.2s ease;
+  display: block;
+}
+
+.formInput:focus {
+  border-color: var(--amber-dim);
+}
+
+.formInputSmall {
+  padding: 4px 8px;
+  font-size: 10px;
+}
+
+.formInputSmallEdit {
+  padding: 3px 8px;
+  font-size: 10px;
+}
+
+.formInputSpaced {
+  margin-bottom: 8px;
+}
+
+.formInputSpacedLg {
+  margin-bottom: 10px;
+}
+
+.selectNoAppearance {
+  appearance: none;
+}
+
+/* ── Priority buttons ── */
+
+.priorityRow {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.priorityRowEdit {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.priorityBtn {
+  padding: 4px 10px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--cream-muted);
+  transition: all 0.18s var(--ease-spring);
+  cursor: pointer;
+}
+
+.priorityBtnEdit {
+  padding: 3px 9px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--cream-muted);
+  transition: all 0.18s var(--ease-spring);
+  cursor: pointer;
+}
+
+/* ── Submit buttons ── */
+
+.submitBtn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 9px;
+  border-radius: 9px;
+  background: var(--amber);
+  color: var(--obsidian);
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.2s var(--ease-spring);
+  cursor: pointer;
+  border: none;
+}
+
+.submitBtn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(240, 165, 0, 0.3);
+}
+
+.submitBtnIncome {
+  background: var(--sage);
+}
+
+.submitBtnIncome:hover {
+  box-shadow: 0 4px 16px rgba(95, 173, 142, 0.3);
+}
+
+.submitBtnExpense {
+  background: var(--coral);
+}
+
+.submitBtnExpense:hover {
+  box-shadow: 0 4px 16px rgba(224, 92, 92, 0.3);
+}
+
+.submitBtnNoMargin {
+  margin-top: 0;
+}
+
+/* ── Task list ── */
+
+.taskList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tasksDivider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+/* ── Empty state ── */
+
+.empty {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--cream-muted);
+  font-size: 12px;
+}
+
+.emptyIcon {
+  font-size: 32px;
+  opacity: 0.2;
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+  animation: float 3s ease-in-out infinite;
+}
+
+/* ── Task row ── */
+
+.taskRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--obsidian-3);
+  border: 1px solid var(--accent-border);
+  animation: fadeUp 0.25s var(--ease-spring) both;
+  transition: opacity 0.2s ease, border-color 0.2s ease, transform 0.2s var(--ease-spring);
+}
+
+.taskRow:hover {
+  border-color: var(--accent-hover);
+  transform: translateX(2px);
+}
+
+.taskRowDone {
+  opacity: 0.65;
+  border-color: var(--border);
+}
+
+.taskRowDone:hover {
+  border-color: var(--border);
+  transform: none;
+}
+
+/* ── Checkbox ── */
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  border: 2px solid var(--accent);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s var(--ease-spring);
+  cursor: pointer;
+  padding: 0;
+}
+
+.checkbox:hover {
+  transform: scale(1.15);
+}
+
+.checkboxDone {
+  border-color: var(--sage);
+  background: var(--sage);
+}
+
+.checkboxDone:hover {
+  transform: none;
+}
+
+/* ── Task content ── */
+
+.taskContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.taskText {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--cream);
+  transition: color 0.2s ease;
+}
+
+.taskTextDone {
+  color: var(--cream-muted);
+  text-decoration: line-through;
+}
+
+.taskMeta {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  align-items: center;
+}
+
+.priorityBadge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.categoryLabel {
+  font-size: 10px;
+  color: var(--cream-muted);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* ── Icon button ── */
+
+.iconBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream-muted);
+  background: transparent;
+  transition: all 0.15s var(--ease-spring);
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+.iconBtn:hover {
+  color: var(--icon-color);
+  background: var(--icon-bg);
+  transform: scale(1.1);
+}
+
+/* ── Edit form actions ── */
+
+.editActions {
+  display: flex;
+  gap: 6px;
+}
+
+.editSaveBtn {
+  flex: 1;
+  padding: 7px;
+  border-radius: 8px;
+  background: var(--amber);
+  color: var(--obsidian);
+  font-size: 11px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+.editSaveBtnIncome {
+  background: var(--sage);
+}
+
+.editSaveBtnExpense {
+  background: var(--coral);
+}
+
+.editCancelBtn {
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--cream-muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* ── Balance cards ── */
+
+.balanceGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.balanceCard {
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.balanceCardIncome {
+  background: var(--sage-dim);
+  border: 1px solid rgba(95, 173, 142, 0.2);
+}
+
+.balanceCardExpense {
+  background: var(--coral-dim);
+  border: 1px solid rgba(224, 92, 92, 0.2);
+}
+
+.balanceCardLabel {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.balanceCardLabelIncome {
+  color: var(--sage);
+}
+
+.balanceCardLabelExpense {
+  color: var(--coral);
+}
+
+.balanceCardValue {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.balanceCardValueIncome {
+  color: var(--sage);
+}
+
+.balanceCardValueExpense {
+  color: var(--coral);
+}
+
+/* ── Balance total row ── */
+
+.balanceTotal {
+  padding: 10px 14px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.balanceTotalPositive {
+  background: var(--amber-glow);
+  border: 1px solid rgba(240, 165, 0, 0.27);
+}
+
+.balanceTotalNegative {
+  background: var(--coral-dim);
+  border: 1px solid rgba(224, 92, 92, 0.27);
+}
+
+.balanceTotalLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cream-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.balanceTotalValue {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.balanceTotalValuePositive {
+  color: var(--amber);
+}
+
+.balanceTotalValueNegative {
+  color: var(--coral);
+}
+
+/* ── Finance type toggle ── */
+
+.finTypeToggle {
+  display: flex;
+  background: var(--obsidian-4);
+  border-radius: 9px;
+  padding: 3px;
+  margin-bottom: 12px;
+}
+
+.finTypeToggleEdit {
+  margin-bottom: 10px;
+}
+
+.finTypeBtn {
+  flex: 1;
+  padding: 7px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  background: transparent;
+  color: var(--cream-muted);
+  border: 1px solid transparent;
+  transition: all 0.2s var(--ease-spring);
+  cursor: pointer;
+}
+
+.finTypeBtnEdit {
+  padding: 6px;
+}
+
+.finTypeBtnExpenseActive {
+  background: var(--obsidian-2);
+  color: var(--coral);
+  border: 1px solid rgba(224, 92, 92, 0.27);
+}
+
+.finTypeBtnIncomeActive {
+  background: var(--obsidian-2);
+  color: var(--sage);
+  border: 1px solid rgba(95, 173, 142, 0.27);
+}
+
+/* ── Expense row ── */
+
+.expenseRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--obsidian-3);
+  animation: fadeUp 0.25s var(--ease-spring) both;
+  transition: border-color 0.15s, transform 0.2s var(--ease-spring);
+}
+
+.expenseRowIncome {
+  border: 1px solid rgba(95, 173, 142, 0.13);
+}
+
+.expenseRowIncome:hover {
+  border-color: rgba(95, 173, 142, 0.4);
+  transform: translateX(2px);
+}
+
+.expenseRowExpense {
+  border: 1px solid rgba(224, 92, 92, 0.13);
+}
+
+.expenseRowExpense:hover {
+  border-color: rgba(224, 92, 92, 0.4);
+  transform: translateX(2px);
+}
+
+.expenseIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.expenseIconIncome {
+  background: var(--sage-dim);
+}
+
+.expenseIconExpense {
+  background: var(--coral-dim);
+}
+
+.expenseContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.expenseDesc {
+  font-size: 12px;
+  color: var(--cream);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expenseCategory {
+  font-size: 10px;
+  color: var(--cream-muted);
+  margin-top: 1px;
+}
+
+.expenseAmount {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.expenseAmountIncome {
+  color: var(--sage);
+}
+
+.expenseAmountExpense {
+  color: var(--coral);
+}
+
+/* ── Expense edit form card ── */
+
+.expenseEditCard {
+  background: var(--obsidian-3);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.expenseEditCardIncome {
+  border: 1px solid rgba(95, 173, 142, 0.27);
+}
+
+.expenseEditCardExpense {
+  border: 1px solid rgba(224, 92, 92, 0.27);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 767px) {
+  .header {
+    padding: 10px 12px;
+  }
+
+  .headerCenter {
+    flex: 1;
+  }
+
+  .headerDate {
+    font-size: 20px;
+  }
+
+  .headerWeekday {
+    font-size: 9px;
+  }
+
+  .content {
+    padding: 16px 12px;
+    gap: 0;
+    flex-direction: column;
+  }
+
+  .column {
+    max-width: none;
+  }
+}

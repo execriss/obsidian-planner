@@ -100,6 +100,324 @@ export async function generateApiKey(userId) {
   return data;
 }
 
+// ─── GROCERY ITEMS ────────────────────────────────────────
+
+export async function fetchGroceryItems(userId) {
+  const { data, error } = await supabase
+    .from('grocery_items')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data.map(r => ({ id: r.id, text: r.text, qty: r.qty, cat: r.cat, done: r.done }));
+}
+
+export async function createGroceryItem(userId, item) {
+  const { data, error } = await supabase
+    .from('grocery_items')
+    .insert({ user_id: userId, text: item.text, qty: item.qty || '1', cat: item.cat || 'otro', done: false })
+    .select().single();
+  if (error) throw error;
+  return { id: data.id, text: data.text, qty: data.qty, cat: data.cat, done: data.done };
+}
+
+export async function updateGroceryItem(itemId, updates) {
+  const { data, error } = await supabase
+    .from('grocery_items')
+    .update(updates)
+    .eq('id', itemId)
+    .select().single();
+  if (error) throw error;
+  return { id: data.id, text: data.text, qty: data.qty, cat: data.cat, done: data.done };
+}
+
+export async function deleteGroceryItem(itemId) {
+  const { error } = await supabase.from('grocery_items').delete().eq('id', itemId);
+  if (error) throw error;
+}
+
+export async function deleteGroceryItemsByUser(userId) {
+  const { error } = await supabase.from('grocery_items').delete().eq('user_id', userId);
+  if (error) throw error;
+}
+
+export async function resetGroceryItems(userId) {
+  const { error } = await supabase
+    .from('grocery_items')
+    .update({ done: false })
+    .eq('user_id', userId);
+  if (error) throw error;
+}
+
+export async function fetchGrocerySessions(userId) {
+  const { data, error } = await supabase
+    .from('grocery_sessions')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(10);
+  if (error) throw error;
+  return data.map(r => ({
+    id: r.id, total: Number(r.total), discounts: r.discounts,
+    final: Number(r.final), createdAt: r.created_at,
+  }));
+}
+
+export async function createGrocerySession(userId, session) {
+  const { data, error } = await supabase
+    .from('grocery_sessions')
+    .insert({ user_id: userId, total: session.total, discounts: session.discounts, final: session.final })
+    .select().single();
+  if (error) throw error;
+  return { id: data.id, total: Number(data.total), discounts: data.discounts, final: Number(data.final), createdAt: data.created_at };
+}
+
+// ─── SERVICES ─────────────────────────────────────────────
+
+export async function fetchServices(userId) {
+  const { data, error } = await supabase
+    .from('services')
+    .select('*, service_payments(*)')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data.map(dbToService);
+}
+
+export async function createService(userId, svc) {
+  const { data, error } = await supabase
+    .from('services')
+    .insert({ user_id: userId, name: svc.name, icon: svc.icon, color: svc.color || 'amber',
+              account_id: svc.accountId, website: svc.website, cat: svc.cat || 'otro', notes: svc.notes })
+    .select('*, service_payments(*)').single();
+  if (error) throw error;
+  return dbToService(data);
+}
+
+export async function updateService(svcId, updates) {
+  const upd = {};
+  if (updates.name      !== undefined) upd.name       = updates.name;
+  if (updates.icon      !== undefined) upd.icon       = updates.icon;
+  if (updates.color     !== undefined) upd.color      = updates.color;
+  if (updates.accountId !== undefined) upd.account_id = updates.accountId;
+  if (updates.website   !== undefined) upd.website    = updates.website;
+  if (updates.cat       !== undefined) upd.cat        = updates.cat;
+  if (updates.notes     !== undefined) upd.notes      = updates.notes;
+  const { data, error } = await supabase
+    .from('services')
+    .update(upd)
+    .eq('id', svcId)
+    .select('*, service_payments(*)').single();
+  if (error) throw error;
+  return dbToService(data);
+}
+
+export async function deleteService(svcId) {
+  const { error } = await supabase.from('services').delete().eq('id', svcId);
+  if (error) throw error;
+}
+
+export async function createServicePayment(userId, svcId, payment) {
+  const { data, error } = await supabase
+    .from('service_payments')
+    .insert({ user_id: userId, service_id: svcId, month: payment.month,
+              amount: payment.amount, date: payment.date || null })
+    .select().single();
+  if (error) throw error;
+  return { id: data.id, month: data.month, amount: Number(data.amount), date: data.date, paidAt: data.paid_at };
+}
+
+function dbToService(row) {
+  return {
+    id:        row.id,
+    name:      row.name,
+    icon:      row.icon,
+    color:     row.color,
+    accountId: row.account_id,
+    website:   row.website,
+    cat:       row.cat,
+    notes:     row.notes,
+    payments:  (row.service_payments || []).map(p => ({
+      id: p.id, month: p.month, amount: Number(p.amount), date: p.date, paidAt: p.paid_at,
+    })),
+  };
+}
+
+// ─── HABITS ───────────────────────────────────────────────
+
+export async function fetchHabits(userId) {
+  const { data, error } = await supabase
+    .from('habits')
+    .select('*, habit_logs(*)')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data.map(dbToHabit);
+}
+
+export async function createHabit(userId, habit) {
+  const { data, error } = await supabase
+    .from('habits')
+    .insert({ user_id: userId, name: habit.name, icon: habit.icon, color: habit.color || 'amber' })
+    .select('*, habit_logs(*)').single();
+  if (error) throw error;
+  return dbToHabit(data);
+}
+
+export async function updateHabit(habitId, updates) {
+  const { data, error } = await supabase
+    .from('habits')
+    .update({ name: updates.name, icon: updates.icon, color: updates.color })
+    .eq('id', habitId)
+    .select('*, habit_logs(*)').single();
+  if (error) throw error;
+  return dbToHabit(data);
+}
+
+export async function deleteHabit(habitId) {
+  const { error } = await supabase.from('habits').delete().eq('id', habitId);
+  if (error) throw error;
+}
+
+export async function toggleHabitLog(userId, habitId, date) {
+  // Check if log exists
+  const { data: existing } = await supabase
+    .from('habit_logs')
+    .select('id')
+    .eq('habit_id', habitId)
+    .eq('date', date)
+    .single();
+  if (existing) {
+    const { error } = await supabase.from('habit_logs').delete().eq('id', existing.id);
+    if (error) throw error;
+    return false; // removed
+  } else {
+    const { error } = await supabase.from('habit_logs').insert({ user_id: userId, habit_id: habitId, date });
+    if (error) throw error;
+    return true; // added
+  }
+}
+
+function dbToHabit(row) {
+  return {
+    id:    row.id,
+    name:  row.name,
+    icon:  row.icon,
+    color: row.color,
+    logs:  (row.habit_logs || []).map(l => l.date),
+  };
+}
+
+// ─── NOTES ────────────────────────────────────────────────
+
+export async function fetchNotes(userId) {
+  const { data, error } = await supabase
+    .from('notes')
+    .select('*')
+    .eq('user_id', userId)
+    .order('pinned', { ascending: false })
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data.map(dbToNote);
+}
+
+export async function createNote(userId, note) {
+  const { data, error } = await supabase
+    .from('notes')
+    .insert({ user_id: userId, title: note.title || null, content: note.content,
+              color: note.color || 'amber', pinned: false })
+    .select().single();
+  if (error) throw error;
+  return dbToNote(data);
+}
+
+export async function updateNote(noteId, updates) {
+  const upd = { updated_at: new Date().toISOString() };
+  if (updates.title   !== undefined) upd.title   = updates.title;
+  if (updates.content !== undefined) upd.content = updates.content;
+  if (updates.color   !== undefined) upd.color   = updates.color;
+  if (updates.pinned  !== undefined) upd.pinned  = updates.pinned;
+  const { data, error } = await supabase
+    .from('notes')
+    .update(upd)
+    .eq('id', noteId)
+    .select().single();
+  if (error) throw error;
+  return dbToNote(data);
+}
+
+export async function deleteNote(noteId) {
+  const { error } = await supabase.from('notes').delete().eq('id', noteId);
+  if (error) throw error;
+}
+
+function dbToNote(row) {
+  return {
+    id:        row.id,
+    title:     row.title,
+    content:   row.content,
+    color:     row.color,
+    pinned:    row.pinned,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+// ─── DOCUMENTS ────────────────────────────────────────────
+
+export async function fetchDocuments(userId) {
+  const { data, error } = await supabase
+    .from('documents')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data.map(dbToDocument);
+}
+
+export async function createDocument(userId, doc) {
+  const { data, error } = await supabase
+    .from('documents')
+    .insert({ user_id: userId, name: doc.name, number: doc.number || null,
+              cat: doc.cat || 'otro', notes: doc.notes || null,
+              expires: doc.expires || null })
+    .select().single();
+  if (error) throw error;
+  return dbToDocument(data);
+}
+
+export async function updateDocument(docId, updates) {
+  const upd = {};
+  if (updates.name    !== undefined) upd.name    = updates.name;
+  if (updates.number  !== undefined) upd.number  = updates.number;
+  if (updates.cat     !== undefined) upd.cat     = updates.cat;
+  if (updates.notes   !== undefined) upd.notes   = updates.notes;
+  if (updates.expires !== undefined) upd.expires = updates.expires || null;
+  const { data, error } = await supabase
+    .from('documents')
+    .update(upd)
+    .eq('id', docId)
+    .select().single();
+  if (error) throw error;
+  return dbToDocument(data);
+}
+
+export async function deleteDocument(docId) {
+  const { error } = await supabase.from('documents').delete().eq('id', docId);
+  if (error) throw error;
+}
+
+function dbToDocument(row) {
+  return {
+    id:      row.id,
+    name:    row.name,
+    number:  row.number,
+    cat:     row.cat,
+    notes:   row.notes,
+    expires: row.expires,
+  };
+}
+
 // ─── MAPPERS ──────────────────────────────────────────────
 // DB uses snake_case; app uses camelCase + ISO string dates
 

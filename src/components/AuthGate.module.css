@@ -1,0 +1,292 @@
+/* ── AuthGate ── */
+
+.page {
+  min-height: 100vh;
+  width: 100vw;
+  background: var(--obsidian);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.ambientGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 60% at 30% 40%, rgba(240,165,0,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 75% 65%, rgba(107,143,212,0.05) 0%, transparent 60%);
+}
+
+.decorativeGrid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.3;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 80%);
+}
+
+.wrapper {
+  width: 100%;
+  max-width: 420px;
+  padding: 0 24px;
+  animation: springIn 0.5s var(--ease-spring) both;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Logo section ── */
+
+.logoSection {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.logoIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--amber), var(--amber-dim));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 0 40px rgba(240,165,0,0.25);
+  animation: float 3.5s ease-in-out infinite;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--cream);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--cream-muted);
+  margin-top: 8px;
+  letter-spacing: 0.08em;
+}
+
+/* ── Card ── */
+
+.card {
+  background: var(--obsidian-2);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 32px 64px rgba(0,0,0,0.4);
+}
+
+/* ── Google button ── */
+
+.googleBtn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: var(--obsidian-3);
+  color: var(--cream);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s var(--ease-spring);
+  margin-bottom: 20px;
+}
+
+.googleBtn:hover {
+  background: var(--obsidian-4);
+  transform: scale(1.01);
+}
+
+.googleBtn:disabled {
+  opacity: 0.6;
+}
+
+/* ── Divider ── */
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.dividerText {
+  font-size: 10px;
+  color: var(--cream-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ── Form ── */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.inputWrap {
+  position: relative;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cream-muted);
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  background: var(--obsidian-3);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 13px;
+  color: var(--cream);
+  outline: none;
+  transition: border-color 0.2s ease;
+  display: block;
+}
+
+.input:focus {
+  border-color: var(--amber-dim);
+}
+
+.inputEmail {
+  composes: input;
+  padding-left: 36px;
+}
+
+.inputPassword {
+  composes: input;
+  padding-left: 36px;
+  padding-right: 36px;
+}
+
+.togglePassBtn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cream-muted);
+  transition: color 0.15s;
+}
+
+.togglePassBtn:hover {
+  color: var(--cream);
+}
+
+/* ── Alerts ── */
+
+.alert {
+  padding: 10px 12px;
+  border-radius: 9px;
+  font-size: 12px;
+  animation: fadeUp 0.2s ease;
+}
+
+.alertError {
+  composes: alert;
+  background: var(--coral-dim);
+  border: 1px solid rgba(224, 92, 92, 0.27);
+  color: var(--coral);
+}
+
+.alertSuccess {
+  composes: alert;
+  background: var(--sage-dim);
+  border: 1px solid rgba(95, 173, 142, 0.27);
+  color: var(--sage);
+}
+
+/* ── Submit button ── */
+
+.submitBtn {
+  width: 100%;
+  margin-top: 4px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--amber);
+  color: var(--obsidian);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s var(--ease-spring);
+}
+
+.submitBtn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(240,165,0,0.3);
+}
+
+.submitBtn:active {
+  transform: scale(0.98);
+}
+
+.submitBtn:disabled {
+  opacity: 0.7;
+}
+
+/* ── Toggle mode ── */
+
+.toggleSection {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--cream-muted);
+}
+
+.toggleBtn {
+  color: var(--amber);
+  font-weight: 600;
+  font-size: 12px;
+  transition: opacity 0.15s;
+}
+
+.toggleBtn:hover {
+  opacity: 0.7;
+}
+
+/* ── Footer ── */
+
+.footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 11px;
+  color: var(--cream-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.footerText {
+  font-family: var(--font-display);
+  font-style: italic;
+}

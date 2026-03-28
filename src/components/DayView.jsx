@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { format, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Plus, Check, Trash2, Pencil, TrendingUp, TrendingDown, Tag } from 'lucide-react';
+import s from './DayView.module.css';
 
 const PRIORITY_COLORS = { high: '#E05C5C', medium: '#F0A500', low: '#5FAD8E' };
 const PRIORITIES      = { high: 'Alta', medium: 'Media', low: 'Baja' };
@@ -11,20 +12,6 @@ const INCOME_CATS     = ['Salario', 'Freelance', 'Inversión', 'Regalo', 'Otro']
 
 const fmt = (n) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(n);
-
-const inputSt = {
-  width: '100%',
-  background: 'var(--obsidian-4)',
-  border: '1px solid var(--border-light)',
-  borderRadius: '9px',
-  padding: '9px 12px',
-  fontSize: '12px',
-  color: 'var(--cream)',
-  outline: 'none',
-  transition: 'border-color 0.2s ease',
-  marginBottom: 0,
-  display: 'block',
-};
 
 export default function DayView({
   date, tasks, expenses,
@@ -42,23 +29,18 @@ export default function DayView({
     ? Math.round(dayTasks.filter(t => t.done).length / dayTasks.length * 100)
     : 0;
 
-  // Task form state
   const [newTask, setNewTask]         = useState('');
   const [taskPriority, setTaskPriority] = useState('medium');
   const [taskCategory, setTaskCategory] = useState('Personal');
   const [showTaskForm, setShowTaskForm] = useState(false);
 
-  // Finance form state
   const [finType, setFinType]   = useState('expense');
   const [finAmount, setFinAmount] = useState('');
   const [finDesc, setFinDesc]   = useState('');
   const [finCat, setFinCat]     = useState(EXPENSE_CATS[0]);
   const [showFinForm, setShowFinForm] = useState(false);
 
-  // Deleting animation
   const [deletingIds, setDeletingIds] = useState(new Set());
-
-  // Mobile tab
   const [mobileTab, setMobileTab] = useState('tasks');
 
   const addTask = async () => {
@@ -75,7 +57,7 @@ export default function DayView({
     setDeletingIds(prev => new Set([...prev, id]));
     setTimeout(() => {
       onDelete(id);
-      setDeletingIds(prev => { const s = new Set(prev); s.delete(id); return s; });
+      setDeletingIds(prev => { const ns = new Set(prev); ns.delete(id); return ns; });
     }, 200);
   };
 
@@ -90,57 +72,33 @@ export default function DayView({
   };
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div className={s.container}>
 
       {/* Day header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: isMobile ? '10px 12px' : '16px 32px',
-        borderBottom: '1px solid var(--border)',
-        background: 'var(--obsidian-2)', flexShrink: 0,
-        animation: 'fadeDown 0.3s var(--ease-out) both',
-      }}>
+      <div className={s.header}>
         <NavArrow onClick={onPrevDay} dir="left" />
 
-        <div style={{ textAlign: 'center', flex: isMobile ? 1 : 'none', minWidth: 0 }}>
-          <div style={{
-            fontFamily: 'var(--font-display)', fontSize: isMobile ? '20px' : '26px', fontWeight: 700,
-            color: 'var(--cream)', letterSpacing: '-0.02em', lineHeight: 1,
-          }}>
+        <div className={s.headerCenter}>
+          <div className={s.headerDate}>
             {format(date, "d 'de' MMMM", { locale: es })}
           </div>
-          <div style={{
-            fontSize: isMobile ? '9px' : '10px', color: 'var(--cream-muted)',
-            letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '4px',
-          }}>
+          <div className={s.headerWeekday}>
             {format(date, 'EEEE · yyyy', { locale: es })}
           </div>
 
           {/* Summary pills */}
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '10px' }}>
-            <div style={{
-              padding: '3px 10px', borderRadius: '8px',
-              background: 'var(--obsidian-4)', border: '1px solid var(--border)',
-              fontSize: '11px', color: 'var(--cream-dim)',
-              display: 'flex', alignItems: 'center', gap: '7px',
-            }}>
-              <div style={{ width: '28px', height: '4px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
-                <div style={{
-                  width: `${donePct}%`, height: '100%', borderRadius: '2px',
-                  background: donePct === 100 ? 'var(--sage)' : 'var(--amber)',
-                  transition: 'width 0.5s var(--ease-spring)',
-                }} />
+          <div className={s.summaryPills}>
+            <div className={s.taskPill}>
+              <div className={s.progressTrack}>
+                <div
+                  className={`${s.progressFill} ${donePct === 100 ? s.progressFillComplete : s.progressFillPartial}`}
+                  style={{ width: `${donePct}%` }}
+                />
               </div>
               {dayTasks.length} tarea{dayTasks.length !== 1 ? 's' : ''}
             </div>
             {(dayIncome > 0 || dayExpense > 0) && (
-              <div style={{
-                padding: '3px 10px', borderRadius: '8px',
-                background: balance >= 0 ? 'var(--sage-dim)' : 'var(--coral-dim)',
-                border: `1px solid ${balance >= 0 ? 'var(--sage)' : 'var(--coral)'}33`,
-                fontSize: '11px', fontWeight: 600,
-                color: balance >= 0 ? 'var(--sage)' : 'var(--coral)',
-              }}>
+              <div className={`${s.balancePill} ${balance >= 0 ? s.balancePillPositive : s.balancePillNegative}`}>
                 {balance >= 0 ? '+' : ''}{fmt(balance)}
               </div>
             )}
@@ -152,21 +110,12 @@ export default function DayView({
 
       {/* Mobile tabs */}
       {isMobile && (
-        <div style={{
-          display: 'flex', borderBottom: '1px solid var(--border)',
-          flexShrink: 0, background: 'var(--obsidian-2)',
-        }}>
+        <div className={s.mobileTabs}>
           {[['tasks', 'Tareas'], ['finance', 'Finanzas']].map(([id, label]) => (
             <button
               key={id}
               onClick={() => setMobileTab(id)}
-              style={{
-                flex: 1, padding: '10px', fontSize: '12px', fontWeight: 600,
-                color: mobileTab === id ? 'var(--amber)' : 'var(--cream-muted)',
-                borderBottom: mobileTab === id ? '2px solid var(--amber)' : '2px solid transparent',
-                transition: 'color 0.2s ease, border-color 0.25s var(--ease-out)',
-                letterSpacing: '0.04em', textTransform: 'uppercase',
-              }}
+              className={`${s.mobileTab} ${mobileTab === id ? s.mobileTabActive : ''}`}
             >
               {label}
             </button>
@@ -175,57 +124,46 @@ export default function DayView({
       )}
 
       {/* Content */}
-      <div style={{
-        flex: 1, overflow: 'auto',
-        display: 'flex', justifyContent: 'center',
-        padding: isMobile ? '16px 12px' : '32px 24px',
-        gap: isMobile ? 0 : '24px',
-        flexDirection: isMobile ? 'column' : 'row',
-      }}>
+      <div className={s.content}>
         {/* Tasks column */}
-        <div style={{
-          flex: 1, maxWidth: isMobile ? 'none' : '420px',
-          display: isMobile && mobileTab !== 'tasks' ? 'none' : 'block',
-        }}>
-          <SectionTitle>Tareas</SectionTitle>
+        <div className={`${s.column} ${isMobile && mobileTab !== 'tasks' ? s.columnHidden : ''}`}>
+          <div className={s.sectionTitle}>Tareas</div>
 
-          {/* Add task button */}
           <AddBtn active={showTaskForm} onClick={() => setShowTaskForm(!showTaskForm)} label="Nueva tarea" />
 
           {showTaskForm && (
-            <div className="form-spring" style={{ ...cardSt, marginBottom: '12px' }}>
+            <div className={`form-spring ${s.formCard}`}>
               <input
                 autoFocus value={newTask}
                 onChange={e => setNewTask(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && addTask()}
                 placeholder="¿Qué necesitas hacer?"
-                style={inputSt}
-                onFocus={e => e.target.style.borderColor = 'var(--amber-dim)'}
-                onBlur={e => e.target.style.borderColor = 'var(--border-light)'}
+                className={s.formInput}
               />
-              <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
+              <div className={s.priorityRow}>
                 {Object.entries(PRIORITIES).map(([key, label]) => (
-                  <button key={key} onClick={() => setTaskPriority(key)} style={{
-                    padding: '4px 10px', borderRadius: '7px', fontSize: '10px', fontWeight: 600,
-                    border: `1px solid ${taskPriority === key ? PRIORITY_COLORS[key] : 'var(--border)'}`,
-                    background: taskPriority === key ? `${PRIORITY_COLORS[key]}22` : 'transparent',
-                    color: taskPriority === key ? PRIORITY_COLORS[key] : 'var(--cream-muted)',
-                    transition: 'all 0.18s var(--ease-spring)',
-                  }}>{label}</button>
+                  <button
+                    key={key}
+                    onClick={() => setTaskPriority(key)}
+                    className={s.priorityBtn}
+                    style={taskPriority === key ? {
+                      borderColor: PRIORITY_COLORS[key],
+                      background: `${PRIORITY_COLORS[key]}22`,
+                      color: PRIORITY_COLORS[key],
+                    } : undefined}
+                  >
+                    {label}
+                  </button>
                 ))}
-                <select value={taskCategory} onChange={e => setTaskCategory(e.target.value)}
-                  style={{ ...inputSt, padding: '4px 8px', fontSize: '10px', marginBottom: 0 }}>
+                <select
+                  value={taskCategory}
+                  onChange={e => setTaskCategory(e.target.value)}
+                  className={`${s.formInput} ${s.formInputSmall}`}
+                >
                   {TASK_CATS.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
-              <button onClick={addTask} style={{
-                width: '100%', marginTop: '10px', padding: '9px', borderRadius: '9px',
-                background: 'var(--amber)', color: 'var(--obsidian)', fontSize: '12px', fontWeight: 700,
-                transition: 'all 0.2s var(--ease-spring)',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(240,165,0,0.3)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
-              >
+              <button onClick={addTask} className={s.submitBtn}>
                 Agregar tarea
               </button>
             </div>
@@ -234,7 +172,7 @@ export default function DayView({
           {dayTasks.length === 0 ? (
             <Empty icon="✦" text="Sin tareas para este día" />
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div className={s.taskList}>
               {dayTasks.filter(t => !t.done).map((task, i) => (
                 <DayTaskRow key={task.id} task={task} i={i}
                   isDeleting={deletingIds.has(task.id)}
@@ -243,7 +181,7 @@ export default function DayView({
                   onEdit={onEditTask} />
               ))}
               {dayTasks.some(t => t.done) && dayTasks.some(t => !t.done) && (
-                <div style={{ height: '1px', background: 'var(--border)', margin: '4px 0' }} />
+                <div className={s.tasksDivider} />
               )}
               {dayTasks.filter(t => t.done).map((task, i) => (
                 <DayTaskRow key={task.id} task={task} i={i}
@@ -257,79 +195,69 @@ export default function DayView({
         </div>
 
         {/* Finance column */}
-        <div style={{
-          flex: 1, maxWidth: isMobile ? 'none' : '420px',
-          display: isMobile && mobileTab !== 'finance' ? 'none' : 'block',
-        }}>
-          <SectionTitle>Finanzas</SectionTitle>
+        <div className={`${s.column} ${isMobile && mobileTab !== 'finance' ? s.columnHidden : ''}`}>
+          <div className={s.sectionTitle}>Finanzas</div>
 
           <AddBtn active={showFinForm} onClick={() => setShowFinForm(!showFinForm)} label="Agregar movimiento" />
 
           {/* Balance cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
-            {[
-              { label: 'Ingresos', value: dayIncome, color: 'var(--sage)', bg: 'var(--sage-dim)', sign: '+' },
-              { label: 'Gastos',   value: dayExpense, color: 'var(--coral)', bg: 'var(--coral-dim)', sign: '-' },
-            ].map(({ label, value, color, bg, sign }) => (
-              <div key={label} style={{
-                background: bg, border: `1px solid ${color}33`,
-                borderRadius: '12px', padding: '12px',
-              }}>
-                <div style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.1em', color, fontWeight: 600, marginBottom: '6px' }}>{label}</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: '19px', fontWeight: 700, color, letterSpacing: '-0.01em' }}>
-                  {sign}{fmt(value)}
-                </div>
-              </div>
-            ))}
+          <div className={s.balanceGrid}>
+            <div className={`${s.balanceCard} ${s.balanceCardIncome}`}>
+              <div className={`${s.balanceCardLabel} ${s.balanceCardLabelIncome}`}>Ingresos</div>
+              <div className={`${s.balanceCardValue} ${s.balanceCardValueIncome}`}>+{fmt(dayIncome)}</div>
+            </div>
+            <div className={`${s.balanceCard} ${s.balanceCardExpense}`}>
+              <div className={`${s.balanceCardLabel} ${s.balanceCardLabelExpense}`}>Gastos</div>
+              <div className={`${s.balanceCardValue} ${s.balanceCardValueExpense}`}>-{fmt(dayExpense)}</div>
+            </div>
           </div>
-          <div style={{
-            padding: '10px 14px', borderRadius: '10px',
-            background: balance >= 0 ? 'var(--amber-glow)' : 'var(--coral-dim)',
-            border: `1px solid ${balance >= 0 ? 'var(--amber-dim)' : 'var(--coral)'}44`,
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            marginBottom: '14px',
-          }}>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--cream-dim)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Balance</span>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: 700, color: balance >= 0 ? 'var(--amber)' : 'var(--coral)', letterSpacing: '-0.01em' }}>
+
+          <div className={`${s.balanceTotal} ${balance >= 0 ? s.balanceTotalPositive : s.balanceTotalNegative}`}>
+            <span className={s.balanceTotalLabel}>Balance</span>
+            <span className={`${s.balanceTotalValue} ${balance >= 0 ? s.balanceTotalValuePositive : s.balanceTotalValueNegative}`}>
               {balance >= 0 ? '+' : ''}{fmt(balance)}
             </span>
           </div>
 
           {showFinForm && (
-            <div className="form-spring" style={{ ...cardSt, marginBottom: '12px' }}>
-              <div style={{ display: 'flex', background: 'var(--obsidian-4)', borderRadius: '9px', padding: '3px', marginBottom: '12px' }}>
-                {[['expense', 'Gasto', 'var(--coral)'], ['income', 'Ingreso', 'var(--sage)']].map(([key, label, color]) => (
-                  <button key={key}
+            <div className={`form-spring ${s.formCard}`}>
+              <div className={s.finTypeToggle}>
+                {[['expense', 'Gasto'], ['income', 'Ingreso']].map(([key, label]) => (
+                  <button
+                    key={key}
                     onClick={() => { setFinType(key); setFinCat(key === 'expense' ? EXPENSE_CATS[0] : INCOME_CATS[0]); }}
-                    style={{
-                      flex: 1, padding: '7px', borderRadius: '7px', fontSize: '11px', fontWeight: 600,
-                      background: finType === key ? 'var(--obsidian-2)' : 'transparent',
-                      color: finType === key ? color : 'var(--cream-muted)',
-                      border: finType === key ? `1px solid ${color}44` : '1px solid transparent',
-                      transition: 'all 0.2s var(--ease-spring)',
-                    }}
-                  >{label}</button>
+                    className={`${s.finTypeBtn} ${finType === key
+                      ? (key === 'expense' ? s.finTypeBtnExpenseActive : s.finTypeBtnIncomeActive)
+                      : ''}`}
+                  >
+                    {label}
+                  </button>
                 ))}
               </div>
-              <input value={finAmount} onChange={e => setFinAmount(e.target.value)} placeholder="Monto" type="number"
-                style={{ ...inputSt, marginBottom: '8px' }}
-                onFocus={e => e.target.style.borderColor = 'var(--amber-dim)'} onBlur={e => e.target.style.borderColor = 'var(--border-light)'} />
-              <select value={finCat} onChange={e => setFinCat(e.target.value)}
-                style={{ ...inputSt, marginBottom: '8px', appearance: 'none' }}>
+              <input
+                value={finAmount}
+                onChange={e => setFinAmount(e.target.value)}
+                placeholder="Monto"
+                type="number"
+                className={`${s.formInput} ${s.formInputSpaced}`}
+              />
+              <select
+                value={finCat}
+                onChange={e => setFinCat(e.target.value)}
+                className={`${s.formInput} ${s.formInputSpaced} ${s.selectNoAppearance}`}
+              >
                 {(finType === 'expense' ? EXPENSE_CATS : INCOME_CATS).map(c => <option key={c} value={c}>{c}</option>)}
               </select>
-              <input value={finDesc} onChange={e => setFinDesc(e.target.value)}
+              <input
+                value={finDesc}
+                onChange={e => setFinDesc(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && addFinance()}
-                placeholder="Descripción" style={{ ...inputSt, marginBottom: '10px' }}
-                onFocus={e => e.target.style.borderColor = 'var(--amber-dim)'} onBlur={e => e.target.style.borderColor = 'var(--border-light)'} />
-              <button onClick={addFinance} style={{
-                width: '100%', padding: '9px', borderRadius: '9px',
-                background: finType === 'income' ? 'var(--sage)' : 'var(--coral)',
-                color: 'var(--obsidian)', fontSize: '12px', fontWeight: 700,
-                transition: 'all 0.2s var(--ease-spring)',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+                placeholder="Descripción"
+                className={`${s.formInput} ${s.formInputSpacedLg}`}
+              />
+              <button
+                onClick={addFinance}
+                className={`${s.submitBtn} ${s.submitBtnNoMargin} ${finType === 'income' ? s.submitBtnIncome : s.submitBtnExpense}`}
               >
                 {finType === 'income' ? '+ Agregar ingreso' : '- Agregar gasto'}
               </button>
@@ -339,7 +267,7 @@ export default function DayView({
           {dayExpenses.length === 0 ? (
             <Empty icon="₱" text="Sin movimientos para este día" />
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div className={s.taskList}>
               {[...dayExpenses].reverse().map((item, i) => (
                 <DayExpenseRow key={item.id} item={item} i={i}
                   isDeleting={deletingIds.has(item.id)}
@@ -356,32 +284,11 @@ export default function DayView({
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function SectionTitle({ children }) {
-  return (
-    <div style={{
-      fontSize: '9px', fontWeight: 700, letterSpacing: '0.14em',
-      textTransform: 'uppercase', color: 'var(--cream-muted)',
-      marginBottom: '12px', paddingBottom: '8px',
-      borderBottom: '1px solid var(--border)',
-    }}>
-      {children}
-    </div>
-  );
-}
-
 function AddBtn({ active, onClick, label }) {
   return (
-    <button onClick={onClick} style={{
-      width: '100%', padding: '10px', borderRadius: '10px', marginBottom: '12px',
-      border: `1px dashed ${active ? 'var(--amber-dim)' : 'var(--border-light)'}`,
-      background: active ? 'var(--amber-glow)' : 'transparent',
-      color: active ? 'var(--amber)' : 'var(--cream-muted)',
-      fontSize: '12px', fontWeight: 500,
-      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-      transition: 'all 0.2s var(--ease-spring)',
-    }}
-      onMouseEnter={e => { if (!active) { e.currentTarget.style.borderColor = 'var(--amber-dim)'; e.currentTarget.style.color = 'var(--amber)'; } }}
-      onMouseLeave={e => { if (!active) { e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.color = 'var(--cream-muted)'; } }}
+    <button
+      onClick={onClick}
+      className={`${s.addBtn} ${active ? s.addBtnActive : ''}`}
     >
       <Plus size={13} /> {label}
     </button>
@@ -390,8 +297,8 @@ function AddBtn({ active, onClick, label }) {
 
 function Empty({ icon, text }) {
   return (
-    <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--cream-muted)', fontSize: '12px' }}>
-      <div style={{ fontSize: '32px', opacity: 0.2, marginBottom: '8px', fontFamily: 'var(--font-display)', animation: 'float 3s ease-in-out infinite' }}>{icon}</div>
+    <div className={s.empty}>
+      <div className={s.emptyIcon}>{icon}</div>
       {text}
     </div>
   );
@@ -399,14 +306,7 @@ function Empty({ icon, text }) {
 
 function NavArrow({ onClick, dir }) {
   return (
-    <button onClick={onClick} style={{
-      width: '36px', height: '36px', borderRadius: '10px',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: 'var(--cream-muted)', transition: 'all 0.2s var(--ease-spring)',
-    }}
-      onMouseEnter={e => { e.currentTarget.style.background = 'var(--obsidian-3)'; e.currentTarget.style.color = 'var(--amber)'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--cream-muted)'; e.currentTarget.style.transform = 'scale(1)'; }}
-    >
+    <button onClick={onClick} className={s.navArrow}>
       {dir === 'left' ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
     </button>
   );
@@ -414,13 +314,10 @@ function NavArrow({ onClick, dir }) {
 
 function IconBtn({ icon: Icon, color, hoverBg, onClick }) {
   return (
-    <button onClick={onClick} style={{
-      width: '26px', height: '26px', borderRadius: '7px', flexShrink: 0,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: 'var(--cream-muted)', transition: 'all 0.15s var(--ease-spring)',
-    }}
-      onMouseEnter={e => { e.currentTarget.style.color = color; e.currentTarget.style.background = hoverBg; e.currentTarget.style.transform = 'scale(1.1)'; }}
-      onMouseLeave={e => { e.currentTarget.style.color = 'var(--cream-muted)'; e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'scale(1)'; }}
+    <button
+      onClick={onClick}
+      className={s.iconBtn}
+      style={{ '--icon-color': color, '--icon-bg': hoverBg }}
     >
       <Icon size={12} />
     </button>
@@ -453,73 +350,72 @@ function DayTaskRow({ task, i, isDeleting, onToggle, onDelete, onEdit }) {
 
   if (isEditing) {
     return (
-      <div className="form-spring" style={{ ...cardSt, animation: `fadeUp 0.25s var(--ease-spring) ${i * 0.05}s both` }}>
-        <input autoFocus value={editText} onChange={e => setEditText(e.target.value)}
+      <div className={`form-spring ${s.formCard}`} style={{ animationDelay: `${i * 0.05}s` }}>
+        <input
+          autoFocus value={editText}
+          onChange={e => setEditText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') cancelEdit(); }}
-          style={{ ...inputSt, marginBottom: '8px' }}
-          onFocus={e => e.target.style.borderColor = 'var(--amber-dim)'}
-          onBlur={e => e.target.style.borderColor = 'var(--border-light)'} />
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
+          className={`${s.formInput} ${s.formInputSpaced}`}
+        />
+        <div className={s.priorityRowEdit}>
           {Object.entries(PRIORITIES).map(([key, label]) => (
-            <button key={key} onClick={() => setEditPriority(key)} style={{
-              padding: '3px 9px', borderRadius: '7px', fontSize: '10px', fontWeight: 600,
-              border: `1px solid ${editPriority === key ? PRIORITY_COLORS[key] : 'var(--border)'}`,
-              background: editPriority === key ? `${PRIORITY_COLORS[key]}22` : 'transparent',
-              color: editPriority === key ? PRIORITY_COLORS[key] : 'var(--cream-muted)',
-              transition: 'all 0.18s var(--ease-spring)',
-            }}>{label}</button>
+            <button
+              key={key}
+              onClick={() => setEditPriority(key)}
+              className={s.priorityBtnEdit}
+              style={editPriority === key ? {
+                borderColor: PRIORITY_COLORS[key],
+                background: `${PRIORITY_COLORS[key]}22`,
+                color: PRIORITY_COLORS[key],
+              } : undefined}
+            >
+              {label}
+            </button>
           ))}
-          <select value={editCategory} onChange={e => setEditCategory(e.target.value)}
-            style={{ ...inputSt, padding: '3px 8px', fontSize: '10px', marginBottom: 0 }}>
+          <select
+            value={editCategory}
+            onChange={e => setEditCategory(e.target.value)}
+            className={`${s.formInput} ${s.formInputSmallEdit}`}
+          >
             {TASK_CATS.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          <button onClick={saveEdit} style={{ flex: 1, padding: '7px', borderRadius: '8px', background: 'var(--amber)', color: 'var(--obsidian)', fontSize: '11px', fontWeight: 700 }}>Guardar</button>
-          <button onClick={cancelEdit} style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', color: 'var(--cream-muted)', fontSize: '11px' }}>Cancelar</button>
+        <div className={s.editActions}>
+          <button onClick={saveEdit} className={s.editSaveBtn}>Guardar</button>
+          <button onClick={cancelEdit} className={s.editCancelBtn}>Cancelar</button>
         </div>
       </div>
     );
   }
 
+  const accentVars = {
+    '--accent': PRIORITY_COLORS[task.priority],
+    '--accent-dim': `${PRIORITY_COLORS[task.priority]}22`,
+    '--accent-border': `${PRIORITY_COLORS[task.priority]}33`,
+    '--accent-hover': `${PRIORITY_COLORS[task.priority]}66`,
+    animationDelay: `${i * 0.05}s`,
+  };
+
   return (
     <div
-      className={isDeleting ? 'item-out' : ''}
-      style={{
-        display: 'flex', alignItems: 'flex-start', gap: '8px',
-        padding: '10px 12px', borderRadius: '10px',
-        background: 'var(--obsidian-3)',
-        border: `1px solid ${task.done ? 'var(--border)' : PRIORITY_COLORS[task.priority] + '33'}`,
-        opacity: task.done ? 0.65 : 1,
-        animation: `fadeUp 0.25s var(--ease-spring) ${i * 0.05}s both`,
-        transition: 'opacity 0.2s ease, border-color 0.2s ease, transform 0.2s var(--ease-spring)',
-      }}
-      onMouseEnter={e => { if (!task.done) { e.currentTarget.style.borderColor = PRIORITY_COLORS[task.priority] + '66'; e.currentTarget.style.transform = 'translateX(2px)'; } }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = task.done ? 'var(--border)' : PRIORITY_COLORS[task.priority] + '33'; e.currentTarget.style.transform = 'translateX(0)'; }}
+      className={`${isDeleting ? 'item-out' : ''} ${s.taskRow} ${task.done ? s.taskRowDone : ''}`}
+      style={accentVars}
     >
-      <button onClick={handleToggle}
-        className={justToggled ? 'check-done' : ''}
-        style={{
-          width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0, marginTop: '1px',
-          border: `2px solid ${task.done ? 'var(--sage)' : PRIORITY_COLORS[task.priority]}`,
-          background: task.done ? 'var(--sage)' : 'transparent',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'background 0.2s ease, border-color 0.2s ease, transform 0.15s var(--ease-spring)',
-        }}
-        onMouseEnter={e => { if (!task.done) e.currentTarget.style.transform = 'scale(1.15)'; }}
-        onMouseLeave={e => { if (!justToggled) e.currentTarget.style.transform = 'scale(1)'; }}
+      <button
+        onClick={handleToggle}
+        className={`${justToggled ? 'check-done' : ''} ${s.checkbox} ${task.done ? s.checkboxDone : ''}`}
       >
         {task.done && <Check size={11} color="var(--obsidian)" strokeWidth={3} />}
       </button>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '13px', lineHeight: 1.4, color: task.done ? 'var(--cream-muted)' : 'var(--cream)', textDecoration: task.done ? 'line-through' : 'none', transition: 'color 0.2s ease' }}>
+      <div className={s.taskContent}>
+        <div className={`${s.taskText} ${task.done ? s.taskTextDone : ''}`}>
           {task.text}
         </div>
-        <div style={{ display: 'flex', gap: '6px', marginTop: '4px', alignItems: 'center' }}>
-          <span style={{ fontSize: '9px', fontWeight: 700, padding: '1px 6px', borderRadius: '5px', background: `${PRIORITY_COLORS[task.priority]}22`, color: PRIORITY_COLORS[task.priority], letterSpacing: '0.05em' }}>
+        <div className={s.taskMeta}>
+          <span className={s.priorityBadge}>
             {PRIORITIES[task.priority].toUpperCase()}
           </span>
-          <span style={{ fontSize: '10px', color: 'var(--cream-muted)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+          <span className={s.categoryLabel}>
             <Tag size={9} /> {task.category}
           </span>
         </div>
@@ -537,7 +433,7 @@ function DayExpenseRow({ item, i, isDeleting, onDelete, onEdit }) {
   const [editCat, setEditCat]       = useState(item.category);
   const [editType, setEditType]     = useState(item.type);
 
-  const color = item.type === 'income' ? 'var(--sage)' : 'var(--coral)';
+  const isIncome = item.type === 'income';
 
   const saveEdit = () => {
     const n = parseFloat(editAmount);
@@ -554,32 +450,52 @@ function DayExpenseRow({ item, i, isDeleting, onDelete, onEdit }) {
 
   if (isEditing) {
     return (
-      <div className="form-spring" style={{ ...cardSt, border: `1px solid ${color}44`, animation: `fadeUp 0.25s var(--ease-spring) ${i * 0.04}s both` }}>
-        <div style={{ display: 'flex', background: 'var(--obsidian-4)', borderRadius: '9px', padding: '3px', marginBottom: '10px' }}>
-          {[['expense', 'Gasto', 'var(--coral)'], ['income', 'Ingreso', 'var(--sage)']].map(([key, label, c]) => (
-            <button key={key} onClick={() => { setEditType(key); setEditCat(key === 'expense' ? EXPENSE_CATS[0] : INCOME_CATS[0]); }} style={{
-              flex: 1, padding: '6px', borderRadius: '7px', fontSize: '11px', fontWeight: 600,
-              background: editType === key ? 'var(--obsidian-2)' : 'transparent',
-              color: editType === key ? c : 'var(--cream-muted)',
-              border: editType === key ? `1px solid ${c}44` : '1px solid transparent',
-              transition: 'all 0.2s var(--ease-spring)',
-            }}>{label}</button>
+      <div
+        className={`form-spring ${s.expenseEditCard} ${editType === 'income' ? s.expenseEditCardIncome : s.expenseEditCardExpense}`}
+        style={{ animationDelay: `${i * 0.04}s` }}
+      >
+        <div className={`${s.finTypeToggle} ${s.finTypeToggleEdit}`}>
+          {[['expense', 'Gasto'], ['income', 'Ingreso']].map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => { setEditType(key); setEditCat(key === 'expense' ? EXPENSE_CATS[0] : INCOME_CATS[0]); }}
+              className={`${s.finTypeBtn} ${s.finTypeBtnEdit} ${editType === key
+                ? (key === 'expense' ? s.finTypeBtnExpenseActive : s.finTypeBtnIncomeActive)
+                : ''}`}
+            >
+              {label}
+            </button>
           ))}
         </div>
-        <input value={editAmount} onChange={e => setEditAmount(e.target.value)} placeholder="Monto" type="number"
-          style={{ ...inputSt, marginBottom: '8px' }}
-          onFocus={e => e.target.style.borderColor = 'var(--amber-dim)'} onBlur={e => e.target.style.borderColor = 'var(--border-light)'} />
-        <select value={editCat} onChange={e => setEditCat(e.target.value)}
-          style={{ ...inputSt, marginBottom: '8px', appearance: 'none' }}>
+        <input
+          value={editAmount}
+          onChange={e => setEditAmount(e.target.value)}
+          placeholder="Monto"
+          type="number"
+          className={`${s.formInput} ${s.formInputSpaced}`}
+        />
+        <select
+          value={editCat}
+          onChange={e => setEditCat(e.target.value)}
+          className={`${s.formInput} ${s.formInputSpaced} ${s.selectNoAppearance}`}
+        >
           {(editType === 'expense' ? EXPENSE_CATS : INCOME_CATS).map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        <input value={editDesc} onChange={e => setEditDesc(e.target.value)}
+        <input
+          value={editDesc}
+          onChange={e => setEditDesc(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') cancelEdit(); }}
-          placeholder="Descripción" style={{ ...inputSt, marginBottom: '10px' }}
-          onFocus={e => e.target.style.borderColor = 'var(--amber-dim)'} onBlur={e => e.target.style.borderColor = 'var(--border-light)'} />
-        <div style={{ display: 'flex', gap: '6px' }}>
-          <button onClick={saveEdit} style={{ flex: 1, padding: '7px', borderRadius: '8px', background: editType === 'income' ? 'var(--sage)' : 'var(--coral)', color: 'var(--obsidian)', fontSize: '11px', fontWeight: 700 }}>Guardar</button>
-          <button onClick={cancelEdit} style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', color: 'var(--cream-muted)', fontSize: '11px' }}>Cancelar</button>
+          placeholder="Descripción"
+          className={`${s.formInput} ${s.formInputSpacedLg}`}
+        />
+        <div className={s.editActions}>
+          <button
+            onClick={saveEdit}
+            className={`${s.editSaveBtn} ${editType === 'income' ? s.editSaveBtnIncome : s.editSaveBtnExpense}`}
+          >
+            Guardar
+          </button>
+          <button onClick={cancelEdit} className={s.editCancelBtn}>Cancelar</button>
         </div>
       </div>
     );
@@ -587,37 +503,21 @@ function DayExpenseRow({ item, i, isDeleting, onDelete, onEdit }) {
 
   return (
     <div
-      className={isDeleting ? 'item-out' : ''}
-      style={{
-        display: 'flex', alignItems: 'center', gap: '10px',
-        padding: '10px 12px', borderRadius: '10px',
-        background: 'var(--obsidian-3)',
-        border: `1px solid ${color}22`,
-        animation: `fadeUp 0.25s var(--ease-spring) ${i * 0.04}s both`,
-        transition: 'border-color 0.15s, transform 0.2s var(--ease-spring)',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = `${color}66`; e.currentTarget.style.transform = 'translateX(2px)'; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = `${color}22`; e.currentTarget.style.transform = 'translateX(0)'; }}
+      className={`${isDeleting ? 'item-out' : ''} ${s.expenseRow} ${isIncome ? s.expenseRowIncome : s.expenseRowExpense}`}
+      style={{ animationDelay: `${i * 0.04}s` }}
     >
-      <div style={{ width: '32px', height: '32px', borderRadius: '9px', flexShrink: 0, background: item.type === 'income' ? 'var(--sage-dim)' : 'var(--coral-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {item.type === 'income' ? <TrendingUp size={14} color="var(--sage)" /> : <TrendingDown size={14} color="var(--coral)" />}
+      <div className={`${s.expenseIcon} ${isIncome ? s.expenseIconIncome : s.expenseIconExpense}`}>
+        {isIncome ? <TrendingUp size={14} color="var(--sage)" /> : <TrendingDown size={14} color="var(--coral)" />}
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '12px', color: 'var(--cream)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.desc}</div>
-        <div style={{ fontSize: '10px', color: 'var(--cream-muted)', marginTop: '1px' }}>{item.category}</div>
+      <div className={s.expenseContent}>
+        <div className={s.expenseDesc}>{item.desc}</div>
+        <div className={s.expenseCategory}>{item.category}</div>
       </div>
-      <div style={{ fontFamily: 'var(--font-display)', fontSize: '15px', fontWeight: 700, color, flexShrink: 0 }}>
-        {item.type === 'income' ? '+' : '-'}{fmt(item.amount)}
+      <div className={`${s.expenseAmount} ${isIncome ? s.expenseAmountIncome : s.expenseAmountExpense}`}>
+        {isIncome ? '+' : '-'}{fmt(item.amount)}
       </div>
       <IconBtn icon={Pencil} color="var(--amber)" hoverBg="var(--amber-glow)" onClick={() => setIsEditing(true)} />
       <IconBtn icon={Trash2} color="var(--coral)" hoverBg="var(--coral-dim)" onClick={() => onDelete(item.id)} />
     </div>
   );
 }
-
-const cardSt = {
-  background: 'var(--obsidian-3)',
-  border: '1px solid var(--border-light)',
-  borderRadius: '12px',
-  padding: '14px',
-};
