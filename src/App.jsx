@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Calendar, BarChart3, ChevronLeft, ChevronRight,
   Sparkles, CheckSquare, TrendingUp, TrendingDown, LogOut, User, Settings2,
-  ShoppingCart, Receipt, Flame, StickyNote, FileKey2, X,
+  ShoppingCart, Receipt, Flame, StickyNote, FileKey2, X, Wallet,
 } from 'lucide-react';
 import { useIsMobile } from './hooks/useIsMobile.js';
 import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfWeek, isToday, isSameMonth } from 'date-fns';
@@ -21,6 +21,7 @@ import Habits from './components/Habits.jsx';
 import QuickNotes from './components/QuickNotes.jsx';
 import Documents from './components/Documents.jsx';
 import Settings from './components/Settings.jsx';
+import Budget from './components/Budget.jsx';
 import styles from './App.module.css';
 
 export default function App() {
@@ -132,6 +133,7 @@ function Planner({ user, onSignOut }) {
   const NAV_ITEMS = [
     { id: 'calendar',  icon: Calendar,     label: 'Calendario', shortLabel: 'Inicio' },
     { id: 'monthly',   icon: BarChart3,     label: 'Reporte',   shortLabel: 'Reporte' },
+    { id: 'budget',    icon: Wallet,        label: 'Presupuesto', shortLabel: 'Ppto.' },
     { id: 'grocery',   icon: ShoppingCart,  label: 'Compras',   shortLabel: 'Compras' },
     { id: 'servicios', icon: Receipt,       label: 'Servicios', shortLabel: 'Serv.' },
     { id: 'habitos',   icon: Flame,         label: 'Hábitos',   shortLabel: 'Hábitos' },
@@ -421,6 +423,7 @@ function Planner({ user, onSignOut }) {
             className={`animate-viewIn ${isMobile ? styles.viewContainerMobile : styles.viewContainerDesktop}`}
           >
             {view === 'monthly'   && <MonthlyReport expenses={expenses} isMobile={isMobile} />}
+            {view === 'budget'    && <Budget userId={user.id} viewMonth={viewMonth} />}
             {view === 'grocery'   && <GroceryList userId={user.id} />}
             {view === 'servicios' && <Services onAddExpense={addExpense} userId={user.id} />}
             {view === 'habitos'   && <Habits userId={user.id} />}

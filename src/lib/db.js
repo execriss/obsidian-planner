@@ -463,3 +463,120 @@ function expenseToDb(e) {
   if (e.date        !== undefined) out.date        = e.date.slice(0, 10);
   return out;
 }
+
+// ─── BUDGET ───────────────────────────────────────────────
+
+export async function fetchBudgetItems(userId) {
+  const { data, error } = await supabase
+    .from('budget_items')
+    .select('*')
+    .eq('user_id', userId)
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data.map(dbToBudgetItem);
+}
+
+export async function createBudgetItem(userId, item) {
+  const { data, error } = await supabase
+    .from('budget_items')
+    .insert({ user_id: userId, category: item.category, name: item.name,
+              default_amount: item.defaultAmount || 0, cat_color: item.catColor || 'blue',
+              sort_order: item.sortOrder || 0 })
+    .select().single();
+  if (error) throw error;
+  return dbToBudgetItem(data);
+}
+
+export async function updateBudgetItem(id, updates) {
+  const upd = {};
+  if (updates.category      !== undefined) upd.category       = updates.category;
+  if (updates.name          !== undefined) upd.name           = updates.name;
+  if (updates.defaultAmount !== undefined) upd.default_amount = updates.defaultAmount;
+  if (updates.catColor      !== undefined) upd.cat_color      = updates.catColor;
+  if (updates.sortOrder     !== undefined) upd.sort_order     = updates.sortOrder;
+  const { data, error } = await supabase
+    .from('budget_items').update(upd).eq('id', id).select().single();
+  if (error) throw error;
+  return dbToBudgetItem(data);
+}
+
+export async function deleteBudgetItem(id) {
+  const { error } = await supabase.from('budget_items').delete().eq('id', id);
+  if (error) throw error;
+}
+
+export async function fetchBudgetEntries(userId, month) {
+  const { data, error } = await supabase
+    .from('budget_entries')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('month', month);
+  if (error) throw error;
+  return data.map(dbToBudgetEntry);
+}
+
+export async function upsertBudgetEntry(userId, entry) {
+  const { data, error } = await supabase
+    .from('budget_entries')
+    .upsert(
+      { user_id: userId, item_id: entry.itemId, month: entry.month,
+        amount: entry.amount ?? 0, paid: entry.paid ?? 0, notes: entry.notes ?? '' },
+      { onConflict: 'item_id,month' }
+    )
+    .select().single();
+  if (error) throw error;
+  return dbToBudgetEntry(data);
+}
+
+export async function fetchBudgetIncome(userId, month) {
+  const { data, error } = await supabase
+    .from('budget_income')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('month', month)
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data.map(dbToBudgetIncome);
+}
+
+export async function createBudgetIncome(userId, inc) {
+  const { data, error } = await supabase
+    .from('budget_income')
+    .insert({ user_id: userId, month: inc.month, source: inc.source,
+              amount: inc.amount || 0, notes: inc.notes || '', sort_order: inc.sortOrder || 0 })
+    .select().single();
+  if (error) throw error;
+  return dbToBudgetIncome(data);
+}
+
+export async function updateBudgetIncome(id, updates) {
+  const upd = {};
+  if (updates.source !== undefined) upd.source = updates.source;
+  if (updates.amount !== undefined) upd.amount = updates.amount;
+  if (updates.notes  !== undefined) upd.notes  = updates.notes;
+  const { data, error } = await supabase
+    .from('budget_income').update(upd).eq('id', id).select().single();
+  if (error) throw error;
+  return dbToBudgetIncome(data);
+}
+
+export async function deleteBudgetIncome(id) {
+  const { error } = await supabase.from('budget_income').delete().eq('id', id);
+  if (error) throw error;
+}
+
+function dbToBudgetItem(r) {
+  return { id: r.id, category: r.category, name: r.name,
+           defaultAmount: Number(r.default_amount), catColor: r.cat_color,
+           sortOrder: r.sort_order };
+}
+function dbToBudgetEntry(r) {
+  return { id: r.id, itemId: r.item_id, month: r.month,
+           amount: Number(r.amount), paid: Number(r.paid), notes: r.notes || '' };
+}
+function dbToBudgetIncome(r) {
+  return { id: r.id, month: r.month, source: r.source,
+           amount: Number(r.amount), notes: r.notes || '', sortOrder: r.sort_order };
+}

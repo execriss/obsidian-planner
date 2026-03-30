@@ -1,0 +1,913 @@
+/* ─── Budget ─── */
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+/* ─── Page Header ─── */
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  animation: fadeDown 0.35s var(--ease-out) both;
+}
+
+.headerIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--amber), #C48600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 24px rgba(240, 165, 0, 0.25);
+  animation: float 3.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.headerText {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--cream);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.monthBadge {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--cream-muted);
+  margin-top: 3px;
+  text-transform: capitalize;
+}
+
+/* ─── Income Section ─── */
+
+.incomeSection {
+  margin-bottom: 24px;
+  animation: fadeUp 0.3s var(--ease-out) both;
+  animation-delay: 0.05s;
+}
+
+.incomeSectionLabel {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cream-muted);
+  margin-bottom: 10px;
+}
+
+.incomeRow {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: none;
+}
+
+.incomeRow::-webkit-scrollbar {
+  display: none;
+}
+
+.incomeCard {
+  flex-shrink: 0;
+  min-width: 140px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--obsidian-3);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.incomeCard:hover {
+  border-color: var(--border-light);
+}
+
+.incomeCardSource {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--cream-dim);
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: left;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.incomeCardSource:hover {
+  color: var(--cream);
+}
+
+.incomeCardAmount {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sage);
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: left;
+  font-family: var(--font-body);
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.incomeCardAmount:hover {
+  color: #7DCAA8;
+}
+
+.incomeDeleteBtn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease;
+  color: var(--cream-muted);
+}
+
+.incomeCard:hover .incomeDeleteBtn {
+  opacity: 1;
+}
+
+.incomeDeleteBtn:hover {
+  background: var(--coral-dim);
+  color: var(--coral);
+}
+
+.addIncomeBtn {
+  flex-shrink: 0;
+  min-width: 48px;
+  height: 64px;
+  border-radius: 10px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--cream-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s var(--ease-spring);
+}
+
+.addIncomeBtn:hover {
+  border-color: var(--sage);
+  color: var(--sage);
+  background: rgba(95, 173, 142, 0.06);
+}
+
+/* ─── Summary Bar ─── */
+
+.summaryBar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 32px;
+  animation: fadeUp 0.3s var(--ease-out) both;
+  animation-delay: 0.1s;
+}
+
+.summaryCell {
+  background: var(--obsidian-3);
+  padding: 14px 12px;
+  text-align: center;
+}
+
+.summaryCellLabel {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cream-muted);
+  margin-bottom: 4px;
+}
+
+.summaryCellValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cream);
+}
+
+.summaryPositive .summaryCellValue {
+  color: var(--sage);
+}
+
+.summaryNegative .summaryCellValue {
+  color: var(--coral);
+}
+
+/* ─── Category Section ─── */
+
+.categorySection {
+  border-left: 3px solid var(--cat-color, var(--blue));
+  border-radius: 2px 12px 12px 2px;
+  background: var(--obsidian-2);
+  border-top: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+  animation: fadeUp 0.3s var(--ease-out) both;
+  overflow: hidden;
+}
+
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+.categoryHeader:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.categoryDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--cat-color, var(--blue));
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.2s var(--ease-spring);
+}
+
+.categoryDot:hover {
+  transform: scale(1.3);
+}
+
+.categoryName {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cream);
+  flex: 1;
+  min-width: 0;
+}
+
+.categoryNameInput {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cream);
+  background: var(--obsidian-4);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 4px 8px;
+  flex: 1;
+  min-width: 0;
+  outline: none;
+  font-family: var(--font-body);
+}
+
+.categoryNameInput:focus {
+  border-color: var(--cat-color, var(--blue));
+}
+
+.categoryTotals {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--cream-dim);
+  flex-shrink: 0;
+}
+
+.categoryTotalLabel {
+  color: var(--cream-muted);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.categoryTotalValue {
+  font-weight: 600;
+}
+
+.categoryChevron {
+  color: var(--cream-muted);
+  transition: transform 0.25s var(--ease-spring);
+  flex-shrink: 0;
+}
+
+.categoryChevronOpen {
+  transform: rotate(0deg);
+}
+
+.categoryChevronClosed {
+  transform: rotate(-90deg);
+}
+
+.categoryDeleteBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream-muted);
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.categoryHeader:hover .categoryDeleteBtn {
+  opacity: 1;
+}
+
+.categoryDeleteBtn:hover {
+  background: var(--coral-dim);
+  color: var(--coral);
+}
+
+/* ─── Color Picker ─── */
+
+.colorPicker {
+  display: flex;
+  gap: 6px;
+  padding: 8px 16px 10px;
+  border-top: 1px solid var(--border);
+  background: var(--obsidian-3);
+  animation: fadeIn 0.15s ease both;
+}
+
+.colorDot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.2s var(--ease-spring), border-color 0.15s ease;
+}
+
+.colorDot:hover {
+  transform: scale(1.2);
+}
+
+.colorDotActive {
+  border-color: var(--cream);
+  transform: scale(1.15);
+}
+
+/* ─── Category Pill (for new category form) ─── */
+
+.categoryPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cat-color, var(--blue));
+  background: var(--cat-dim, rgba(107, 143, 212, 0.1));
+}
+
+/* ─── Item List ─── */
+
+.itemList {
+  border-top: 1px solid var(--border);
+}
+
+.itemRow {
+  display: grid;
+  grid-template-columns: 1fr 110px 100px 28px 28px 28px;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s ease;
+  animation: fadeUp 0.2s var(--ease-out) both;
+}
+
+.itemRow:last-child {
+  border-bottom: none;
+}
+
+.itemRow:hover {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.itemName {
+  font-size: 13px;
+  color: var(--cream);
+  cursor: pointer;
+  padding: 4px 0;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  transition: color 0.15s ease;
+}
+
+.itemName:hover {
+  color: var(--amber);
+}
+
+.itemNameInput {
+  font-size: 13px;
+  color: var(--cream);
+  background: var(--obsidian-4);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 4px 8px;
+  outline: none;
+  width: 100%;
+  font-family: var(--font-body);
+}
+
+.itemNameInput:focus {
+  border-color: var(--amber);
+}
+
+.amountInput {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cream-dim);
+  text-align: right;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-family: var(--font-body);
+  outline: none;
+  width: 100%;
+  transition: all 0.15s ease;
+}
+
+.amountInput:hover {
+  border-color: var(--border);
+}
+
+.amountInput:focus {
+  background: var(--obsidian-4);
+  border-color: var(--border-light);
+  color: var(--cream);
+}
+
+.paidBadge {
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s ease;
+}
+
+.paidFull {
+  color: var(--sage);
+  background: rgba(95, 173, 142, 0.08);
+}
+
+.paidPartial {
+  color: var(--amber);
+  background: rgba(240, 165, 0, 0.08);
+}
+
+.paidNone {
+  color: var(--cream-muted);
+}
+
+/* ─── Pay Button ─── */
+
+.payBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream-muted);
+  transition: all 0.2s var(--ease-spring);
+}
+
+.payBtn:hover {
+  background: rgba(95, 173, 142, 0.12);
+  color: var(--sage);
+}
+
+.payBtnPaid {
+  color: var(--sage);
+  background: rgba(95, 173, 142, 0.1);
+}
+
+.payBtnPaid:hover {
+  background: rgba(224, 92, 92, 0.1);
+  color: var(--coral);
+}
+
+/* ─── Notes ─── */
+
+.notesBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream-muted);
+  transition: all 0.15s ease;
+}
+
+.notesBtn:hover {
+  background: rgba(107, 143, 212, 0.1);
+  color: var(--blue);
+}
+
+.notesBtnActive {
+  color: var(--blue);
+}
+
+.notesRow {
+  grid-column: 1 / -1;
+  padding: 0 16px 10px;
+  animation: fadeIn 0.15s ease both;
+}
+
+.notesTextarea {
+  width: 100%;
+  font-size: 12px;
+  color: var(--cream-dim);
+  background: var(--obsidian-4);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  resize: vertical;
+  min-height: 48px;
+  max-height: 120px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.notesTextarea:focus {
+  border-color: var(--border-light);
+}
+
+/* ─── Delete Button ─── */
+
+.deleteBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream-muted);
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.itemRow:hover .deleteBtn {
+  opacity: 1;
+}
+
+.deleteBtn:hover {
+  background: var(--coral-dim);
+  color: var(--coral);
+}
+
+/* ─── Add Item Button ─── */
+
+.addItemBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  width: 100%;
+  font-size: 12px;
+  color: var(--cream-muted);
+  border-top: 1px solid var(--border);
+  transition: all 0.15s ease;
+}
+
+.addItemBtn:hover {
+  color: var(--cream-dim);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ─── Add Category Button ─── */
+
+.addCategoryBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  width: 100%;
+  border-radius: 12px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--cream-muted);
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 8px;
+  transition: all 0.2s var(--ease-spring);
+}
+
+.addCategoryBtn:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+  background: rgba(240, 165, 0, 0.04);
+}
+
+/* ─── New Category Form ─── */
+
+.newCategoryForm {
+  margin-top: 8px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--obsidian-2);
+  border: 1px solid var(--border);
+  animation: fadeUp 0.25s var(--ease-spring) both;
+}
+
+.newCategoryFormRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.newCategoryInput {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cream);
+  background: var(--obsidian-4);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  outline: none;
+  font-family: var(--font-body);
+}
+
+.newCategoryInput:focus {
+  border-color: var(--border-light);
+}
+
+.newCategoryActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.newCategorySaveBtn {
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--amber);
+  color: var(--obsidian);
+  transition: all 0.2s var(--ease-spring);
+}
+
+.newCategorySaveBtn:hover {
+  background: #FFB820;
+  transform: translateY(-1px);
+}
+
+.newCategorySaveBtn:disabled {
+  opacity: 0.4;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.newCategoryCancelBtn {
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--cream-muted);
+  background: var(--obsidian-3);
+  border: 1px solid var(--border);
+  transition: all 0.15s ease;
+}
+
+.newCategoryCancelBtn:hover {
+  color: var(--cream-dim);
+  border-color: var(--border-light);
+}
+
+/* ─── Empty State ─── */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+  animation: fadeUp 0.35s var(--ease-out) both;
+}
+
+.emptyIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--obsidian-3);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: var(--cream-muted);
+}
+
+.emptyTitle {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--cream);
+  margin-bottom: 6px;
+}
+
+.emptySubtitle {
+  font-size: 12px;
+  color: var(--cream-muted);
+  max-width: 280px;
+  margin-bottom: 20px;
+}
+
+/* ─── Inline Edit Input ─── */
+
+.inlineInput {
+  background: var(--obsidian-4);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 4px 8px;
+  outline: none;
+  color: var(--cream);
+  font-family: var(--font-body);
+  transition: border-color 0.15s ease;
+}
+
+.inlineInput:focus {
+  border-color: var(--amber);
+}
+
+/* ─── Responsive: Tablet ─── */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 28px 16px 100px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .summaryBar {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .summaryBar > :nth-child(4),
+  .summaryBar > :nth-child(5) {
+    /* Show balance and remaining in a 2-col row */
+  }
+
+  /* On tablet: name | amount | paidBadge | payBtn | notesBtn (deleteBtn is absolute) */
+  .itemRow {
+    grid-template-columns: 1fr 100px 90px 28px 28px;
+    gap: 6px;
+    padding: 10px 12px;
+  }
+
+  .deleteBtn {
+    position: static;
+    transform: none;
+    opacity: 1;
+    width: 28px;
+    height: 28px;
+  }
+
+  .categoryTotals {
+    display: none;
+  }
+}
+
+/* ─── Responsive: Mobile ─── */
+
+@media (max-width: 480px) {
+  .container {
+    padding: 20px 12px 100px;
+  }
+
+  .pageHeader {
+    margin-bottom: 24px;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+
+  .headerIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .incomeCard {
+    min-width: 120px;
+    padding: 10px 12px;
+  }
+
+  .incomeCardAmount {
+    font-size: 14px;
+  }
+
+  .summaryBar {
+    grid-template-columns: repeat(2, 1fr);
+    border-radius: 10px;
+  }
+
+  .summaryCell {
+    padding: 10px 8px;
+  }
+
+  .summaryCellValue {
+    font-size: 13px;
+  }
+
+  .summaryCellLabel {
+    font-size: 8px;
+  }
+
+  /* On mobile: name | amount | payBtn | deleteBtn (4 cols, no paidBadge, no notesBtn) */
+  .itemRow {
+    grid-template-columns: 1fr 80px 28px 28px;
+    gap: 4px;
+    padding: 8px 10px;
+  }
+
+  .notesBtn {
+    display: none;
+  }
+
+  .amountInput {
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+
+  .categoryHeader {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .categoryName {
+    font-size: 11px;
+  }
+
+  .addCategoryBtn {
+    padding: 12px 16px;
+    font-size: 12px;
+  }
+
+  .deleteBtn {
+    position: static;
+    transform: none;
+    opacity: 0.6;
+    width: 24px;
+    height: 24px;
+  }
+
+  .newCategoryForm {
+    padding: 12px;
+  }
+}
