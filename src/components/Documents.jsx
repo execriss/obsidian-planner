@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Copy, Check, Plus, Trash2, Pencil, Eye, EyeOff, FileKey2 } from 'lucide-react';
 import { useDocuments } from '../hooks/useDocuments.js';
 import styles from './Documents.module.css';
+import SectionSkeleton from './SectionSkeleton.jsx';
 
 const CATS = [
   { id: 'personal',   label: 'Personal',   emoji: '🪪', color: '#6B8FD4', dim: 'rgba(107,143,212,0.15)' },
@@ -21,7 +22,7 @@ const SUGGESTIONS = [
 ];
 
 export default function Documents({ userId }) {
-  const { docs, addDoc, editDoc, removeDoc } = useDocuments(userId);
+  const { docs, loading, addDoc, editDoc, removeDoc } = useDocuments(userId);
   const [showForm, setShowForm]       = useState(false);
   const [editId, setEditId]           = useState(null);
   const [form, setForm]               = useState({ name: '', number: '', cat: 'personal', notes: '', expires: '' });
@@ -72,6 +73,8 @@ export default function Documents({ userId }) {
   });
 
   const mask = (str) => str.slice(0, 4) + '  •  •  •  •  •  •' + str.slice(-2);
+
+  if (loading) return <SectionSkeleton variant="rows" count={5} />;
 
   return (
     <div className={`animate-viewIn ${styles.container}`}>

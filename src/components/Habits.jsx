@@ -5,6 +5,7 @@ import { Plus, Trash2, Flame, Check } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile.js';
 import { useHabits } from '../hooks/useHabits.js';
 import styles from './Habits.module.css';
+import SectionSkeleton from './SectionSkeleton.jsx';
 
 const COLORS = [
   { id: 'sage',   color: '#5FAD8E', dim: 'rgba(95,173,142,0.18)' },
@@ -55,7 +56,7 @@ function getMonthlyRate(logs) {
 
 export default function Habits({ userId }) {
   const isMobile = useIsMobile();
-  const { habits, addHabit: dbAddHabit, removeHabit, toggleLog } = useHabits(userId);
+  const { habits, loading, addHabit: dbAddHabit, removeHabit, toggleLog } = useHabits(userId);
   const [showForm, setShowForm]       = useState(false);
   const [name, setName]               = useState('');
   const [icon, setIcon]               = useState('🏃');
@@ -90,6 +91,8 @@ export default function Habits({ userId }) {
   const totalDone  = habits.filter(h => h.logs.includes(today)).length;
   const activeC    = colorById[color];
   const progressPct = habits.length ? (totalDone / habits.length * 100) : 0;
+
+  if (loading) return <SectionSkeleton variant="habits" />;
 
   return (
     <div className={`animate-viewIn ${styles.container}`}>

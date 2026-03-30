@@ -4,6 +4,7 @@ import { useNotes } from '../hooks/useNotes.js';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import styles from './QuickNotes.module.css';
+import SectionSkeleton from './SectionSkeleton.jsx';
 
 const COLORS = [
   { id: 'amber',  label: 'Ámbar',   accent: '#F0A500', bg: 'rgba(240,165,0,0.07)',   border: 'rgba(240,165,0,0.25)' },
@@ -16,7 +17,7 @@ const COLORS = [
 const colorById = Object.fromEntries(COLORS.map(c => [c.id, c]));
 
 export default function QuickNotes({ userId }) {
-  const { notes, addNote, editNote, removeNote, pinNote } = useNotes(userId);
+  const { notes, loading, addNote, editNote, removeNote, pinNote } = useNotes(userId);
   const [showNew, setShowNew]       = useState(false);
   const [editId, setEditId]         = useState(null);
   const [newTitle, setNewTitle]     = useState('');
@@ -64,6 +65,8 @@ export default function QuickNotes({ userId }) {
   };
 
   const activeColor = colorById[newColor];
+
+  if (loading) return <SectionSkeleton variant="notes" />;
 
   return (
     <div className={`animate-viewIn ${styles.container}`}>

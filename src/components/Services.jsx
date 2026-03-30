@@ -8,6 +8,7 @@ import {
 import { useIsMobile } from '../hooks/useIsMobile.js';
 import { useServices } from '../hooks/useServices.js';
 import styles from './Services.module.css';
+import SectionSkeleton from './SectionSkeleton.jsx';
 
 // ─── Presets ─────────────────────────────────────────────────────────────────
 
@@ -38,7 +39,7 @@ function fmtMoney(n) { return new Intl.NumberFormat('es-AR', { style: 'currency'
 
 export default function Services({ onAddExpense, userId }) {
   const isMobile = useIsMobile();
-  const { services, addService, editService, removeService, addPayment } = useServices(userId);
+  const { services, loading, addService, editService, removeService, addPayment } = useServices(userId);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId]     = useState(null);
   const [form, setForm]         = useState({ name: '', icon: '⚡', color: '#F0A500', accountId: '', website: '', cat: 'utilities', notes: '' });
@@ -131,6 +132,8 @@ export default function Services({ onAddExpense, userId }) {
     const pay = s.payments?.filter(p => p.month === thisMonth()).reduce((a, b) => a + b.amount, 0) || 0;
     return sum + pay;
   }, 0);
+
+  if (loading) return <SectionSkeleton variant="services" />;
 
   return (
     <div className={`animate-viewIn ${styles.container}`}>
