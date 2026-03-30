@@ -9,6 +9,7 @@ import { useIsMobile } from '../hooks/useIsMobile.js';
 import { useServices } from '../hooks/useServices.js';
 import styles from './Services.module.css';
 import SectionSkeleton from './SectionSkeleton.jsx';
+import { useMinLoading } from '../hooks/useMinLoading.js';
 
 // ─── Presets ─────────────────────────────────────────────────────────────────
 
@@ -39,7 +40,8 @@ function fmtMoney(n) { return new Intl.NumberFormat('es-AR', { style: 'currency'
 
 export default function Services({ onAddExpense, userId }) {
   const isMobile = useIsMobile();
-  const { services, loading, addService, editService, removeService, addPayment } = useServices(userId);
+  const { services, loading: dataLoading, addService, editService, removeService, addPayment } = useServices(userId);
+  const loading = useMinLoading(dataLoading);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId]     = useState(null);
   const [form, setForm]         = useState({ name: '', icon: '⚡', color: '#F0A500', accountId: '', website: '', cat: 'utilities', notes: '' });

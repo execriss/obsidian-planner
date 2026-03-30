@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Plus, Trash2, Pin, PinOff, StickyNote } from 'lucide-react';
 import { useNotes } from '../hooks/useNotes.js';
+import { useMinLoading } from '../hooks/useMinLoading.js';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import styles from './QuickNotes.module.css';
@@ -17,7 +18,8 @@ const COLORS = [
 const colorById = Object.fromEntries(COLORS.map(c => [c.id, c]));
 
 export default function QuickNotes({ userId }) {
-  const { notes, loading, addNote, editNote, removeNote, pinNote } = useNotes(userId);
+  const { notes, loading: dataLoading, addNote, editNote, removeNote, pinNote } = useNotes(userId);
+  const loading = useMinLoading(dataLoading);
   const [showNew, setShowNew]       = useState(false);
   const [editId, setEditId]         = useState(null);
   const [newTitle, setNewTitle]     = useState('');

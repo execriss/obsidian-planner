@@ -9,6 +9,7 @@ import { useIsMobile } from '../hooks/useIsMobile.js';
 import { useGrocery } from '../hooks/useGrocery.js';
 import styles from './GroceryList.module.css';
 import SectionSkeleton from './SectionSkeleton.jsx';
+import { useMinLoading } from '../hooks/useMinLoading.js';
 
 const CATS = [
   { id: 'frutas',    label: 'Frutas y Verduras', emoji: '🥦', color: '#5FAD8E', dim: 'rgba(95,173,142,0.15)' },
@@ -31,7 +32,8 @@ function fmtARS(n) {
 
 export default function GroceryList({ userId }) {
   const isMobile = useIsMobile();
-  const { items, sessions, loading, addItem: dbAddItem, toggleItem: dbToggleItem, removeItem, clearDone, clearAll, resetList, saveSession } = useGrocery(userId);
+  const { items, sessions, loading: dataLoading, addItem: dbAddItem, toggleItem: dbToggleItem, removeItem, clearDone, clearAll, resetList, saveSession } = useGrocery(userId);
+  const loading = useMinLoading(dataLoading);
 
   const [showForm, setShowForm]         = useState(false);
   const [newText, setNewText]           = useState('');

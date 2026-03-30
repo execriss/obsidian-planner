@@ -3,6 +3,7 @@ import { Copy, Check, Plus, Trash2, Pencil, Eye, EyeOff, FileKey2 } from 'lucide
 import { useDocuments } from '../hooks/useDocuments.js';
 import styles from './Documents.module.css';
 import SectionSkeleton from './SectionSkeleton.jsx';
+import { useMinLoading } from '../hooks/useMinLoading.js';
 
 const CATS = [
   { id: 'personal',   label: 'Personal',   emoji: '🪪', color: '#6B8FD4', dim: 'rgba(107,143,212,0.15)' },
@@ -22,7 +23,8 @@ const SUGGESTIONS = [
 ];
 
 export default function Documents({ userId }) {
-  const { docs, loading, addDoc, editDoc, removeDoc } = useDocuments(userId);
+  const { docs, loading: dataLoading, addDoc, editDoc, removeDoc } = useDocuments(userId);
+  const loading = useMinLoading(dataLoading);
   const [showForm, setShowForm]       = useState(false);
   const [editId, setEditId]           = useState(null);
   const [form, setForm]               = useState({ name: '', number: '', cat: 'personal', notes: '', expires: '' });

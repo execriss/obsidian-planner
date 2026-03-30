@@ -6,6 +6,7 @@ import { useIsMobile } from '../hooks/useIsMobile.js';
 import { useHabits } from '../hooks/useHabits.js';
 import styles from './Habits.module.css';
 import SectionSkeleton from './SectionSkeleton.jsx';
+import { useMinLoading } from '../hooks/useMinLoading.js';
 
 const COLORS = [
   { id: 'sage',   color: '#5FAD8E', dim: 'rgba(95,173,142,0.18)' },
@@ -56,7 +57,8 @@ function getMonthlyRate(logs) {
 
 export default function Habits({ userId }) {
   const isMobile = useIsMobile();
-  const { habits, loading, addHabit: dbAddHabit, removeHabit, toggleLog } = useHabits(userId);
+  const { habits, loading: dataLoading, addHabit: dbAddHabit, removeHabit, toggleLog } = useHabits(userId);
+  const loading = useMinLoading(dataLoading);
   const [showForm, setShowForm]       = useState(false);
   const [name, setName]               = useState('');
   const [icon, setIcon]               = useState('🏃');
