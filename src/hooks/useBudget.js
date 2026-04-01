@@ -10,18 +10,25 @@ export function useBudget(userId, month) {
   const [entries, setEntries] = useState([]);
   const [income,  setIncome]  = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!userId || !month) return;
     setLoading(true);
+    setError(null);
     Promise.all([
       fetchBudgetItems(userId),
       fetchBudgetEntries(userId, month),
       fetchBudgetIncome(userId, month),
     ]).then(([its, ents, inc]) => {
       setItems(its); setEntries(ents); setIncome(inc);
-    }).catch(console.error).finally(() => setLoading(false));
+    }).catch(err => {
+      console.error(err);
+      setError(err?.message || 'Error al cargar el presupuesto');
+    }).finally(() => setLoading(false));
   }, [userId, month]);
+
+  useEffect(() => { load(); }, [load]);
 
   // Merge template items with their monthly entries
   const merged = useMemo(() => items.map(item => {
@@ -116,7 +123,7 @@ export function useBudget(userId, month) {
   }, []);
 
   return {
-    items, entries, income, loading,
+    items, entries, income, loading, error, retry: load,
     merged, categories,
     addItem, editItem, removeItem, updateEntry,
     editCategory, removeCategory,

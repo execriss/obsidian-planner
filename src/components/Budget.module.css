@@ -766,6 +766,40 @@
   margin-bottom: 20px;
 }
 
+/* ─── Error State ─── */
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+  animation: fadeUp 0.35s var(--ease-out) both;
+  gap: 16px;
+}
+
+.errorMsg {
+  font-size: 13px;
+  color: var(--coral);
+  max-width: 320px;
+}
+
+.retryBtn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  background: var(--obsidian-3);
+  border: 1px solid var(--border);
+  color: var(--cream);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.retryBtn:hover {
+  background: var(--obsidian-4);
+}
+
 /* ─── Inline Edit Input ─── */
 
 .inlineInput {

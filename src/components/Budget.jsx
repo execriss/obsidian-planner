@@ -229,9 +229,17 @@ function SummaryBar({ merged, income }) {
 function ItemRow({ item, onUpdateEntry, onEditItem, onRemove, isMobile }) {
   const [showNotes, setShowNotes] = useState(false);
   const [deleting, setDeleting]   = useState(false);
+  const amountRef = useRef(null);
 
   const isPaidFull    = item.paid > 0 && item.paid >= item.amount;
   const isPaidPartial = item.paid > 0 && item.paid < item.amount;
+
+  // Sync displayed value when item.amount changes and input is not focused
+  useEffect(() => {
+    if (amountRef.current && document.activeElement !== amountRef.current) {
+      amountRef.current.value = item.amount > 0 ? fmtMoney(item.amount) : '';
+    }
+  }, [item.amount]);
 
   const handlePay = () => {
     if (isPaidFull) {
@@ -245,6 +253,8 @@ function ItemRow({ item, onUpdateEntry, onEditItem, onRemove, isMobile }) {
     const val = parseAmount(raw);
     if (val !== item.amount) {
       onUpdateEntry(item.id, { amount: val });
+    } else {
+      amountRef.current.value = item.amount > 0 ? fmtMoney(item.amount) : '';
     }
   };
 
@@ -265,14 +275,12 @@ function ItemRow({ item, onUpdateEntry, onEditItem, onRemove, isMobile }) {
         />
 
         <input
+          ref={amountRef}
           type="text"
           className={styles.amountInput}
           defaultValue={item.amount > 0 ? fmtMoney(item.amount) : ''}
           onFocus={e => { e.target.value = item.amount > 0 ? String(item.amount) : ''; }}
-          onBlur={e => {
-            handleAmountBlur(e.target.value);
-            e.target.value = item.amount > 0 ? fmtMoney(item.amount) : '';
-          }}
+          onBlur={e => handleAmountBlur(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') e.target.blur(); }}
           placeholder="$0"
           aria-label="Monto presupuestado"
@@ -500,7 +508,7 @@ export default function Budget({ userId, viewMonth }) {
   const isMobile = useIsMobile();
   const month = format(viewMonth, 'yyyy-MM');
   const {
-    merged, categories, income, loading: dataLoading,
+    merged, categories, income, loading: dataLoading, error, retry,
     addItem, editItem, removeItem, updateEntry,
     editCategory, removeCategory,
     addIncome, editIncome, removeIncome,
@@ -551,6 +559,17 @@ export default function Budget({ userId, viewMonth }) {
     return (
       <div className={styles.container}>
         <SectionSkeleton variant="rows" count={8} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.errorState}>
+          <div className={styles.errorMsg}>{error}</div>
+          <button className={styles.retryBtn} onClick={retry}>Reintentar</button>
+        </div>
       </div>
     );
   }
