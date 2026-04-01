@@ -230,16 +230,22 @@ function ItemRow({ item, onUpdateEntry, onEditItem, onRemove, isMobile }) {
   const [showNotes, setShowNotes] = useState(false);
   const [deleting, setDeleting]   = useState(false);
   const amountRef = useRef(null);
+  const paidRef   = useRef(null);
 
   const isPaidFull    = item.paid > 0 && item.paid >= item.amount;
   const isPaidPartial = item.paid > 0 && item.paid < item.amount;
 
-  // Sync displayed value when item.amount changes and input is not focused
   useEffect(() => {
     if (amountRef.current && document.activeElement !== amountRef.current) {
       amountRef.current.value = item.amount > 0 ? fmtMoney(item.amount) : '';
     }
   }, [item.amount]);
+
+  useEffect(() => {
+    if (paidRef.current && document.activeElement !== paidRef.current) {
+      paidRef.current.value = item.paid > 0 ? fmtMoney(item.paid) : '';
+    }
+  }, [item.paid]);
 
   const handlePay = () => {
     if (isPaidFull) {
@@ -258,10 +264,31 @@ function ItemRow({ item, onUpdateEntry, onEditItem, onRemove, isMobile }) {
     }
   };
 
+  const handlePaidBlur = (raw) => {
+    const val = parseAmount(raw);
+    if (val !== item.paid) {
+      onUpdateEntry(item.id, { paid: val });
+    } else {
+      paidRef.current.value = item.paid > 0 ? fmtMoney(item.paid) : '';
+    }
+  };
+
   const handleDelete = () => {
     setDeleting(true);
     setTimeout(() => onRemove(item.id), 220);
   };
+
+  const paidInputClass = isPaidFull
+    ? `${styles.paidInput} ${styles.paidInputFull}`
+    : isPaidPartial
+    ? `${styles.paidInput} ${styles.paidInputPartial}`
+    : styles.paidInput;
+
+  const payBtnClass = isPaidFull
+    ? styles.payBtnPaid
+    : isPaidPartial
+    ? styles.payBtnPartial
+    : styles.payBtn;
 
   return (
     <>
@@ -286,19 +313,23 @@ function ItemRow({ item, onUpdateEntry, onEditItem, onRemove, isMobile }) {
           aria-label="Monto presupuestado"
         />
 
-        {!isMobile && (
-          <div
-            className={`${styles.paidBadge} ${isPaidFull ? styles.paidFull : isPaidPartial ? styles.paidPartial : styles.paidNone}`}
-          >
-            {item.paid > 0 ? fmtMoney(item.paid) : '—'}
-          </div>
-        )}
+        <input
+          ref={paidRef}
+          type="text"
+          className={paidInputClass}
+          defaultValue={item.paid > 0 ? fmtMoney(item.paid) : ''}
+          onFocus={e => { e.target.value = item.paid > 0 ? String(item.paid) : ''; }}
+          onBlur={e => handlePaidBlur(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') e.target.blur(); }}
+          placeholder="—"
+          aria-label="Monto pagado"
+        />
 
         <button
-          className={isPaidFull ? styles.payBtnPaid : styles.payBtn}
+          className={payBtnClass}
           onClick={handlePay}
           aria-label={isPaidFull ? 'Desmarcar pago' : 'Marcar como pagado'}
-          title={isPaidFull ? 'Desmarcar pago' : 'Marcar como pagado'}
+          title={isPaidFull ? 'Desmarcar pago' : isPaidPartial ? 'Marcar como pagado completo' : 'Marcar como pagado'}
         >
           <Check size={14} />
         </button>

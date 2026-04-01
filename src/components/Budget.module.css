@@ -478,27 +478,51 @@
   color: var(--cream);
 }
 
-.paidBadge {
-  font-size: 12px;
-  font-weight: 600;
-  text-align: right;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: color 0.15s ease;
-}
-
-.paidFull {
-  color: var(--sage);
-  background: rgba(95, 173, 142, 0.08);
-}
-
-.paidPartial {
-  color: var(--amber);
-  background: rgba(240, 165, 0, 0.08);
-}
-
-.paidNone {
+.paidInput {
+  font-size: 13px;
+  font-weight: 500;
   color: var(--cream-muted);
+  text-align: right;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-family: var(--font-body);
+  outline: none;
+  width: 100%;
+  transition: all 0.15s ease;
+  cursor: text;
+}
+
+.paidInput::placeholder {
+  color: var(--cream-muted);
+  opacity: 0.5;
+}
+
+.paidInput:hover {
+  border-color: var(--border);
+}
+
+.paidInput:focus {
+  background: var(--obsidian-4);
+  border-color: var(--border-light);
+  color: var(--cream);
+}
+
+.paidInputFull {
+  color: var(--sage);
+}
+
+.paidInputFull:focus {
+  color: var(--cream);
+}
+
+.paidInputPartial {
+  color: var(--amber);
+}
+
+.paidInputPartial:focus {
+  color: var(--cream);
 }
 
 /* ─── Pay Button ─── */
@@ -515,6 +539,16 @@
 }
 
 .payBtn:hover {
+  background: rgba(95, 173, 142, 0.12);
+  color: var(--sage);
+}
+
+.payBtnPartial {
+  color: var(--amber);
+  background: rgba(240, 165, 0, 0.1);
+}
+
+.payBtnPartial:hover {
   background: rgba(95, 173, 142, 0.12);
   color: var(--sage);
 }
@@ -837,9 +871,9 @@
     /* Show balance and remaining in a 2-col row */
   }
 
-  /* On tablet: name | amount | paidBadge | payBtn | notesBtn (deleteBtn is absolute) */
+  /* On tablet: name | amount | paid | payBtn | notesBtn | deleteBtn */
   .itemRow {
-    grid-template-columns: 1fr 100px 90px 28px 28px;
+    grid-template-columns: 1fr 90px 80px 28px 28px 28px;
     gap: 6px;
     padding: 10px 12px;
   }
@@ -903,9 +937,9 @@
     font-size: 8px;
   }
 
-  /* On mobile: name | amount | payBtn | deleteBtn (4 cols, no paidBadge, no notesBtn) */
+  /* On mobile: name | amount | paid | payBtn | deleteBtn */
   .itemRow {
-    grid-template-columns: 1fr 80px 28px 28px;
+    grid-template-columns: 1fr 72px 72px 28px 28px;
     gap: 4px;
     padding: 8px 10px;
   }
