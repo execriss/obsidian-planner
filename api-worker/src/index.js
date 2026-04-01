@@ -100,6 +100,52 @@ export default {
     if (method === 'GET' && path === '/summary/today')   return summaryToday(userId, supabase);
     if (method === 'GET' && path === '/summary/monthly') return summaryMonthly(url, userId, supabase);
 
+    // ── Budget Items ────────────────────────────────────────────────────────────
+
+    if (path === '/budget/items') {
+      if (method === 'GET')  return getBudgetItems(url, userId, supabase);
+      if (method === 'POST') return createBudgetItem(request, userId, supabase);
+    }
+    const budgetItemMatch = path.match(/^\/budget\/items\/([^/]+)$/);
+    if (budgetItemMatch) {
+      const id = budgetItemMatch[1];
+      if (method === 'PATCH')  return updateBudgetItem(id, request, userId, supabase);
+      if (method === 'DELETE') return deleteBudgetItem(id, userId, supabase);
+    }
+
+    // ── Budget Categories ───────────────────────────────────────────────────────
+
+    const budgetCatMatch = path.match(/^\/budget\/categories\/([^/]+)$/);
+    if (budgetCatMatch) {
+      const name = decodeURIComponent(budgetCatMatch[1]);
+      if (method === 'PATCH')  return updateBudgetCategory(name, request, userId, supabase);
+      if (method === 'DELETE') return deleteBudgetCategory(name, userId, supabase);
+    }
+
+    // ── Budget Entries ──────────────────────────────────────────────────────────
+
+    if (path === '/budget/entries') {
+      if (method === 'GET')  return getBudgetEntries(url, userId, supabase);
+      if (method === 'POST') return upsertBudgetEntry(request, userId, supabase);
+    }
+
+    // ── Budget Income ───────────────────────────────────────────────────────────
+
+    if (path === '/budget/income') {
+      if (method === 'GET')  return getBudgetIncome(url, userId, supabase);
+      if (method === 'POST') return createBudgetIncome(request, userId, supabase);
+    }
+    const budgetIncomeMatch = path.match(/^\/budget\/income\/([^/]+)$/);
+    if (budgetIncomeMatch) {
+      const id = budgetIncomeMatch[1];
+      if (method === 'PATCH')  return updateBudgetIncome(id, request, userId, supabase);
+      if (method === 'DELETE') return deleteBudgetIncome(id, userId, supabase);
+    }
+
+    // ── Budget Summary ──────────────────────────────────────────────────────────
+
+    if (method === 'GET' && path === '/budget/summary') return budgetSummary(url, userId, supabase);
+
     return err('Ruta no encontrada', 404);
   },
 };
@@ -317,6 +363,289 @@ async function summaryMonthly(url, userId, supabase) {
   });
 }
 
+// ─── Handlers: Budget Items ───────────────────────────────────────────────────
+
+async function getBudgetItems(url, userId, supabase) {
+  const p = url.searchParams;
+  let q = supabase.from('budget_items').select('*').eq('user_id', userId).order('sort_order').order('created_at');
+
+  if (p.get('category')) q = q.eq('category', p.get('category'));
+
+  const { data, error } = await q;
+  if (error) return err(error.message, 500);
+  return ok(data.map(toBudgetItem));
+}
+
+async function createBudgetItem(request, userId, supabase) {
+  let body;
+  try { body = await request.json(); } catch { return err('JSON inválido', 400); }
+
+  const { category, name, default_amount = 0, cat_color = 'blue', sort_order = 0 } = body;
+  if (!category) return err('El campo "category" es requerido', 400);
+  if (!name)     return err('El campo "name" es requerido', 400);
+
+  const { data, error } = await supabase
+    .from('budget_items')
+    .insert({ user_id: userId, category, name, default_amount: Number(default_amount), cat_color, sort_order })
+    .select().single();
+
+  if (error) return err(error.message, 500);
+  return ok(toBudgetItem(data));
+}
+
+async function updateBudgetItem(id, request, userId, supabase) {
+  let body;
+  try { body = await request.json(); } catch { return err('JSON inválido', 400); }
+
+  const allowed = ['category', 'name', 'default_amount', 'cat_color', 'sort_order'];
+  const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)));
+  if (updates.default_amount !== undefined) updates.default_amount = Number(updates.default_amount);
+  if (Object.keys(updates).length === 0) return err('No hay campos válidos para actualizar', 400);
+
+  const { data, error } = await supabase
+    .from('budget_items')
+    .update(updates)
+    .eq('id', id)
+    .eq('user_id', userId)
+    .select().single();
+
+  if (error || !data) return err('Item no encontrado', 404);
+  return ok(toBudgetItem(data));
+}
+
+async function deleteBudgetItem(id, userId, supabase) {
+  const { error, count } = await supabase
+    .from('budget_items')
+    .delete({ count: 'exact' })
+    .eq('id', id)
+    .eq('user_id', userId);
+
+  if (error) return err(error.message, 500);
+  if (count === 0) return err('Item no encontrado', 404);
+  return ok({ deleted: id });
+}
+
+// ─── Handlers: Budget Categories ─────────────────────────────────────────────
+
+async function updateBudgetCategory(name, request, userId, supabase) {
+  let body;
+  try { body = await request.json(); } catch { return err('JSON inválido', 400); }
+
+  const updates = {};
+  if (body.name  !== undefined) updates.category  = body.name;
+  if (body.color !== undefined) updates.cat_color  = body.color;
+  if (Object.keys(updates).length === 0) return err('Se requiere "name" o "color" para actualizar', 400);
+
+  const { data, error } = await supabase
+    .from('budget_items')
+    .update(updates)
+    .eq('category', name)
+    .eq('user_id', userId)
+    .select('id');
+
+  if (error) return err(error.message, 500);
+  if (!data || data.length === 0) return err('Categoría no encontrada', 404);
+  return ok({ updated: data.length });
+}
+
+async function deleteBudgetCategory(name, userId, supabase) {
+  const { error, count } = await supabase
+    .from('budget_items')
+    .delete({ count: 'exact' })
+    .eq('category', name)
+    .eq('user_id', userId);
+
+  if (error) return err(error.message, 500);
+  if (count === 0) return err('Categoría no encontrada', 404);
+  return ok({ deleted: count });
+}
+
+// ─── Handlers: Budget Entries ─────────────────────────────────────────────────
+
+async function getBudgetEntries(url, userId, supabase) {
+  const month = url.searchParams.get('month');
+  if (!month) return err('El parámetro "month" es requerido (YYYY-MM)', 400);
+  if (!/^\d{4}-\d{2}$/.test(month)) return err('Formato de "month" inválido, usar YYYY-MM', 400);
+
+  const { data, error } = await supabase
+    .from('budget_entries')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('month', month);
+
+  if (error) return err(error.message, 500);
+  return ok(data.map(toBudgetEntry));
+}
+
+async function upsertBudgetEntry(request, userId, supabase) {
+  let body;
+  try { body = await request.json(); } catch { return err('JSON inválido', 400); }
+
+  const { item_id, month, amount, paid, notes } = body;
+  if (!item_id) return err('El campo "item_id" es requerido', 400);
+  if (!month)   return err('El campo "month" es requerido (YYYY-MM)', 400);
+  if (!/^\d{4}-\d{2}$/.test(month)) return err('Formato de "month" inválido, usar YYYY-MM', 400);
+
+  const record = { user_id: userId, item_id, month, updated_at: new Date().toISOString() };
+  if (amount !== undefined) record.amount = Number(amount);
+  if (paid   !== undefined) record.paid   = Number(paid);
+  if (notes  !== undefined) record.notes  = notes;
+
+  const { data, error } = await supabase
+    .from('budget_entries')
+    .upsert(record, { onConflict: 'item_id,month' })
+    .select().single();
+
+  if (error) return err(error.message, 500);
+  return ok(toBudgetEntry(data));
+}
+
+// ─── Handlers: Budget Income ──────────────────────────────────────────────────
+
+async function getBudgetIncome(url, userId, supabase) {
+  const month = url.searchParams.get('month');
+  if (!month) return err('El parámetro "month" es requerido (YYYY-MM)', 400);
+  if (!/^\d{4}-\d{2}$/.test(month)) return err('Formato de "month" inválido, usar YYYY-MM', 400);
+
+  const { data, error } = await supabase
+    .from('budget_income')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('month', month)
+    .order('sort_order')
+    .order('created_at');
+
+  if (error) return err(error.message, 500);
+  return ok(data.map(toBudgetIncome));
+}
+
+async function createBudgetIncome(request, userId, supabase) {
+  let body;
+  try { body = await request.json(); } catch { return err('JSON inválido', 400); }
+
+  const { month, source, amount, notes, sort_order = 0 } = body;
+  if (!month)  return err('El campo "month" es requerido (YYYY-MM)', 400);
+  if (!/^\d{4}-\d{2}$/.test(month)) return err('Formato de "month" inválido, usar YYYY-MM', 400);
+  if (!source) return err('El campo "source" es requerido', 400);
+  if (!amount) return err('El campo "amount" es requerido', 400);
+
+  const { data, error } = await supabase
+    .from('budget_income')
+    .insert({ user_id: userId, month, source, amount: Number(amount), notes: notes ?? '', sort_order })
+    .select().single();
+
+  if (error) return err(error.message, 500);
+  return ok(toBudgetIncome(data));
+}
+
+async function updateBudgetIncome(id, request, userId, supabase) {
+  let body;
+  try { body = await request.json(); } catch { return err('JSON inválido', 400); }
+
+  const allowed = ['source', 'amount', 'notes'];
+  const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)));
+  if (updates.amount !== undefined) updates.amount = Number(updates.amount);
+  if (Object.keys(updates).length === 0) return err('No hay campos válidos para actualizar', 400);
+
+  const { data, error } = await supabase
+    .from('budget_income')
+    .update(updates)
+    .eq('id', id)
+    .eq('user_id', userId)
+    .select().single();
+
+  if (error || !data) return err('Ingreso no encontrado', 404);
+  return ok(toBudgetIncome(data));
+}
+
+async function deleteBudgetIncome(id, userId, supabase) {
+  const { error, count } = await supabase
+    .from('budget_income')
+    .delete({ count: 'exact' })
+    .eq('id', id)
+    .eq('user_id', userId);
+
+  if (error) return err(error.message, 500);
+  if (count === 0) return err('Ingreso no encontrado', 404);
+  return ok({ deleted: id });
+}
+
+// ─── Handlers: Budget Summary ─────────────────────────────────────────────────
+
+async function budgetSummary(url, userId, supabase) {
+  const month = url.searchParams.get('month');
+  if (!month) return err('El parámetro "month" es requerido (YYYY-MM)', 400);
+  if (!/^\d{4}-\d{2}$/.test(month)) return err('Formato de "month" inválido, usar YYYY-MM', 400);
+
+  const [
+    { data: items,   error: itemsErr   },
+    { data: entries, error: entriesErr },
+    { data: income,  error: incomeErr  },
+  ] = await Promise.all([
+    supabase.from('budget_items').select('*').eq('user_id', userId).order('sort_order').order('created_at'),
+    supabase.from('budget_entries').select('*').eq('user_id', userId).eq('month', month),
+    supabase.from('budget_income').select('*').eq('user_id', userId).eq('month', month).order('sort_order').order('created_at'),
+  ]);
+
+  if (itemsErr)   return err(itemsErr.message, 500);
+  if (entriesErr) return err(entriesErr.message, 500);
+  if (incomeErr)  return err(incomeErr.message, 500);
+
+  // Índice de entries por item_id para lookup O(1)
+  const entryByItem = Object.fromEntries(entries.map(e => [e.item_id, e]));
+
+  // Agrupar items por categoría, mergeando con su entry si existe
+  const categoryMap = {};
+  for (const item of items) {
+    const entry = entryByItem[item.id];
+    const budgeted = entry ? Number(entry.amount) : Number(item.default_amount);
+    const paid     = entry ? Number(entry.paid)   : 0;
+    const notes    = entry ? (entry.notes || '')  : '';
+
+    if (!categoryMap[item.category]) {
+      categoryMap[item.category] = {
+        name:            item.category,
+        color:           item.cat_color,
+        total_budgeted:  0,
+        total_paid:      0,
+        items:           [],
+      };
+    }
+
+    categoryMap[item.category].total_budgeted += budgeted;
+    categoryMap[item.category].total_paid     += paid;
+    categoryMap[item.category].items.push({
+      id:             item.id,
+      name:           item.name,
+      default_amount: Number(item.default_amount),
+      budgeted,
+      paid,
+      notes,
+    });
+  }
+
+  const categories     = Object.values(categoryMap);
+  const total_budgeted = categories.reduce((s, c) => s + c.total_budgeted, 0);
+  const total_paid     = categories.reduce((s, c) => s + c.total_paid, 0);
+  const total_income   = income.reduce((s, i) => s + Number(i.amount), 0);
+
+  return ok({
+    month,
+    income: {
+      total: total_income,
+      items: income.map(toBudgetIncome),
+    },
+    budget: {
+      total_budgeted,
+      total_paid,
+      pending:           total_budgeted - total_paid,
+      balance:           total_income - total_paid,
+      estimated_balance: total_income - total_budgeted,
+      categories,
+    },
+  });
+}
+
 // ─── Mappers ──────────────────────────────────────────────────────────────────
 
 function toTask(r) {
@@ -340,6 +669,41 @@ function toExpense(r) {
     category:    r.category,
     date:        r.date,
     created_at:  r.created_at,
+  };
+}
+
+function toBudgetItem(r) {
+  return {
+    id:             r.id,
+    category:       r.category,
+    name:           r.name,
+    default_amount: Number(r.default_amount),
+    cat_color:      r.cat_color,
+    sort_order:     r.sort_order,
+    created_at:     r.created_at,
+  };
+}
+
+function toBudgetEntry(r) {
+  return {
+    id:      r.id,
+    item_id: r.item_id,
+    month:   r.month,
+    amount:  Number(r.amount),
+    paid:    Number(r.paid),
+    notes:   r.notes || '',
+  };
+}
+
+function toBudgetIncome(r) {
+  return {
+    id:         r.id,
+    month:      r.month,
+    source:     r.source,
+    amount:     Number(r.amount),
+    notes:      r.notes || '',
+    sort_order: r.sort_order,
+    created_at: r.created_at,
   };
 }
 
@@ -475,6 +839,112 @@ function docs() {
 
   <h3><span class="badge DELETE">DELETE</span> /expenses/:id</h3>
   <p>Elimina un movimiento financiero.</p>
+
+  <!-- BUDGET -->
+  <h2>Presupuesto</h2>
+
+  <h3><span class="badge GET">GET</span> /budget/items</h3>
+  <p>Lista todos los ítems de presupuesto. Filtro opcional por categoría.</p>
+  <table>
+    <tr><th>Query param</th><th>Tipo</th><th>Descripción</th></tr>
+    <tr><td>category</td><td>string</td><td>Filtra por nombre de categoría (ej. <code>HOGAR</code>)</td></tr>
+  </table>
+
+  <h3><span class="badge POST">POST</span> /budget/items</h3>
+  <p>Crea un ítem de presupuesto.</p>
+  <pre><code>{
+  "category":       "HOGAR",    // requerido
+  "name":           "Alquiler", // requerido
+  "default_amount": 50000,      // opcional (default: 0)
+  "cat_color":      "blue",     // opcional (default: "blue")
+  "sort_order":     0           // opcional (default: 0)
+}</code></pre>
+
+  <h3><span class="badge PATCH">PATCH</span> /budget/items/:id</h3>
+  <p>Actualiza campos de un ítem. Enviá solo los que querés cambiar.</p>
+  <pre><code>{
+  "category":       "SERVICIOS",
+  "name":           "Internet",
+  "default_amount": 8000,
+  "cat_color":      "amber",
+  "sort_order":     1
+}</code></pre>
+
+  <h3><span class="badge DELETE">DELETE</span> /budget/items/:id</h3>
+  <p>Elimina un ítem de presupuesto.</p>
+
+  <h3><span class="badge PATCH">PATCH</span> /budget/categories/:name</h3>
+  <p>Renombra o recolorea una categoría completa (actualiza todos sus ítems). El <code>:name</code> va URL-encoded.</p>
+  <pre><code>{
+  "name":  "SERVICIOS",  // opcional: nuevo nombre de la categoría
+  "color": "sage"        // opcional: nuevo color
+}</code></pre>
+
+  <h3><span class="badge DELETE">DELETE</span> /budget/categories/:name</h3>
+  <p>Elimina todos los ítems de una categoría. El <code>:name</code> va URL-encoded.</p>
+
+  <h3><span class="badge GET">GET</span> /budget/entries?month=YYYY-MM</h3>
+  <p>Lista las entradas de presupuesto del mes indicado. El parámetro <code>month</code> es requerido.</p>
+  <pre><code>GET /budget/entries?month=2026-04</code></pre>
+
+  <h3><span class="badge POST">POST</span> /budget/entries</h3>
+  <p>Crea o actualiza (upsert) una entrada de presupuesto para un ítem en un mes. Si ya existe la combinación <code>item_id + month</code>, la sobreescribe.</p>
+  <pre><code>{
+  "item_id": "uuid-del-item",  // requerido
+  "month":   "2026-04",        // requerido (YYYY-MM)
+  "amount":  50000,            // opcional: monto presupuestado del mes
+  "paid":    10000,            // opcional: monto ya pagado
+  "notes":   "Pagado el 5"    // opcional
+}</code></pre>
+
+  <h3><span class="badge GET">GET</span> /budget/income?month=YYYY-MM</h3>
+  <p>Lista los ingresos del mes indicado. El parámetro <code>month</code> es requerido.</p>
+
+  <h3><span class="badge POST">POST</span> /budget/income</h3>
+  <p>Registra un ingreso para un mes.</p>
+  <pre><code>{
+  "month":      "2026-04",   // requerido (YYYY-MM)
+  "source":     "Trabajo",   // requerido
+  "amount":     100000,      // requerido
+  "notes":      "",          // opcional
+  "sort_order": 0            // opcional (default: 0)
+}</code></pre>
+
+  <h3><span class="badge PATCH">PATCH</span> /budget/income/:id</h3>
+  <p>Actualiza un ingreso. Campos permitidos: <code>source</code>, <code>amount</code>, <code>notes</code>.</p>
+
+  <h3><span class="badge DELETE">DELETE</span> /budget/income/:id</h3>
+  <p>Elimina un ingreso.</p>
+
+  <h3><span class="badge GET">GET</span> /budget/summary?month=YYYY-MM</h3>
+  <p>Resumen completo del presupuesto del mes: ingresos, totales presupuestados/pagados, pendientes y saldo. Los ítems sin entrada usan <code>default_amount</code>.</p>
+  <pre><code>{
+  "data": {
+    "month": "2026-04",
+    "income": {
+      "total": 100000,
+      "items": [{ "id": "...", "source": "Trabajo", "amount": 100000, "notes": "" }]
+    },
+    "budget": {
+      "total_budgeted": 80000,
+      "total_paid": 25000,
+      "pending": 55000,
+      "balance": 75000,
+      "estimated_balance": 20000,
+      "categories": [
+        {
+          "name": "HOGAR",
+          "color": "blue",
+          "total_budgeted": 50000,
+          "total_paid": 10000,
+          "items": [
+            { "id": "...", "name": "Alquiler", "default_amount": 50000, "budgeted": 50000, "paid": 10000, "notes": "" }
+          ]
+        }
+      ]
+    }
+  }
+}</code></pre>
 
   <!-- SUMMARIES -->
   <h2>Resúmenes</h2>
