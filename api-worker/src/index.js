@@ -97,8 +97,7 @@ export default {
 
     // ── Summaries ──────────────────────────────────────────────────────────────
 
-    if (method === 'GET' && path === '/summary/today')   return summaryToday(userId, supabase);
-    if (method === 'GET' && path === '/summary/monthly') return summaryMonthly(url, userId, supabase);
+    if (method === 'GET' && path === '/summary/today') return summaryToday(userId, supabase);
 
     // ── Budget Items ────────────────────────────────────────────────────────────
 
@@ -312,53 +311,6 @@ async function summaryToday(userId, supabase) {
       expense,
       balance: income - expense,
       items:   expenses.map(toExpense),
-    },
-  });
-}
-
-async function summaryMonthly(url, userId, supabase) {
-  const year  = Number(url.searchParams.get('year')  ?? new Date().getFullYear());
-  const month = Number(url.searchParams.get('month') ?? new Date().getMonth() + 1);
-
-  if (!year || month < 1 || month > 12) return err('Parámetros year y month requeridos (month: 1-12)', 400);
-
-  const from  = `${year}-${String(month).padStart(2, '0')}-01`;
-  const to    = `${year}-${String(month).padStart(2, '0')}-${new Date(year, month, 0).getDate()}`;
-
-  const [{ data: expenses }, { data: tasks }] = await Promise.all([
-    supabase.from('expenses').select('*').eq('user_id', userId).gte('date', from).lte('date', to),
-    supabase.from('tasks').select('*').eq('user_id', userId).gte('date', from).lte('date', to),
-  ]);
-
-  const income  = expenses.filter(e => e.type === 'income').reduce((s, e) => s + Number(e.amount), 0);
-  const expense = expenses.filter(e => e.type === 'expense').reduce((s, e) => s + Number(e.amount), 0);
-
-  // Breakdown por categoría
-  const byCategory = (type) => {
-    const map = {};
-    expenses.filter(e => e.type === type).forEach(e => {
-      map[e.category] = (map[e.category] ?? 0) + Number(e.amount);
-    });
-    return Object.entries(map).sort((a, b) => b[1] - a[1]).map(([category, amount]) => ({ category, amount }));
-  };
-
-  return ok({
-    year,
-    month,
-    finances: {
-      income,
-      expense,
-      balance: income - expense,
-      saving_rate: income > 0 ? Number(((income - expense) / income * 100).toFixed(1)) : 0,
-      by_category: {
-        income:  byCategory('income'),
-        expense: byCategory('expense'),
-      },
-    },
-    tasks: {
-      total:   tasks.length,
-      done:    tasks.filter(t => t.done).length,
-      pending: tasks.filter(t => !t.done).length,
     },
   });
 }
@@ -958,9 +910,6 @@ function docs() {
     "finances": { "income": 50000, "expense": 1500, "balance": 48500, "items": [...] }
   }
 }</code></pre>
-
-  <h3><span class="badge GET">GET</span> /summary/monthly?year=2026&amp;month=3</h3>
-  <p>Reporte financiero mensual con totales y breakdown por categoría.</p>
 
   <h2>Ejemplo rápido</h2>
   <pre><code>curl https://api.exegestion.com/tasks?done=false \\
