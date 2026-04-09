@@ -11,6 +11,7 @@ import styles from './GroceryList.module.css';
 import SectionSkeleton from './SectionSkeleton.jsx';
 import { useMinLoading } from '../hooks/useMinLoading.js';
 import OwnerToggle from './OwnerToggle.jsx';
+import GroceryCalculator from './GroceryCalculator.jsx';
 
 const CATS = [
   { id: 'frutas',    label: 'Frutas y Verduras', emoji: '🥦', color: '#5FAD8E', dim: 'rgba(95,173,142,0.15)' },
@@ -472,6 +473,9 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
           </button>
         </div>
       )}
+
+      {/* ── Calculadora flotante (solo mobile) ── */}
+      {isMobile && <GroceryCalculator />}
     </div>
   );
 }
