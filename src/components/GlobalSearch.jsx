@@ -15,7 +15,7 @@ const SECTIONS = [
 
 function getResultText(item, key) {
   switch (key) {
-    case 'tasks':     return { primary: item.title,   secondary: item.date ? format(new Date(item.date + 'T00:00:00'), "d MMM", { locale: es }) : '' };
+    case 'tasks':     return { primary: item.text,    secondary: item.date ? format(new Date(item.date + 'T00:00:00'), "d MMM", { locale: es }) : '' };
     case 'notes':     return { primary: item.title || item.content?.slice(0, 60) || 'Sin título', secondary: item.title ? item.content?.slice(0, 50) : '' };
     case 'habits':    return { primary: `${item.icon} ${item.name}`, secondary: '' };
     case 'documents': return { primary: item.name, secondary: item.number || '' };

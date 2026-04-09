@@ -32,8 +32,8 @@ export function useSearch(userId, query) {
       // Each query is independent — a failure in one doesn't block the rest
       const [tasks, notesByContent, notesByTitle, habits, docsByName, docsByNumber, grocery] =
         await Promise.allSettled([
-          supabase.from('tasks').select('id, title, date, done')
-            .eq('user_id', userId).ilike('title', like).limit(8),
+          supabase.from('tasks').select('id, text, date, done')
+            .eq('user_id', userId).ilike('text', like).limit(8),
 
           supabase.from('notes').select('id, title, content, color')
             .eq('user_id', userId).ilike('content', like).limit(6),
