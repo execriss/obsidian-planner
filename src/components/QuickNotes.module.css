@@ -229,6 +229,40 @@
   .noteGrid  { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 480px) {
+  .container {
+    padding: 20px 12px;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+
+  .headerIcon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+
+  .addBtn {
+    padding: 8px 12px;
+    font-size: 11px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* El form footer se apila en vertical para evitar overflow */
+  .formFooter {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .formActions {
+    justify-content: flex-end;
+  }
+}
+
 .noteGridDesktop {
   composes: noteGrid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));

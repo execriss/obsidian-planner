@@ -1,0 +1,504 @@
+/* Collaborators — settings tab for managing shared access */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Sections ── */
+
+.section {
+  background: var(--obsidian-3);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 20px;
+  animation: fadeUp 0.28s var(--ease-out) both;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.sectionDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sectionDot[data-color="amber"] { background: var(--amber); }
+.sectionDot[data-color="sage"]  { background: var(--sage); }
+.sectionDot[data-color="blue"]  { background: var(--blue); }
+.sectionDot[data-color="muted"] { background: var(--cream-muted); }
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cream);
+}
+
+.badge {
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--amber);
+  color: var(--obsidian);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: chipPop 0.3s var(--ease-spring) both;
+}
+
+/* ── Chip ── */
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.chip[data-section="grocery"] {
+  background: rgba(95, 173, 142, 0.15);
+  color: var(--sage);
+}
+
+.chip[data-section="budget"] {
+  background: rgba(240, 165, 0, 0.15);
+  color: var(--amber);
+}
+
+/* ── Incoming invitation cards ── */
+
+.inviteList,
+.collabList,
+.sentList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inviteCard {
+  background: var(--obsidian-4);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  animation: springIn 0.32s var(--ease-spring) both;
+}
+
+.inviteCardTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.avatarSmall {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--amber-glow);
+  border: 1px solid var(--amber-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--amber);
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.inviteCardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.inviteFrom {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cream);
+}
+
+.inviteLabel {
+  font-size: 11px;
+  color: var(--cream-muted);
+}
+
+.inviteActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.acceptBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--sage);
+  color: var(--obsidian);
+  transition: opacity 0.15s ease, transform 0.15s var(--ease-spring);
+}
+
+.acceptBtn:hover:not(:disabled) { opacity: 0.85; transform: scale(1.03); }
+.acceptBtn:disabled              { opacity: 0.5; }
+
+.rejectBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--cream-muted);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.rejectBtn:hover:not(:disabled) {
+  color: var(--coral);
+  border-color: var(--coral);
+}
+
+.rejectBtn:disabled { opacity: 0.5; }
+
+/* ── Alerts ── */
+
+.alertSuccess {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(95, 173, 142, 0.12);
+  border: 1px solid rgba(95, 173, 142, 0.3);
+  color: var(--sage);
+  animation: fadeUp 0.25s var(--ease-out) both;
+}
+
+.alertError {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(224, 92, 92, 0.1);
+  border: 1px solid rgba(224, 92, 92, 0.25);
+  color: var(--coral);
+  animation: fadeUp 0.25s var(--ease-out) both;
+}
+
+/* ── Invite trigger button ── */
+
+.inviteTrigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 0;
+  border-radius: 10px;
+  transition: opacity 0.15s ease;
+}
+
+.inviteTrigger:hover { opacity: 0.75; }
+
+.inviteTriggerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.inviteIconBox {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--amber-glow);
+  border: 1px solid var(--amber-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.inviteTrigger > .inviteTriggerLeft > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cream);
+}
+
+.triggerChevron {
+  color: var(--cream-muted);
+  transition: transform 0.22s var(--ease-spring);
+}
+
+.triggerChevronOpen {
+  transform: rotate(180deg);
+}
+
+/* ── Invite form ── */
+
+.inviteForm {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cream-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.emailInput {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--obsidian-4);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--cream);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.emailInput::placeholder { color: var(--cream-muted); }
+
+.emailInput:focus {
+  border-color: var(--amber-dim);
+}
+
+.sectionGrid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sectionToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--border-light);
+  color: var(--cream-muted);
+  background: var(--obsidian-4);
+  transition: all 0.18s var(--ease-spring);
+}
+
+.sectionToggle:hover:not(.sectionToggleActive) {
+  border-color: var(--cream-muted);
+  color: var(--cream-dim);
+}
+
+.sectionToggleActive {
+  background: var(--amber-glow);
+  border-color: var(--amber-dim);
+  color: var(--amber);
+}
+
+.sectionCheck {
+  margin-left: 2px;
+  color: var(--amber);
+}
+
+.sendBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--amber);
+  color: var(--obsidian);
+  transition: opacity 0.15s ease, transform 0.15s var(--ease-spring);
+  align-self: flex-start;
+}
+
+.sendBtn:hover:not(:disabled) { opacity: 0.88; transform: scale(1.02); }
+.sendBtn:disabled              { opacity: 0.5; }
+
+/* ── Active collab cards ── */
+
+.collabCard {
+  background: var(--obsidian-4);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  animation: fadeUp 0.25s var(--ease-out) both;
+}
+
+.collabCardRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.collabInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.collabEmail {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cream);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.removeBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream-muted);
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.removeBtn:hover:not(:disabled) {
+  color: var(--coral);
+  background: rgba(224, 92, 92, 0.1);
+}
+
+.removeBtn:disabled { opacity: 0.4; }
+
+/* ── Sent invitations ── */
+
+.sentCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--obsidian-4);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  animation: fadeUp 0.25s var(--ease-out) both;
+}
+
+.sentIcon {
+  color: var(--cream-muted);
+  flex-shrink: 0;
+}
+
+.sentInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sentEmail {
+  font-size: 12px;
+  color: var(--cream-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Empty state ── */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 20px;
+  gap: 10px;
+  animation: fadeUp 0.3s var(--ease-out) both;
+}
+
+.emptyIcon {
+  color: var(--border-light);
+  margin-bottom: 6px;
+}
+
+.emptyTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cream-dim);
+}
+
+.emptyText {
+  font-size: 12px;
+  color: var(--cream-muted);
+  max-width: 240px;
+  line-height: 1.6;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 480px) {
+  .inviteActions {
+    flex-direction: column;
+  }
+
+  .acceptBtn,
+  .rejectBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sectionGrid {
+    flex-direction: column;
+  }
+
+  .sectionToggle {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

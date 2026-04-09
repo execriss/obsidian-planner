@@ -111,7 +111,8 @@ export default function DayView({
       {/* Mobile tabs */}
       {isMobile && (
         <div className={s.mobileTabs}>
-          {[['tasks', 'Tareas'], ['finance', 'Finanzas']].map(([id, label]) => (
+          {/* ['finance', 'Finanzas'] tab oculto — sección Reporte en desuso */}
+          {[['tasks', 'Tareas']].map(([id, label]) => (
             <button
               key={id}
               onClick={() => setMobileTab(id)}

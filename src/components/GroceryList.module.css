@@ -10,6 +10,15 @@
   padding: 24px 16px;
 }
 
+/* ─── Owner toggle ─── */
+
+.ownerToggleRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+  animation: fadeDown 0.28s var(--ease-out) both;
+}
+
 /* ─── Header ─── */
 
 .header {

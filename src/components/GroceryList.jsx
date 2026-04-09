@@ -10,6 +10,7 @@ import { useGrocery } from '../hooks/useGrocery.js';
 import styles from './GroceryList.module.css';
 import SectionSkeleton from './SectionSkeleton.jsx';
 import { useMinLoading } from '../hooks/useMinLoading.js';
+import OwnerToggle from './OwnerToggle.jsx';
 
 const CATS = [
   { id: 'frutas',    label: 'Frutas y Verduras', emoji: '🥦', color: '#5FAD8E', dim: 'rgba(95,173,142,0.15)' },
@@ -30,9 +31,10 @@ function fmtARS(n) {
   }).format(n);
 }
 
-export default function GroceryList({ userId }) {
+export default function GroceryList({ userId, sharedOwners = [] }) {
   const isMobile = useIsMobile();
-  const { items, sessions, loading: dataLoading, addItem: dbAddItem, toggleItem: dbToggleItem, removeItem, clearDone, clearAll, resetList, saveSession } = useGrocery(userId);
+  const [activeOwnerId, setActiveOwnerId] = useState(null);
+  const { items, sessions, loading: dataLoading, addItem: dbAddItem, toggleItem: dbToggleItem, removeItem, clearDone, clearAll, resetList, saveSession } = useGrocery(userId, activeOwnerId);
   const loading = useMinLoading(dataLoading);
 
   const [showForm, setShowForm]         = useState(false);
@@ -114,6 +116,17 @@ export default function GroceryList({ userId }) {
 
   return (
     <div className={`animate-viewIn ${styles.container}`}>
+
+      {/* ── Owner toggle (visible when someone shared their list with me) ── */}
+      {sharedOwners.length > 0 && (
+        <div className={styles.ownerToggleRow}>
+          <OwnerToggle
+            sharedOwners={sharedOwners}
+            activeOwnerId={activeOwnerId}
+            onSelect={setActiveOwnerId}
+          />
+        </div>
+      )}
 
       {/* ── Header ── */}
       <div className={styles.header}>

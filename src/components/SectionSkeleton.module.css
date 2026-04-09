@@ -18,11 +18,25 @@
 
 /* ─── Wrapper ────────────────────────────────────────────────────────────────── */
 .wrap {
-  padding: 20px 24px 0;
+  margin: 0 auto;
+  padding: 40px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
   animation: fadeIn 0.2s ease both;
+}
+
+.wrapNotes    { max-width: 800px; }
+.wrapHabits   { max-width: 680px; }
+.wrapRows     { max-width: 720px; }
+.wrapServices { max-width: 720px; }
+
+@media (max-width: 639px) {
+  .wrap { padding: 24px 16px; }
+}
+
+@media (max-width: 480px) {
+  .wrap { padding: 20px 12px; }
 }
 
 @keyframes fadeIn {
@@ -210,6 +224,218 @@
   height: 24px;
   border-radius: 20px;
   flex-shrink: 0;
+}
+
+/* ─── Budget skeleton ─────────────────────────────────────────────────────────── */
+
+.budgetWrap {
+  padding: 40px 24px 80px;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  animation: fadeIn 0.2s ease both;
+}
+
+.budgetHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.budgetHeaderIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+/* Income */
+.budgetIncomeLabel {
+  margin-bottom: 10px;
+}
+
+.budgetSectionLabel {
+  width: 120px;
+  height: 10px;
+}
+
+.budgetIncomeRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.budgetIncomeCard {
+  flex-shrink: 0;
+  width: 140px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.budgetIncomeSource {
+  width: 70%;
+  height: 11px;
+}
+
+.budgetIncomeAmount {
+  width: 85%;
+  height: 15px;
+}
+
+/* Summary bar */
+.budgetSummaryBar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+
+.budgetSummaryCell {
+  background: rgba(255,255,255,0.03);
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.budgetSummaryLabel {
+  width: 50%;
+  height: 9px;
+}
+
+.budgetSummaryValue {
+  width: 70%;
+  height: 14px;
+}
+
+/* Category section */
+.budgetCategory {
+  border-left: 3px solid rgba(255,255,255,0.08);
+  border-radius: 2px 12px 12px 2px;
+  background: rgba(255,255,255,0.02);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.budgetCategoryHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+.budgetCategoryDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.budgetCategoryName {
+  width: 90px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.budgetCategoryTotals {
+  width: 140px;
+  height: 11px;
+  margin-left: auto;
+}
+
+.budgetItemList {
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.budgetItemRow {
+  display: grid;
+  grid-template-columns: 1fr 100px 90px 26px 26px;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.budgetItemRow:last-child {
+  border-bottom: none;
+}
+
+.budgetItemName {
+  height: 13px;
+}
+
+.budgetItemAmount {
+  height: 13px;
+  border-radius: 6px;
+}
+
+.budgetItemPaid {
+  height: 13px;
+  border-radius: 6px;
+}
+
+.budgetItemBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .budgetWrap {
+    padding: 28px 16px 100px;
+  }
+
+  .budgetSummaryBar {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .budgetCategoryTotals {
+    display: none;
+  }
+
+  .budgetItemRow {
+    grid-template-columns: 1fr 84px 84px 26px 26px;
+    gap: 6px;
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .budgetWrap {
+    padding: 20px 12px 100px;
+  }
+
+  .budgetSummaryBar {
+    grid-template-columns: repeat(2, 1fr);
+    border-radius: 10px;
+  }
+
+  .budgetSummaryBar > :nth-child(5) {
+    grid-column: span 2;
+  }
+
+  .budgetItemRow {
+    grid-template-columns: 1fr 80px 80px 26px 26px;
+    gap: 4px;
+    padding: 8px 10px;
+  }
 }
 
 /* ─── Service cards ───────────────────────────────────────────────────────────── */

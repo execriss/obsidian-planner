@@ -378,9 +378,18 @@ export async function fetchDocuments(userId) {
 export async function createDocument(userId, doc) {
   const { data, error } = await supabase
     .from('documents')
-    .insert({ user_id: userId, name: doc.name, number: doc.number || null,
-              cat: doc.cat || 'otro', notes: doc.notes || null,
-              expires: doc.expires || null })
+    .insert({
+      user_id:   userId,
+      name:      doc.name,
+      number:    doc.number   || null,
+      cat:       doc.cat      || 'otro',
+      notes:     doc.notes    || null,
+      expires:   doc.expires  || null,
+      file_path: doc.filePath || null,
+      file_name: doc.fileName || null,
+      file_size: doc.fileSize || null,
+      file_type: doc.fileType || null,
+    })
     .select().single();
   if (error) throw error;
   return dbToDocument(data);
@@ -388,11 +397,15 @@ export async function createDocument(userId, doc) {
 
 export async function updateDocument(docId, updates) {
   const upd = {};
-  if (updates.name    !== undefined) upd.name    = updates.name;
-  if (updates.number  !== undefined) upd.number  = updates.number;
-  if (updates.cat     !== undefined) upd.cat     = updates.cat;
-  if (updates.notes   !== undefined) upd.notes   = updates.notes;
-  if (updates.expires !== undefined) upd.expires = updates.expires || null;
+  if (updates.name     !== undefined) upd.name      = updates.name;
+  if (updates.number   !== undefined) upd.number    = updates.number   || null;
+  if (updates.cat      !== undefined) upd.cat       = updates.cat;
+  if (updates.notes    !== undefined) upd.notes     = updates.notes    || null;
+  if (updates.expires  !== undefined) upd.expires   = updates.expires  || null;
+  if (updates.filePath !== undefined) upd.file_path = updates.filePath || null;
+  if (updates.fileName !== undefined) upd.file_name = updates.fileName || null;
+  if (updates.fileSize !== undefined) upd.file_size = updates.fileSize || null;
+  if (updates.fileType !== undefined) upd.file_type = updates.fileType || null;
   const { data, error } = await supabase
     .from('documents')
     .update(upd)
@@ -403,18 +416,49 @@ export async function updateDocument(docId, updates) {
 }
 
 export async function deleteDocument(docId) {
+  const { data } = await supabase
+    .from('documents').select('file_path').eq('id', docId).single();
+  if (data?.file_path) {
+    await supabase.storage.from('documents').remove([data.file_path]);
+  }
   const { error } = await supabase.from('documents').delete().eq('id', docId);
   if (error) throw error;
 }
 
+export async function uploadDocumentFile(userId, docId, file) {
+  const path = `${userId}/${docId}/${file.name}`;
+  const { error } = await supabase.storage
+    .from('documents')
+    .upload(path, file, { upsert: true });
+  if (error) throw error;
+  return { filePath: path, fileName: file.name, fileSize: file.size, fileType: file.type };
+}
+
+export async function deleteDocumentFile(filePath) {
+  const { error } = await supabase.storage.from('documents').remove([filePath]);
+  if (error) throw error;
+}
+
+export async function getDocumentFileUrl(filePath) {
+  const { data, error } = await supabase.storage
+    .from('documents')
+    .createSignedUrl(filePath, 3600);
+  if (error) throw error;
+  return data.signedUrl;
+}
+
 function dbToDocument(row) {
   return {
-    id:      row.id,
-    name:    row.name,
-    number:  row.number,
-    cat:     row.cat,
-    notes:   row.notes,
-    expires: row.expires,
+    id:       row.id,
+    name:     row.name,
+    number:   row.number,
+    cat:      row.cat,
+    notes:    row.notes,
+    expires:  row.expires,
+    filePath: row.file_path,
+    fileName: row.file_name,
+    fileSize: row.file_size,
+    fileType: row.file_type,
   };
 }
 
@@ -579,4 +623,135 @@ function dbToBudgetEntry(r) {
 function dbToBudgetIncome(r) {
   return { id: r.id, month: r.month, source: r.source,
            amount: Number(r.amount), notes: r.notes || '', sortOrder: r.sort_order };
+}
+
+// ─── INVITATIONS ──────────────────────────────────────────
+
+export async function fetchIncomingInvitations(userEmail) {
+  const { data, error } = await supabase
+    .from('invitations')
+    .select('*')
+    .eq('invitee_email', userEmail)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data.map(dbToInvitation);
+}
+
+export async function fetchSentInvitations(userId) {
+  const { data, error } = await supabase
+    .from('invitations')
+    .select('*')
+    .eq('inviter_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data.map(dbToInvitation);
+}
+
+export async function sendInvitation(inviterId, inviterEmail, inviteeEmail, sections) {
+  const { data, error } = await supabase
+    .from('invitations')
+    .insert({ inviter_id: inviterId, inviter_email: inviterEmail,
+              invitee_email: inviteeEmail, sections })
+    .select()
+    .single();
+  if (error) throw error;
+  return dbToInvitation(data);
+}
+
+export async function acceptInvitation(invitationId, collaboratorId, collaboratorEmail) {
+  const { data: inv, error: invErr } = await supabase
+    .from('invitations')
+    .select('*')
+    .eq('id', invitationId)
+    .single();
+  if (invErr) throw invErr;
+
+  const rows = inv.sections.map(section => ({
+    owner_id: inv.inviter_id,
+    owner_email: inv.inviter_email,
+    collaborator_id: collaboratorId,
+    collaborator_email: collaboratorEmail,
+    section,
+  }));
+
+  const { error: collabErr } = await supabase
+    .from('collaborations')
+    .upsert(rows, { onConflict: 'owner_id,collaborator_id,section' });
+  if (collabErr) throw collabErr;
+
+  const { error: updErr } = await supabase
+    .from('invitations')
+    .update({ status: 'accepted', updated_at: new Date().toISOString() })
+    .eq('id', invitationId);
+  if (updErr) throw updErr;
+
+  const { data: newCollabs, error: fetchErr } = await supabase
+    .from('collaborations')
+    .select('*')
+    .eq('collaborator_id', collaboratorId)
+    .in('section', inv.sections)
+    .eq('owner_id', inv.inviter_id);
+  if (fetchErr) throw fetchErr;
+  return newCollabs.map(dbToCollaboration);
+}
+
+export async function rejectInvitation(invitationId) {
+  const { error } = await supabase
+    .from('invitations')
+    .update({ status: 'rejected', updated_at: new Date().toISOString() })
+    .eq('id', invitationId);
+  if (error) throw error;
+}
+
+export async function revokeInvitation(invitationId) {
+  const { error } = await supabase
+    .from('invitations')
+    .delete()
+    .eq('id', invitationId);
+  if (error) throw error;
+}
+
+// ─── COLLABORATIONS ───────────────────────────────────────
+
+export async function fetchCollaborations(userId) {
+  const { data, error } = await supabase
+    .from('collaborations')
+    .select('*')
+    .or(`owner_id.eq.${userId},collaborator_id.eq.${userId}`)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data.map(dbToCollaboration);
+}
+
+export async function removeCollaboration(collaborationId) {
+  const { error } = await supabase
+    .from('collaborations')
+    .delete()
+    .eq('id', collaborationId);
+  if (error) throw error;
+}
+
+function dbToInvitation(r) {
+  return {
+    id:           r.id,
+    inviterId:    r.inviter_id,
+    inviterEmail: r.inviter_email,
+    inviteeEmail: r.invitee_email,
+    sections:     r.sections,
+    status:       r.status,
+    createdAt:    r.created_at,
+  };
+}
+
+function dbToCollaboration(r) {
+  return {
+    id:                 r.id,
+    ownerId:            r.owner_id,
+    ownerEmail:         r.owner_email,
+    collaboratorId:     r.collaborator_id,
+    collaboratorEmail:  r.collaborator_email,
+    section:            r.section,
+    createdAt:          r.created_at,
+  };
 }

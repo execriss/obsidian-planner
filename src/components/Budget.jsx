@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile.js';
 import { useBudget } from '../hooks/useBudget.js';
+import OwnerToggle from './OwnerToggle.jsx';
 import { useMinLoading } from '../hooks/useMinLoading.js';
 import SectionSkeleton from './SectionSkeleton.jsx';
 import styles from './Budget.module.css';
@@ -535,15 +536,16 @@ function CategorySection({
 
 // ─── Budget (main) ───────────────────────────────────────────────────────────
 
-export default function Budget({ userId, viewMonth }) {
+export default function Budget({ userId, viewMonth, sharedOwners = [] }) {
   const isMobile = useIsMobile();
   const month = format(viewMonth, 'yyyy-MM');
+  const [activeOwnerId, setActiveOwnerId] = useState(null);
   const {
     merged, categories, income, loading: dataLoading, error, retry,
     addItem, editItem, removeItem, updateEntry,
     editCategory, removeCategory,
     addIncome, editIncome, removeIncome,
-  } = useBudget(userId, month);
+  } = useBudget(userId, month, activeOwnerId);
   const loading = useMinLoading(dataLoading);
 
   const [showNewCategory, setShowNewCategory] = useState(false);
@@ -587,11 +589,7 @@ export default function Budget({ userId, viewMonth }) {
   };
 
   if (loading) {
-    return (
-      <div className={styles.container}>
-        <SectionSkeleton variant="rows" count={8} />
-      </div>
-    );
+    return <SectionSkeleton variant="budget" />;
   }
 
   if (error) {
@@ -609,6 +607,18 @@ export default function Budget({ userId, viewMonth }) {
 
   return (
     <div className={styles.container}>
+
+      {/* ── Owner toggle (visible when someone shared their budget with me) ── */}
+      {sharedOwners.length > 0 && (
+        <div className={styles.ownerToggleRow}>
+          <OwnerToggle
+            sharedOwners={sharedOwners}
+            activeOwnerId={activeOwnerId}
+            onSelect={setActiveOwnerId}
+          />
+        </div>
+      )}
+
       {/* Header */}
       <header className={styles.pageHeader}>
         <div className={styles.headerIcon}>

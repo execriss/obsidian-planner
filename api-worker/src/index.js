@@ -145,6 +145,19 @@ export default {
 
     if (method === 'GET' && path === '/budget/summary') return budgetSummary(url, userId, supabase);
 
+    // ── Notes ───────────────────────────────────────────────────────────────────
+
+    if (path === '/notes') {
+      if (method === 'GET')  return getNotes(url, userId, supabase);
+      if (method === 'POST') return createNote(request, userId, supabase);
+    }
+    const noteMatch = path.match(/^\/notes\/([^/]+)$/);
+    if (noteMatch) {
+      const id = noteMatch[1];
+      if (method === 'PATCH')  return updateNote(id, request, userId, supabase);
+      if (method === 'DELETE') return deleteNote(id, userId, supabase);
+    }
+
     return err('Ruta no encontrada', 404);
   },
 };
@@ -656,6 +669,84 @@ function toBudgetIncome(r) {
     notes:      r.notes || '',
     sort_order: r.sort_order,
     created_at: r.created_at,
+  };
+}
+
+// ─── Handlers: Notes ──────────────────────────────────────────────────────────
+
+async function getNotes(url, userId, supabase) {
+  const p = url.searchParams;
+  let q = supabase.from('notes').select('*').eq('user_id', userId)
+    .order('pinned', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (p.get('pinned') != null && p.get('pinned') !== '') q = q.eq('pinned', p.get('pinned') === 'true');
+  if (p.get('color'))  q = q.eq('color', p.get('color'));
+  if (p.get('search')) q = q.ilike('content', `%${p.get('search')}%`);
+  if (p.get('limit'))  q = q.limit(Number(p.get('limit')));
+
+  const { data, error } = await q;
+  if (error) return err(error.message, 500);
+  return ok(data.map(toNote));
+}
+
+async function createNote(request, userId, supabase) {
+  let body;
+  try { body = await request.json(); } catch { return err('JSON inválido', 400); }
+
+  const { content, title, color = 'amber', pinned = false } = body;
+  if (!content) return err('El campo "content" es requerido', 400);
+
+  const { data, error } = await supabase
+    .from('notes')
+    .insert({ user_id: userId, content, title: title || null, color, pinned })
+    .select().single();
+
+  if (error) return err(error.message, 500);
+  return ok(toNote(data));
+}
+
+async function updateNote(id, request, userId, supabase) {
+  let body;
+  try { body = await request.json(); } catch { return err('JSON inválido', 400); }
+
+  const allowed = ['content', 'title', 'color', 'pinned'];
+  const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)));
+  if (Object.keys(updates).length === 0) return err('No hay campos válidos para actualizar', 400);
+  updates.updated_at = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from('notes')
+    .update(updates)
+    .eq('id', id)
+    .eq('user_id', userId)
+    .select().single();
+
+  if (error || !data) return err('Nota no encontrada', 404);
+  return ok(toNote(data));
+}
+
+async function deleteNote(id, userId, supabase) {
+  const { error, count } = await supabase
+    .from('notes')
+    .delete({ count: 'exact' })
+    .eq('id', id)
+    .eq('user_id', userId);
+
+  if (error) return err(error.message, 500);
+  if (count === 0) return err('Nota no encontrada', 404);
+  return ok({ deleted: id });
+}
+
+function toNote(r) {
+  return {
+    id:         r.id,
+    title:      r.title,
+    content:    r.content,
+    color:      r.color,
+    pinned:     r.pinned,
+    created_at: r.created_at,
+    updated_at: r.updated_at,
   };
 }
 

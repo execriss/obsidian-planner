@@ -97,10 +97,6 @@
   animation: fadeUp 0.3s var(--ease-spring) 0.05s both;
 }
 
-.summaryGridMobile {
-  grid-template-columns: 1fr;
-}
-
 .summaryCard {
   padding: 14px 16px;
   border-radius: 12px;
@@ -184,10 +180,6 @@
   margin-bottom: 10px;
 }
 
-.formRowMobile {
-  grid-template-columns: 1fr;
-}
-
 .formFieldWrap {
   margin-bottom: 10px;
 }
@@ -215,10 +207,6 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   margin-bottom: 14px;
-}
-
-.catGridMobile {
-  grid-template-columns: repeat(2, 1fr);
 }
 
 .catBtn {
@@ -290,14 +278,8 @@
   border-radius: 20px;
   padding: 28px;
   width: 340px;
-  max-width: 340px;
+  max-width: calc(100vw - 32px);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
-}
-
-.modalCardMobile {
-  border-radius: 16px;
-  padding: 20px;
-  width: calc(100vw - 32px);
 }
 
 .modalTitle {
@@ -479,13 +461,6 @@
   flex-wrap: nowrap;
 }
 
-.cardRowMobile {
-  align-items: flex-start;
-  gap: 10px;
-  padding: 12px;
-  flex-wrap: wrap;
-}
-
 .svcIcon {
   width: 42px;
   height: 42px;
@@ -650,4 +625,33 @@
 .historyAmount {
   font-weight: 600;
   color: var(--sage);
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 639px) {
+  .container      { padding: 24px 16px; }
+  .title          { font-size: 22px; }
+
+  .summaryGrid    { grid-template-columns: 1fr; gap: 8px; }
+  .summaryValue   { font-size: 18px; }
+
+  .formRow        { grid-template-columns: 1fr; }
+  .catGrid        { grid-template-columns: repeat(2, 1fr); }
+
+  .modalCard      { border-radius: 16px; padding: 20px; }
+
+  /* Card row: icon + info on first line, actions go full-width below */
+  .cardRow {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+  }
+  .svcInfo        { flex: 1; min-width: 0; }
+  .paidAmount     { font-size: 14px; margin-left: auto; }
+  .actions {
+    flex-basis: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
 }

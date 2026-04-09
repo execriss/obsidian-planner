@@ -3,6 +3,7 @@ import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   startOfWeek, endOfWeek, isSameMonth, isSameDay, isToday,
 } from 'date-fns';
+import { useDragMove } from '../hooks/useDragMove.js';
 import styles from './BigCalendar.module.css';
 
 const PRIORITY_COLORS = {
@@ -16,7 +17,7 @@ const fmt = (n) =>
     style: 'currency', currency: 'ARS', minimumFractionDigits: 0,
   }).format(n);
 
-export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tasks, expenses, isMobile }) {
+export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tasks, expenses, isMobile, onMoveTask }) {
   const prevMonthRef = useRef(viewMonth);
   const direction = viewMonth > prevMonthRef.current ? 'next' : 'prev';
   prevMonthRef.current = viewMonth;
@@ -50,6 +51,11 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
     return map;
   }, [expenses]);
 
+  // Drag & drop — desktop only (hook ignores touch pointer types)
+  const { draggingId, dropKey, didDrag, handlePillPointerDown } = useDragMove(
+    isMobile ? null : onMoveTask
+  );
+
   const gridKey = format(viewMonth, 'yyyy-MM');
 
   return (
@@ -81,6 +87,7 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
           const today = isToday(day);
           const selected = selectedDate && isSameDay(day, selectedDate);
           const isWeekend = i % 7 >= 5;
+          const isTarget  = dropKey === key;
           const donePct = dayTasks.length
             ? dayTasks.filter(t => t.done).length / dayTasks.length
             : 0;
@@ -97,13 +104,16 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
             !inMonth ? styles.cellOutside : '',
             selected ? styles.cellSelected : today ? styles.cellToday : (isWeekend && inMonth ? styles.cellWeekend : ''),
             isLastRow ? styles.cellNoBorderBottom : '',
+            isTarget   ? styles.cellDropTarget    : '',
+            draggingId ? styles.cellDraggingMode  : '',
           ].filter(Boolean).join(' ');
 
           return (
             <div
               key={key}
+              data-date-key={key}
               className={cellClasses}
-              onClick={() => onSelectDate(day)}
+              onClick={() => { if (!didDrag.current) onSelectDate(day); }}
               style={{ '--stagger': staggerDelay }}
             >
               {/* Day number + progress */}
@@ -137,7 +147,7 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
                 )}
               </div>
 
-              {/* Mobile: colored dots for tasks & finance */}
+              {/* Mobile: colored dots */}
               {isMobile ? (
                 <div className={styles.mobileDots}>
                   {dayTasks.slice(0, 4).map(task => (
@@ -159,58 +169,64 @@ export default function BigCalendar({ viewMonth, selectedDate, onSelectDate, tas
                 </div>
               ) : (
                 <>
-              {/* Finance chips */}
-              {dayFin && (dayFin.income > 0 || dayFin.expense > 0) && (
-                <div className={styles.financeRow}>
-                  {dayFin.income > 0 && (
-                    <div
-                      className={`${styles.chipBase} ${styles.chipIncome}`}
-                      style={{ '--stagger': staggerDelay }}
-                    >
-                      +{fmt(dayFin.income)}
+                  {/* Finance chips */}
+                  {dayFin && (dayFin.income > 0 || dayFin.expense > 0) && (
+                    <div className={styles.financeRow}>
+                      {dayFin.income > 0 && (
+                        <div
+                          className={`${styles.chipBase} ${styles.chipIncome}`}
+                          style={{ '--stagger': staggerDelay }}
+                        >
+                          +{fmt(dayFin.income)}
+                        </div>
+                      )}
+                      {dayFin.expense > 0 && (
+                        <div
+                          className={`${styles.chipBase} ${styles.chipExpense}`}
+                          style={{ '--stagger': staggerDelay }}
+                        >
+                          -{fmt(dayFin.expense)}
+                        </div>
+                      )}
                     </div>
                   )}
-                  {dayFin.expense > 0 && (
+
+                  {/* Task pills */}
+                  {dayTasks.slice(0, VISIBLE_TASKS).map((task, ti) => (
                     <div
-                      className={`${styles.chipBase} ${styles.chipExpense}`}
-                      style={{ '--stagger': staggerDelay }}
+                      key={task.id}
+                      data-task-id={task.id}
+                      onPointerDown={(e) => handlePillPointerDown(e, task, key)}
+                      className={[
+                        styles.taskPill,
+                        task.done              ? styles.taskPillDone     : '',
+                        draggingId === task.id ? styles.taskPillDragging : '',
+                      ].filter(Boolean).join(' ')}
+                      style={{
+                        '--pill-accent': task.done ? undefined : PRIORITY_COLORS[task.priority],
+                        '--pill-bg': task.done ? undefined : `${PRIORITY_COLORS[task.priority]}18`,
+                        '--stagger': `${parseFloat(staggerDelay) + ti * 0.03}s`,
+                      }}
                     >
-                      -{fmt(dayFin.expense)}
+                      {task.done && (
+                        <svg width="8" height="8" viewBox="0 0 8 8" fill="none" className={styles.checkIcon}>
+                          <path d="M1 4l2 2 4-4" stroke="var(--sage)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                      <span className={`${styles.taskText} ${task.done ? styles.taskTextDone : ''}`}>
+                        {task.text}
+                      </span>
+                    </div>
+                  ))}
+
+                  {overflow > 0 && (
+                    <div
+                      className={styles.overflow}
+                      style={{ '--stagger': `${parseFloat(staggerDelay) + 0.1}s` }}
+                    >
+                      +{overflow} más
                     </div>
                   )}
-                </div>
-              )}
-
-              {/* Task pills */}
-              {dayTasks.slice(0, VISIBLE_TASKS).map((task, ti) => (
-                <div
-                  key={task.id}
-                  className={`${styles.taskPill} ${task.done ? styles.taskPillDone : ''}`}
-                  style={{
-                    '--pill-accent': task.done ? undefined : PRIORITY_COLORS[task.priority],
-                    '--pill-bg': task.done ? undefined : `${PRIORITY_COLORS[task.priority]}18`,
-                    '--stagger': `${parseFloat(staggerDelay) + ti * 0.03}s`,
-                  }}
-                >
-                  {task.done && (
-                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none" className={styles.checkIcon}>
-                      <path d="M1 4l2 2 4-4" stroke="var(--sage)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                  <span className={`${styles.taskText} ${task.done ? styles.taskTextDone : ''}`}>
-                    {task.text}
-                  </span>
-                </div>
-              ))}
-
-              {overflow > 0 && (
-                <div
-                  className={styles.overflow}
-                  style={{ '--stagger': `${parseFloat(staggerDelay) + 0.1}s` }}
-                >
-                  +{overflow} más
-                </div>
-              )}
                 </>
               )}
             </div>

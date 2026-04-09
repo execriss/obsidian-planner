@@ -5,7 +5,6 @@ import {
   Plus, Trash2, Pencil, ExternalLink, Copy, Check,
   Receipt,
 } from 'lucide-react';
-import { useIsMobile } from '../hooks/useIsMobile.js';
 import { useServices } from '../hooks/useServices.js';
 import styles from './Services.module.css';
 import SectionSkeleton from './SectionSkeleton.jsx';
@@ -39,7 +38,6 @@ function fmtMoney(n) { return new Intl.NumberFormat('es-AR', { style: 'currency'
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function Services({ onAddExpense, userId }) {
-  const isMobile = useIsMobile();
   const { services, loading: dataLoading, addService, editService, removeService, addPayment } = useServices(userId);
   const loading = useMinLoading(dataLoading);
   const [showForm, setShowForm] = useState(false);
@@ -168,7 +166,7 @@ export default function Services({ onAddExpense, userId }) {
 
       {/* Month summary bar */}
       {services.length > 0 && (
-        <div className={`${styles.summaryGrid} ${isMobile ? styles.summaryGridMobile : ''}`}>
+        <div className={styles.summaryGrid}>
           {[
             { label: 'Servicios', value: services.length,              color: 'var(--cream)',  sub: 'registrados' },
             { label: 'Pagados',   value: services.length - pendingCount, color: 'var(--sage)',   sub: 'este mes' },
@@ -204,7 +202,7 @@ export default function Services({ onAddExpense, userId }) {
             </div>
           )}
 
-          <div className={`${styles.formRow} ${isMobile ? styles.formRowMobile : ''}`}>
+          <div className={styles.formRow}>
             <input
               autoFocus
               value={form.name}
@@ -228,7 +226,7 @@ export default function Services({ onAddExpense, userId }) {
             />
           </div>
 
-          <div className={`${styles.catGrid} ${isMobile ? styles.catGridMobile : ''}`}>
+          <div className={styles.catGrid}>
             {Object.entries(CAT_LABELS).map(([catId, meta]) => (
               <button
                 key={catId}
@@ -255,7 +253,7 @@ export default function Services({ onAddExpense, userId }) {
         <div className={styles.modalOverlay} onClick={() => setPayingId(null)}>
           <div
             onClick={e => e.stopPropagation()}
-            className={`form-spring ${styles.modalCard} ${isMobile ? styles.modalCardMobile : ''}`}
+            className={`form-spring ${styles.modalCard}`}
           >
             <div className={styles.modalTitle}>Registrar pago</div>
             <div className={styles.modalSubtitle}>
@@ -327,7 +325,6 @@ export default function Services({ onAddExpense, userId }) {
                   onEdit={startEdit}
                   onDelete={deleteService}
                   onCopy={copyId}
-                  isMobile={isMobile}
                 />
               );
             })}
@@ -340,7 +337,7 @@ export default function Services({ onAddExpense, userId }) {
 
 // ─── ServiceCard ──────────────────────────────────────────────────────────────
 
-function ServiceCard({ svc, i, paid, lastPayments, isDeleting, copied, onPay, onEdit, onDelete, onCopy, isMobile }) {
+function ServiceCard({ svc, i, paid, lastPayments, isDeleting, copied, onPay, onEdit, onDelete, onCopy }) {
   return (
     <div
       className={`${styles.serviceCard} ${paid ? styles.serviceCardPaid : ''} ${isDeleting ? 'item-out' : ''}`}
@@ -351,7 +348,7 @@ function ServiceCard({ svc, i, paid, lastPayments, isDeleting, copied, onPay, on
       }}
     >
       {/* Main row */}
-      <div className={`${styles.cardRow} ${isMobile ? styles.cardRowMobile : ''}`}>
+      <div className={styles.cardRow}>
         <div className={styles.svcIcon}>{svc.icon}</div>
 
         <div className={styles.svcInfo}>

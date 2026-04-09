@@ -156,7 +156,8 @@ export default function DayPanel({ date, tasks, expenses, onAddTask, onToggleTas
 
       {/* Section tabs */}
       <div className={styles.tabBar}>
-        {[['tasks', 'Tareas'], ['finance', 'Finanzas']].map(([id, label]) => (
+        {/* ['finance', 'Finanzas'] tab oculto — sección Reporte en desuso */}
+        {[['tasks', 'Tareas']].map(([id, label]) => (
           <button
             key={id}
             onClick={() => switchTab(id)}

@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Copy, Check, Plus, Trash2, Pencil, Eye, EyeOff, FileKey2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Copy, Check, Plus, Trash2, Pencil, Eye, EyeOff, FileKey2, Paperclip, Download, X } from 'lucide-react';
 import { useDocuments } from '../hooks/useDocuments.js';
+import { getDocumentFileUrl } from '../lib/db.js';
 import styles from './Documents.module.css';
 import SectionSkeleton from './SectionSkeleton.jsx';
 import { useMinLoading } from '../hooks/useMinLoading.js';
@@ -22,31 +23,58 @@ const SUGGESTIONS = [
   { name: 'Número de seguro médico', cat: 'salud' }, { name: 'CUIL empleador', cat: 'laboral' },
 ];
 
+const ACCEPTED_FILES = '.pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.txt,.zip';
+
+function formatFileSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export default function Documents({ userId }) {
   const { docs, loading: dataLoading, addDoc, editDoc, removeDoc } = useDocuments(userId);
   const loading = useMinLoading(dataLoading);
-  const [showForm, setShowForm]       = useState(false);
-  const [editId, setEditId]           = useState(null);
-  const [form, setForm]               = useState({ name: '', number: '', cat: 'personal', notes: '', expires: '' });
-  const [hidden, setHidden]           = useState(new Set());
-  const [copied, setCopied]           = useState(null);
-  const [deletingIds, setDeletingIds] = useState(new Set());
+
+  const [showForm, setShowForm]           = useState(false);
+  const [editId, setEditId]               = useState(null);
+  const [form, setForm]                   = useState({ name: '', number: '', cat: 'personal', notes: '', expires: '' });
+  const [file, setFile]                   = useState(null);
+  const [removeExistingFile, setRemoveExistingFile] = useState(false);
+  const [hidden, setHidden]               = useState(new Set());
+  const [copied, setCopied]               = useState(null);
+  const [deletingIds, setDeletingIds]     = useState(new Set());
+  const [saving, setSaving]               = useState(false);
+  const fileInputRef                      = useRef(null);
 
   const resetForm = () => {
     setForm({ name: '', number: '', cat: 'personal', notes: '', expires: '' });
-    setShowForm(false); setEditId(null);
+    setFile(null);
+    setRemoveExistingFile(false);
+    setShowForm(false);
+    setEditId(null);
   };
 
   const saveDoc = async () => {
-    if (!form.name.trim() || !form.number.trim()) return;
-    if (editId) {
-      await editDoc(editId, form);
-      setEditId(null);
-    } else {
-      const created = await addDoc(form);
-      if (created) setHidden(prev => new Set([...prev, created.id]));
+    if (!form.name.trim()) return;
+    setSaving(true);
+    try {
+      if (editId) {
+        const fileOpt = file
+          ? { file }
+          : removeExistingFile ? { remove: true } : undefined;
+        await editDoc(editId, form, fileOpt);
+        setEditId(null);
+      } else {
+        const created = await addDoc(form, file || undefined);
+        if (created) setHidden(prev => new Set([...prev, created.id]));
+      }
+      resetForm();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
     }
-    resetForm();
   };
 
   const deleteDoc = (id) => {
@@ -59,7 +87,10 @@ export default function Documents({ userId }) {
 
   const startEdit = (doc) => {
     setForm({ name: doc.name, number: doc.number || '', cat: doc.cat, notes: doc.notes || '', expires: doc.expires || '' });
-    setEditId(doc.id); setShowForm(true);
+    setFile(null);
+    setRemoveExistingFile(false);
+    setEditId(doc.id);
+    setShowForm(true);
   };
 
   const copyNum = (id, num) => {
@@ -74,7 +105,22 @@ export default function Documents({ userId }) {
     return s;
   });
 
-  const mask = (str) => str.slice(0, 4) + '  •  •  •  •  •  •' + str.slice(-2);
+  const mask = (str) => {
+    if (!str || str.length <= 4) return str;
+    return str.slice(0, 4) + '  •  •  •  •  •  •' + str.slice(-2);
+  };
+
+  const downloadDoc = async (doc) => {
+    try {
+      const url = await getDocumentFileUrl(doc.filePath);
+      window.open(url, '_blank');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const editingDoc = editId ? docs.find(d => d.id === editId) : null;
+  const hasExistingFile = editingDoc?.fileName && !removeExistingFile;
 
   if (loading) return <SectionSkeleton variant="rows" count={5} />;
 
@@ -116,8 +162,7 @@ export default function Documents({ userId }) {
             <input
               value={form.number}
               onChange={e => setForm(f => ({ ...f, number: e.target.value }))}
-              onKeyDown={e => e.key === 'Enter' && saveDoc()}
-              placeholder="Número / valor"
+              placeholder="Número / valor (opcional)"
               className={styles.input}
             />
           </div>
@@ -165,9 +210,63 @@ export default function Documents({ userId }) {
             />
           </div>
 
+          {/* File attachment */}
+          <div className={styles.fileArea}>
+            {hasExistingFile && (
+              <div className={styles.fileChipRow}>
+                <div className={styles.fileChip}>
+                  <Paperclip size={10} />
+                  <span className={styles.fileChipName}>{editingDoc.fileName}</span>
+                  <span className={styles.fileChipSize}>{formatFileSize(editingDoc.fileSize)}</span>
+                  <button
+                    className={styles.fileChipRemove}
+                    onClick={() => { setRemoveExistingFile(true); setFile(null); }}
+                    title="Quitar archivo"
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
+              </div>
+            )}
+            {removeExistingFile && !file && (
+              <p className={styles.fileRemoveNote}>El archivo será eliminado al guardar.</p>
+            )}
+            {file ? (
+              <div className={styles.fileChipRow}>
+                <div className={`${styles.fileChip} ${styles.fileChipNew}`}>
+                  <Paperclip size={10} />
+                  <span className={styles.fileChipName}>{file.name}</span>
+                  <span className={styles.fileChipSize}>{formatFileSize(file.size)}</span>
+                  <button
+                    className={styles.fileChipRemove}
+                    onClick={() => { setFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                    title="Quitar"
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <label className={styles.fileLabel}>
+                <Paperclip size={11} />
+                {hasExistingFile ? 'Reemplazar archivo' : 'Adjuntar archivo'}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={ACCEPTED_FILES}
+                  className={styles.fileInput}
+                  onChange={e => {
+                    const f = e.target.files?.[0];
+                    if (f) { setFile(f); setRemoveExistingFile(false); }
+                  }}
+                />
+              </label>
+            )}
+          </div>
+
           <div className={styles.formActions}>
-            <button onClick={saveDoc} className={styles.submitBtn}>
-              {editId ? 'Guardar cambios' : 'Agregar documento'}
+            <button onClick={saveDoc} disabled={saving || !form.name.trim()} className={styles.submitBtn}>
+              {saving ? 'Guardando…' : editId ? 'Guardar cambios' : 'Agregar documento'}
             </button>
             <button onClick={resetForm} className={styles.cancelBtn}>Cancelar</button>
           </div>
@@ -200,32 +299,50 @@ export default function Documents({ userId }) {
                   key={doc.id}
                   className={`${styles.docRow} ${deletingIds.has(doc.id) ? 'item-out' : ''}`}
                   style={{
-                    '--cat-color':       cat.color,
-                    '--cat-border':      `${cat.color}22`,
+                    '--cat-color':        cat.color,
+                    '--cat-border':       `${cat.color}22`,
                     '--cat-border-hover': `${cat.color}55`,
-                    animationDelay:      `${i * 0.05}s`,
-                    animationName:       'fadeUp',
-                    animationDuration:   '0.25s',
+                    animationDelay:       `${i * 0.05}s`,
+                    animationName:        'fadeUp',
+                    animationDuration:    '0.25s',
                     animationTimingFunction: 'var(--ease-spring)',
-                    animationFillMode:   'both',
+                    animationFillMode:    'both',
                   }}
                 >
                   <div className={styles.docInfo}>
                     <div className={styles.docName}>{doc.name}</div>
-                    <div className={`${styles.docNumber} ${hidden.has(doc.id) ? styles.docNumberHidden : ''}`}>
-                      {hidden.has(doc.id) ? mask(doc.number) : doc.number}
-                    </div>
+                    {doc.number && (
+                      <div className={`${styles.docNumber} ${hidden.has(doc.id) ? styles.docNumberHidden : ''}`}>
+                        {hidden.has(doc.id) ? mask(doc.number) : doc.number}
+                      </div>
+                    )}
                     {doc.notes && <div className={styles.docNotes}>{doc.notes}</div>}
+                    {doc.fileName && (
+                      <div className={styles.docFile}>
+                        <Paperclip size={9} />
+                        {doc.fileName}
+                        {doc.fileSize ? ` · ${formatFileSize(doc.fileSize)}` : ''}
+                      </div>
+                    )}
                   </div>
                   {doc.expires && (
                     <span className={styles.expiresBadge}>Vence {doc.expires}</span>
                   )}
-                  <IconBtn onClick={() => toggleHide(doc.id)} title={hidden.has(doc.id) ? 'Ver' : 'Ocultar'}>
-                    {hidden.has(doc.id) ? <Eye size={13} /> : <EyeOff size={13} />}
-                  </IconBtn>
-                  <IconBtn onClick={() => copyNum(doc.id, doc.number)} title="Copiar">
-                    {copied === doc.id ? <Check size={13} color="var(--sage)" /> : <Copy size={13} />}
-                  </IconBtn>
+                  {doc.number && (
+                    <IconBtn onClick={() => toggleHide(doc.id)} title={hidden.has(doc.id) ? 'Ver' : 'Ocultar'}>
+                      {hidden.has(doc.id) ? <Eye size={13} /> : <EyeOff size={13} />}
+                    </IconBtn>
+                  )}
+                  {doc.number && (
+                    <IconBtn onClick={() => copyNum(doc.id, doc.number)} title="Copiar número">
+                      {copied === doc.id ? <Check size={13} color="var(--sage)" /> : <Copy size={13} />}
+                    </IconBtn>
+                  )}
+                  {doc.filePath && (
+                    <IconBtn onClick={() => downloadDoc(doc)} title={`Descargar ${doc.fileName}`}>
+                      <Download size={13} />
+                    </IconBtn>
+                  )}
                   <IconBtn onClick={() => startEdit(doc)} title="Editar">
                     <Pencil size={13} />
                   </IconBtn>

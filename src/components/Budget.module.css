@@ -8,6 +8,15 @@
   height: 100%;
 }
 
+/* ─── Owner toggle ─── */
+
+.ownerToggleRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+  animation: fadeDown 0.28s var(--ease-out) both;
+}
+
 /* ─── Page Header ─── */
 
 .pageHeader {
@@ -866,14 +875,9 @@
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .summaryBar > :nth-child(4),
-  .summaryBar > :nth-child(5) {
-    /* Show balance and remaining in a 2-col row */
-  }
-
   /* On tablet: name | amount | paid | payBtn | notesBtn | deleteBtn */
   .itemRow {
-    grid-template-columns: 1fr 90px 80px 28px 28px 28px;
+    grid-template-columns: 1fr 96px 88px 28px 28px 28px;
     gap: 6px;
     padding: 10px 12px;
   }
@@ -920,9 +924,15 @@
     font-size: 14px;
   }
 
+  /* Summary: 2 cols, balance ocupa fila completa */
   .summaryBar {
     grid-template-columns: repeat(2, 1fr);
     border-radius: 10px;
+  }
+
+  .summaryBar > :last-child {
+    grid-column: span 2;
+    border-top: 1px solid var(--border);
   }
 
   .summaryCell {
@@ -939,7 +949,7 @@
 
   /* On mobile: name | amount | paid | payBtn | deleteBtn */
   .itemRow {
-    grid-template-columns: 1fr 72px 72px 28px 28px;
+    grid-template-columns: 1fr 86px 86px 26px 26px;
     gap: 4px;
     padding: 8px 10px;
   }
@@ -949,8 +959,13 @@
   }
 
   .amountInput {
-    font-size: 12px;
-    padding: 4px 6px;
+    font-size: 11px;
+    padding: 4px 5px;
+  }
+
+  .paidInput {
+    font-size: 11px;
+    padding: 4px 5px;
   }
 
   .categoryHeader {

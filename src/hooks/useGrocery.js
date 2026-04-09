@@ -5,24 +5,26 @@ import {
   fetchGrocerySessions, createGrocerySession,
 } from '../lib/db.js';
 
-export function useGrocery(userId) {
+export function useGrocery(userId, ownerId = null) {
+  const dataUserId = ownerId ?? userId;
+
   const [items, setItems]       = useState([]);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!dataUserId) return;
     setLoading(true);
-    Promise.all([fetchGroceryItems(userId), fetchGrocerySessions(userId)])
+    Promise.all([fetchGroceryItems(dataUserId), fetchGrocerySessions(dataUserId)])
       .then(([its, sess]) => { setItems(its); setSessions(sess); })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [userId]);
+  }, [dataUserId]);
 
   const addItem = useCallback(async (item) => {
-    const created = await createGroceryItem(userId, item);
+    const created = await createGroceryItem(dataUserId, item);
     setItems(prev => [...prev, created]);
-  }, [userId]);
+  }, [dataUserId]);
 
   const toggleItem = useCallback(async (id) => {
     setItems(prev => prev.map(i => i.id === id ? { ...i, done: !i.done } : i));
@@ -43,19 +45,19 @@ export function useGrocery(userId) {
 
   const clearAll = useCallback(async () => {
     setItems([]);
-    await deleteGroceryItemsByUser(userId).catch(console.error);
-  }, [userId]);
+    await deleteGroceryItemsByUser(dataUserId).catch(console.error);
+  }, [dataUserId]);
 
   const resetList = useCallback(async () => {
     setItems(prev => prev.map(i => ({ ...i, done: false })));
-    await resetGroceryItems(userId).catch(console.error);
-  }, [userId]);
+    await resetGroceryItems(dataUserId).catch(console.error);
+  }, [dataUserId]);
 
   const saveSession = useCallback(async (session) => {
-    const saved = await createGrocerySession(userId, session);
+    const saved = await createGrocerySession(dataUserId, session);
     setSessions(prev => [saved, ...prev].slice(0, 10));
     return saved;
-  }, [userId]);
+  }, [dataUserId]);
 
   return { items, sessions, loading, addItem, toggleItem, removeItem, clearDone, clearAll, resetList, saveSession };
 }

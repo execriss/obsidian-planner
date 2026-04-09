@@ -1,21 +1,22 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Calendar, ChevronLeft, ChevronRight,
   Sparkles, CheckSquare, TrendingUp, TrendingDown, LogOut, User, Settings2,
-  ShoppingCart, Receipt, Flame, StickyNote, FileKey2, X, Wallet,
+  ShoppingCart, Receipt, Flame, StickyNote, FileKey2, X, Wallet, Download, Share,
 } from 'lucide-react';
 import { useIsMobile } from './hooks/useIsMobile.js';
 import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfWeek, isToday, isSameMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from './contexts/AuthContext.jsx';
 import { useData } from './hooks/useData.js';
+import { useCollaboration } from './hooks/useCollaboration.js';
 import AuthGate from './components/AuthGate.jsx';
 import BigCalendar from './components/BigCalendar.jsx';
 import WeekView from './components/WeekView.jsx';
 import DayView from './components/DayView.jsx';
 import DayPanel from './components/DayPanel.jsx';
 import GroceryList from './components/GroceryList.jsx';
-import Services from './components/Services.jsx';
+// import Services from './components/Services.jsx';
 import Habits from './components/Habits.jsx';
 import QuickNotes from './components/QuickNotes.jsx';
 import Documents from './components/Documents.jsx';
@@ -49,6 +50,47 @@ function Planner({ user, onSignOut }) {
     addExpense, removeExpense, editExpense,
     migrateFromLocalStorage,
   } = useData(user.id);
+
+  const collab = useCollaboration(user.id, user.email);
+
+  // ── PWA install prompt ──────────────────────────────────────────────────────
+  const [installPrompt, setInstallPrompt]     = useState(null);
+  const [showIOSHint, setShowIOSHint]         = useState(false);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                    || window.navigator.standalone;
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+  useEffect(() => {
+    const handler = (e) => { e.preventDefault(); setInstallPrompt(e); };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (installPrompt) {
+      await installPrompt.prompt();
+      setInstallPrompt(null);
+      return;
+    }
+    setShowIOSHint(true);
+  };
+
+  const showInstallBtn = !isStandalone;
+  // ────────────────────────────────────────────────────────────────────────────
+
+  const groceryOwners = useMemo(() =>
+    collab.collaborations
+      .filter(c => c.collaboratorId === user.id && c.section === 'grocery')
+      .map(c => ({ id: c.ownerId, email: c.ownerEmail })),
+    [collab.collaborations, user.id]
+  );
+
+  const budgetOwners = useMemo(() =>
+    collab.collaborations
+      .filter(c => c.collaboratorId === user.id && c.section === 'budget')
+      .map(c => ({ id: c.ownerId, email: c.ownerEmail })),
+    [collab.collaborations, user.id]
+  );
 
   useEffect(() => {
     if (loading) return;
@@ -125,6 +167,8 @@ function Planner({ user, onSignOut }) {
   const fmtCompact = (n) =>
     new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0, notation: 'compact' }).format(n);
 
+  if (loading) return <Loader />;
+
   const avatar   = user.user_metadata?.avatar_url;
   const name     = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario';
   const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
@@ -133,7 +177,7 @@ function Planner({ user, onSignOut }) {
     { id: 'calendar',  icon: Calendar,     label: 'Calendario', shortLabel: 'Inicio' },
 { id: 'budget',    icon: Wallet,        label: 'Presupuesto', shortLabel: 'Ppto.' },
     { id: 'grocery',   icon: ShoppingCart,  label: 'Compras',   shortLabel: 'Compras' },
-    { id: 'servicios', icon: Receipt,       label: 'Servicios', shortLabel: 'Serv.' },
+    // { id: 'servicios', icon: Receipt,       label: 'Servicios', shortLabel: 'Serv.' },
     { id: 'habitos',   icon: Flame,         label: 'Hábitos',   shortLabel: 'Hábitos' },
     { id: 'notas',     icon: StickyNote,    label: 'Notas',     shortLabel: 'Notas' },
     { id: 'docs',      icon: FileKey2,      label: 'Documentos',shortLabel: 'Docs' },
@@ -219,6 +263,12 @@ function Planner({ user, onSignOut }) {
                 className={view === id ? styles.navItemActive : styles.navItem}
               >
                 <Icon size={14} /> {label}
+                {id === 'docs' && <span className={styles.betaBadge}>BETA</span>}
+                {id === 'settings' && collab.incomingInvitations.length > 0 && (
+                  <span className={styles.navBadge}>
+                    {collab.incomingInvitations.length}
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -234,6 +284,14 @@ function Planner({ user, onSignOut }) {
               {monthExpense > 0 && <StatRow icon={TrendingDown} label="Gastos"     value={fmtCompact(monthExpense)} color="var(--coral)" />}
             </div>
           </div>
+
+          {/* Install */}
+          {showInstallBtn && (
+            <button onClick={handleInstall} className={styles.installBtn}>
+              <Download size={13} />
+              Instalar app
+            </button>
+          )}
 
           {/* User */}
           <div className={styles.userSection}>
@@ -316,6 +374,7 @@ function Planner({ user, onSignOut }) {
                     tasks={tasks}
                     expenses={expenses}
                     isMobile={isMobile}
+                    onMoveTask={editTask}
                   />
                   {selectedDate && !isMobile && (
                     <DayPanel
@@ -375,6 +434,7 @@ function Planner({ user, onSignOut }) {
                     onSelectDate={handleSelectDate}
                     tasks={tasks}
                     expenses={expenses}
+                    onMoveTask={editTask}
                   />
                   {selectedDate && (
                     <DayPanel
@@ -420,13 +480,13 @@ function Planner({ user, onSignOut }) {
             key={viewKey}
             className={`animate-viewIn ${isMobile ? styles.viewContainerMobile : styles.viewContainerDesktop}`}
           >
-{view === 'budget'    && <Budget userId={user.id} viewMonth={viewMonth} />}
-            {view === 'grocery'   && <GroceryList userId={user.id} />}
-            {view === 'servicios' && <Services onAddExpense={addExpense} userId={user.id} />}
+{view === 'budget'    && <Budget userId={user.id} viewMonth={viewMonth} sharedOwners={budgetOwners} />}
+            {view === 'grocery'   && <GroceryList userId={user.id} sharedOwners={groceryOwners} />}
+            {/* view === 'servicios' && <Services onAddExpense={addExpense} userId={user.id} /> */}
             {view === 'habitos'   && <Habits userId={user.id} />}
             {view === 'notas'     && <QuickNotes userId={user.id} />}
             {view === 'docs'      && <Documents userId={user.id} />}
-            {view === 'settings'  && <Settings user={user} />}
+            {view === 'settings'  && <Settings user={user} collab={collab} />}
           </div>
         )}
       </div>
@@ -464,9 +524,18 @@ function Planner({ user, onSignOut }) {
                       className={view === id ? styles.mobileMenuItemActive : styles.mobileMenuItem}
                     >
                       <Icon size={14} /> {label}
+                      {id === 'docs' && <span className={styles.betaBadge}>BETA</span>}
                     </button>
                   ))}
                   <div className={styles.mobileMenuDivider} />
+                  {showInstallBtn && (
+                    <button
+                      onClick={() => { setShowUserMenu(false); handleInstall(); }}
+                      className={styles.mobileInstallBtn}
+                    >
+                      <Download size={13} /> Instalar app
+                    </button>
+                  )}
                   <button
                     onClick={() => { setShowUserMenu(false); onSignOut(); }}
                     className={styles.mobileLogoutBtn}
@@ -479,6 +548,28 @@ function Planner({ user, onSignOut }) {
           </div>
         </nav>
       )}
+
+      {/* iOS install hint */}
+      {showIOSHint && (
+        <div className={styles.iosOverlay} onClick={() => setShowIOSHint(false)}>
+          <div className={styles.iosHint} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowIOSHint(false)} className={styles.iosHintClose}>
+              <X size={14} />
+            </button>
+            <div className={styles.iosHintIcon}>
+              <Calendar size={20} color="var(--obsidian)" />
+            </div>
+            <div className={styles.iosHintTitle}>Instalar Obsidian</div>
+            <p className={styles.iosHintText}>
+              {isIOS
+                ? <>Tocá <strong><Share size={13} style={{ display: 'inline', verticalAlign: 'middle' }} /> Compartir</strong> en Safari y luego <strong>"Agregar a pantalla de inicio"</strong>.</>
+                : <>En Chrome, tocá el menú <strong>⋮</strong> y seleccioná <strong>"Instalar app"</strong> o <strong>"Agregar a pantalla de inicio"</strong>.</>
+              }
+            </p>
+            <div className={styles.iosHintArrow} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -488,8 +579,17 @@ function Planner({ user, onSignOut }) {
 function Loader() {
   return (
     <div className={styles.loaderPage}>
-      <div className={styles.loaderIcon}>
-        <Calendar size={20} color="var(--obsidian)" />
+      <div className={styles.loaderContent}>
+        <div className={styles.loaderIcon}>
+          <Calendar size={22} color="var(--obsidian)" />
+        </div>
+        <div className={styles.loaderBrand}>Obsidian</div>
+        <div className={styles.loaderSub}>Planner</div>
+        <div className={styles.loaderDots}>
+          <span className={styles.loaderDot} />
+          <span className={styles.loaderDot} />
+          <span className={styles.loaderDot} />
+        </div>
       </div>
     </div>
   );

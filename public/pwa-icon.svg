@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background (full bleed para maskable) -->
+  <rect width="512" height="512" fill="#1A1814"/>
+  <!-- Subtle glow -->
+  <radialGradient id="g" cx="50%" cy="44%" r="36%">
+    <stop offset="0%" stop-color="#F0A500" stop-opacity="0.22"/>
+    <stop offset="100%" stop-color="#1A1814" stop-opacity="0"/>
+  </radialGradient>
+  <rect width="512" height="512" fill="url(#g)"/>
+  <!-- Calendar body -->
+  <rect x="108" y="150" width="296" height="244" rx="30" fill="none" stroke="#F0A500" stroke-width="20"/>
+  <!-- Header area fill -->
+  <path d="M108 180 Q108 150 138 150 L374 150 Q404 150 404 180 V222 H108 Z" fill="#F0A500" fill-opacity="0.16"/>
+  <!-- Hook left -->
+  <rect x="172" y="108" width="22" height="84" rx="11" fill="#F0A500"/>
+  <!-- Hook right -->
+  <rect x="318" y="108" width="22" height="84" rx="11" fill="#F0A500"/>
+  <!-- Divider line -->
+  <line x1="108" y1="222" x2="404" y2="222" stroke="#F0A500" stroke-width="14" stroke-opacity="0.3"/>
+  <!-- Dot grid row 1 -->
+  <circle cx="176" cy="292" r="18" fill="#F0A500"/>
+  <circle cx="256" cy="292" r="18" fill="#F0A500" fill-opacity="0.5"/>
+  <circle cx="336" cy="292" r="18" fill="#F0A500" fill-opacity="0.5"/>
+  <!-- Dot grid row 2 -->
+  <circle cx="176" cy="352" r="18" fill="#F0A500" fill-opacity="0.5"/>
+  <circle cx="256" cy="352" r="18" fill="#F0A500" fill-opacity="0.5"/>
+  <circle cx="336" cy="352" r="18" fill="#F0A500" fill-opacity="0.22"/>
+</svg>

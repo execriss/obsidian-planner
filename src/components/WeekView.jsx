@@ -3,6 +3,7 @@ import {
   format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday,
 } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useDragMove } from '../hooks/useDragMove.js';
 import styles from './WeekView.module.css';
 
 const PRIORITY_COLORS = { high: '#E05C5C', medium: '#F0A500', low: '#5FAD8E' };
@@ -13,7 +14,7 @@ const fmtCompact = (n) =>
     style: 'currency', currency: 'ARS', minimumFractionDigits: 0, notation: 'compact',
   }).format(n);
 
-export default function WeekView({ weekStart, selectedDate, onSelectDate, tasks, expenses }) {
+export default function WeekView({ weekStart, selectedDate, onSelectDate, tasks, expenses, onMoveTask }) {
   const days = eachDayOfInterval({
     start: startOfWeek(weekStart, { weekStartsOn: 1 }),
     end:   endOfWeek(weekStart,   { weekStartsOn: 1 }),
@@ -40,14 +41,16 @@ export default function WeekView({ weekStart, selectedDate, onSelectDate, tasks,
     return map;
   }, [expenses]);
 
+  const { draggingId, dropKey, didDrag, handlePillPointerDown } = useDragMove(onMoveTask);
+
   return (
     <div className={styles.container}>
 
       {/* Day headers */}
       <div className={styles.dayHeaders}>
         {days.map((day, i) => {
-          const today    = isToday(day);
-          const selected = selectedDate && isSameDay(day, selectedDate);
+          const today     = isToday(day);
+          const selected  = selectedDate && isSameDay(day, selectedDate);
           const isWeekend = i >= 5;
 
           return (
@@ -61,7 +64,7 @@ export default function WeekView({ weekStart, selectedDate, onSelectDate, tasks,
               </div>
               <div className={[
                 styles.dayNumber,
-                today ? styles.dayNumberToday : '',
+                today             ? styles.dayNumberToday    : '',
                 selected && !today ? styles.dayNumberSelected : '',
               ].filter(Boolean).join(' ')}>
                 {format(day, 'd')}
@@ -79,28 +82,28 @@ export default function WeekView({ weekStart, selectedDate, onSelectDate, tasks,
           const dayFin   = expensesByDay[key] || null;
           const today    = isToday(day);
           const selected = selectedDate && isSameDay(day, selectedDate);
+          const isTarget = dropKey === key;
 
           return (
             <div
               key={key}
-              onClick={() => onSelectDate(day)}
+              data-date-key={key}
+              onClick={() => { if (!didDrag.current) onSelectDate(day); }}
               className={[
                 styles.contentCell,
-                selected ? styles.contentCellSelected : today ? styles.contentCellToday : '',
+                selected   ? styles.contentCellSelected    : today ? styles.contentCellToday : '',
+                isTarget   ? styles.contentCellDropTarget  : '',
+                draggingId ? styles.contentCellDraggingMode : '',
               ].filter(Boolean).join(' ')}
             >
               {/* Finance chips */}
               {dayFin && (dayFin.income > 0 || dayFin.expense > 0) && (
                 <div className={styles.financeRow}>
                   {dayFin.income > 0 && (
-                    <span className={styles.chipIncome}>
-                      +{fmtCompact(dayFin.income)}
-                    </span>
+                    <span className={styles.chipIncome}>+{fmtCompact(dayFin.income)}</span>
                   )}
                   {dayFin.expense > 0 && (
-                    <span className={styles.chipExpense}>
-                      -{fmtCompact(dayFin.expense)}
-                    </span>
+                    <span className={styles.chipExpense}>-{fmtCompact(dayFin.expense)}</span>
                   )}
                 </div>
               )}
@@ -109,10 +112,16 @@ export default function WeekView({ weekStart, selectedDate, onSelectDate, tasks,
               {dayTasks.map(task => (
                 <div
                   key={task.id}
-                  className={`${styles.taskPill} ${task.done ? styles.taskPillDone : ''}`}
+                  data-task-id={task.id}
+                  onPointerDown={(e) => handlePillPointerDown(e, task, key)}
+                  className={[
+                    styles.taskPill,
+                    task.done              ? styles.taskPillDone     : '',
+                    draggingId === task.id ? styles.taskPillDragging : '',
+                  ].filter(Boolean).join(' ')}
                   style={{
                     '--pill-accent': task.done ? undefined : PRIORITY_COLORS[task.priority],
-                    '--pill-bg': task.done ? undefined : `${PRIORITY_COLORS[task.priority]}18`,
+                    '--pill-bg':     task.done ? undefined : `${PRIORITY_COLORS[task.priority]}18`,
                   }}
                 >
                   {task.done && (

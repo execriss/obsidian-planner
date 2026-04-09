@@ -471,3 +471,57 @@
   background: var(--coral-dim);
   transform: scale(1.1);
 }
+
+/* ─── Responsive ─── */
+
+@media (max-width: 480px) {
+  .container {
+    padding: 24px 16px;
+  }
+
+  .header {
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+
+  .addBtn {
+    padding: 8px 12px;
+    font-size: 11px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Puntos últimos 7 días más pequeños */
+  .dayDot {
+    width: 16px;
+    height: 16px;
+    border-radius: 5px;
+  }
+
+  .last7 {
+    gap: 3px;
+  }
+
+  .dayColumn {
+    gap: 2px;
+  }
+
+  /* Stat mensual más compacto */
+  .monthlyStat {
+    margin-left: 6px;
+    padding-left: 6px;
+  }
+
+  .monthlyPercent {
+    font-size: 13px;
+  }
+
+  .monthlyLabel {
+    font-size: 7px;
+  }
+}

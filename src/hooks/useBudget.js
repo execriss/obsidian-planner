@@ -5,7 +5,9 @@ import {
   fetchBudgetIncome, createBudgetIncome, updateBudgetIncome, deleteBudgetIncome,
 } from '../lib/db.js';
 
-export function useBudget(userId, month) {
+export function useBudget(userId, month, ownerId = null) {
+  const dataUserId = ownerId ?? userId;
+
   const [items,   setItems]   = useState([]);
   const [entries, setEntries] = useState([]);
   const [income,  setIncome]  = useState([]);
@@ -13,20 +15,20 @@ export function useBudget(userId, month) {
   const [error,   setError]   = useState(null);
 
   const load = useCallback(() => {
-    if (!userId || !month) return;
+    if (!dataUserId || !month) return;
     setLoading(true);
     setError(null);
     Promise.all([
-      fetchBudgetItems(userId),
-      fetchBudgetEntries(userId, month),
-      fetchBudgetIncome(userId, month),
+      fetchBudgetItems(dataUserId),
+      fetchBudgetEntries(dataUserId, month),
+      fetchBudgetIncome(dataUserId, month),
     ]).then(([its, ents, inc]) => {
       setItems(its); setEntries(ents); setIncome(inc);
     }).catch(err => {
       console.error(err);
       setError(err?.message || 'Error al cargar el presupuesto');
     }).finally(() => setLoading(false));
-  }, [userId, month]);
+  }, [dataUserId, month]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -53,10 +55,10 @@ export function useBudget(userId, month) {
 
   // ── Item CRUD ──────────────────────────────────────────
   const addItem = useCallback(async (data) => {
-    const created = await createBudgetItem(userId, data);
+    const created = await createBudgetItem(dataUserId, data);
     setItems(prev => [...prev, created]);
     return created;
-  }, [userId]);
+  }, [dataUserId]);
 
   const editItem = useCallback(async (id, updates) => {
     setItems(prev => prev.map(i => i.id === id ? { ...i, ...updates } : i));
@@ -78,7 +80,7 @@ export function useBudget(userId, month) {
     setEntries(prev =>
       existing ? prev.map(e => e.itemId === itemId ? optimistic : e) : [...prev, optimistic]
     );
-    upsertBudgetEntry(userId, {
+    upsertBudgetEntry(dataUserId, {
       itemId, month,
       amount: updates.amount ?? current.amount,
       paid:   updates.paid   ?? current.paid,
@@ -86,7 +88,7 @@ export function useBudget(userId, month) {
     }).then(saved => {
       setEntries(prev => prev.map(e => e.itemId === itemId ? saved : e));
     }).catch(console.error);
-  }, [userId, month, entries, items]);
+  }, [dataUserId, month, entries, items]);
 
   // ── Category operations ────────────────────────────────
   const editCategory = useCallback(async (oldName, updates) => {
@@ -108,9 +110,9 @@ export function useBudget(userId, month) {
 
   // ── Income ────────────────────────────────────────────
   const addIncome = useCallback(async (data) => {
-    const created = await createBudgetIncome(userId, { ...data, month });
+    const created = await createBudgetIncome(dataUserId, { ...data, month });
     setIncome(prev => [...prev, created]);
-  }, [userId, month]);
+  }, [dataUserId, month]);
 
   const editIncome = useCallback(async (id, updates) => {
     setIncome(prev => prev.map(i => i.id === id ? { ...i, ...updates } : i));

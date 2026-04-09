@@ -1,0 +1,46 @@
+/* OwnerToggle — segmented control for switching between own and shared data */
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: scaleIn 0.28s var(--ease-spring) both;
+}
+
+.icon {
+  color: var(--cream-muted);
+  flex-shrink: 0;
+}
+
+.track {
+  display: flex;
+  gap: 2px;
+  background: var(--obsidian-4);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.option {
+  padding: 5px 14px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--cream-muted);
+  white-space: nowrap;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.18s ease, background 0.18s var(--ease-spring);
+}
+
+.option:hover:not(.optionActive) {
+  color: var(--cream-dim);
+  background: var(--obsidian-3);
+}
+
+.optionActive {
+  background: var(--amber);
+  color: var(--obsidian);
+  font-weight: 600;
+}

@@ -186,3 +186,41 @@
   color: var(--cream-muted);
   text-decoration: line-through;
 }
+
+/* ─── Drag & Drop ─────────────────────────────────────────────────────────────── */
+
+.taskPill {
+  cursor: grab;
+  user-select: none;
+  animation: pillIn 0.2s cubic-bezier(0.34,1.56,0.64,1) both;
+  transition: opacity 0.15s ease, transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.taskPill:active {
+  cursor: grabbing;
+}
+
+@keyframes pillIn {
+  from { opacity: 0; transform: scale(0.85) translateY(3px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+.taskPillDragging {
+  opacity: 0.15;
+  transform: scale(0.94);
+  pointer-events: none;
+}
+
+/* Drop target — smooth box-shadow, NO keyframe animation to avoid flicker */
+.contentCell {
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.contentCellDropTarget {
+  background: rgba(240, 165, 0, 0.06) !important;
+  box-shadow: inset 0 0 0 2px rgba(240, 165, 0, 0.5);
+}
+
+.contentCellDraggingMode {
+  cursor: grabbing;
+}
