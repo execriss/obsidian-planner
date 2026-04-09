@@ -1,6 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase.js';
 
+function pick(settled) {
+  return settled.status === 'fulfilled' ? (settled.value.data || []) : [];
+}
+
+// Merge two arrays deduplicating by id
+function merge(a, b) {
+  const seen = new Set(a.map(x => x.id));
+  return [...a, ...b.filter(x => !seen.has(x.id))];
+}
+
 export function useSearch(userId, query) {
   const [results, setResults] = useState({ tasks: [], notes: [], habits: [], documents: [], grocery: [] });
   const [loading, setLoading] = useState(false);
@@ -18,26 +28,40 @@ export function useSearch(userId, query) {
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(async () => {
       const like = `%${q}%`;
-      try {
-        const [tasks, notes, habits, docs, grocery] = await Promise.all([
-          supabase.from('tasks').select('id, title, date, done').eq('user_id', userId).ilike('title', like).limit(6),
-          supabase.from('notes').select('id, title, content, color').eq('user_id', userId).or(`title.ilike.${like},content.ilike.${like}`).limit(6),
-          supabase.from('habits').select('id, name, icon, color').eq('user_id', userId).ilike('name', like).limit(6),
-          supabase.from('documents').select('id, name, number, cat').eq('user_id', userId).or(`name.ilike.${like},number.ilike.${like},notes.ilike.${like}`).limit(6),
-          supabase.from('grocery_items').select('id, name, done').eq('user_id', userId).ilike('name', like).limit(6),
+
+      // Each query is independent — a failure in one doesn't block the rest
+      const [tasks, notesByContent, notesByTitle, habits, docsByName, docsByNumber, grocery] =
+        await Promise.allSettled([
+          supabase.from('tasks').select('id, title, date, done')
+            .eq('user_id', userId).ilike('title', like).limit(8),
+
+          supabase.from('notes').select('id, title, content, color')
+            .eq('user_id', userId).ilike('content', like).limit(6),
+
+          supabase.from('notes').select('id, title, content, color')
+            .eq('user_id', userId).ilike('title', like).limit(6),
+
+          supabase.from('habits').select('id, name, icon, color')
+            .eq('user_id', userId).ilike('name', like).limit(6),
+
+          supabase.from('documents').select('id, name, number, cat')
+            .eq('user_id', userId).ilike('name', like).limit(6),
+
+          supabase.from('documents').select('id, name, number, cat')
+            .eq('user_id', userId).ilike('number', like).limit(6),
+
+          supabase.from('grocery_items').select('id, name, done')
+            .eq('user_id', userId).ilike('name', like).limit(6),
         ]);
-        setResults({
-          tasks:     tasks.data     || [],
-          notes:     notes.data     || [],
-          habits:    habits.data    || [],
-          documents: docs.data      || [],
-          grocery:   grocery.data   || [],
-        });
-      } catch (e) {
-        console.error('useSearch error:', e);
-      } finally {
-        setLoading(false);
-      }
+
+      setResults({
+        tasks:     pick(tasks),
+        notes:     merge(pick(notesByContent), pick(notesByTitle)).slice(0, 6),
+        habits:    pick(habits),
+        documents: merge(pick(docsByName), pick(docsByNumber)).slice(0, 6),
+        grocery:   pick(grocery),
+      });
+      setLoading(false);
     }, 220);
 
     return () => clearTimeout(timerRef.current);
