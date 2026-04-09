@@ -459,9 +459,46 @@
 /* ─── Responsive ─── */
 
 @media (max-width: 639px) {
-  .container      { padding: 24px 16px; }
-  .formGrid2      { grid-template-columns: 1fr; }
-  .formGrid2Bottom { grid-template-columns: 1fr; }
-  .catGrid        { grid-template-columns: repeat(3, 1fr); }
-  .docRow         { align-items: flex-start; flex-wrap: wrap; gap: 8px; padding: 12px; }
+  .container        { padding: 24px 16px; }
+  .formGrid2        { grid-template-columns: 1fr; }
+  .formGrid2Bottom  { grid-template-columns: 1fr; }
+  .catGrid          { grid-template-columns: repeat(3, 1fr); }
+
+  .docRow {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    padding: 12px;
+  }
+
+  /* Info ocupa toda la fila superior */
+  .docInfo {
+    flex-basis: 100%;
+    width: 100%;
+  }
+
+  .docName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .docNumber {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  .docNotes {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  /* Badge + botones alineados a la derecha en segunda fila */
+  .expiresBadge {
+    margin-right: auto;
+  }
 }
