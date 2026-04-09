@@ -814,6 +814,65 @@
   font-weight: 500;
 }
 
+/* ── Search button (sidebar) ── */
+
+.searchBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: calc(100% - 32px);
+  margin: 0 16px 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--obsidian-3);
+  border: 1px solid var(--border);
+  color: var(--cream-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.searchBtn:hover {
+  border-color: var(--border-light);
+  color: var(--cream);
+  background: var(--obsidian-4);
+}
+
+.searchBtnText {
+  flex: 1;
+  text-align: left;
+}
+
+.searchBtnKbd {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--obsidian-4);
+  border: 1px solid var(--border);
+  font-family: var(--font-body);
+}
+
+/* ── Search button (mobile toolbar) ── */
+
+.mobileSearchBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--obsidian-3);
+  border: 1px solid var(--border);
+  color: var(--cream-muted);
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.mobileSearchBtn:hover {
+  color: var(--cream);
+  border-color: var(--border-light);
+}
+
 /* ── Install button ── */
 
 .installBtn {

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Calendar, ChevronLeft, ChevronRight,
   Sparkles, CheckSquare, TrendingUp, TrendingDown, LogOut, User, Settings2,
-  ShoppingCart, Receipt, Flame, StickyNote, FileKey2, X, Wallet, Download, Share,
+  ShoppingCart, Receipt, Flame, StickyNote, FileKey2, X, Wallet, Download, Share, Search,
 } from 'lucide-react';
 import { useIsMobile } from './hooks/useIsMobile.js';
 import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfWeek, isToday, isSameMonth } from 'date-fns';
@@ -22,6 +22,7 @@ import QuickNotes from './components/QuickNotes.jsx';
 import Documents from './components/Documents.jsx';
 import Settings from './components/Settings.jsx';
 import Budget from './components/Budget.jsx';
+import GlobalSearch from './components/GlobalSearch.jsx';
 import styles from './App.module.css';
 
 export default function App() {
@@ -43,6 +44,7 @@ function Planner({ user, onSignOut }) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [migrationMsg, setMigrationMsg] = useState('');
   const [sheetClosing, setSheetClosing] = useState(false);
+  const [searchOpen, setSearchOpen]     = useState(false);
 
   const {
     tasks, expenses, loading,
@@ -52,6 +54,34 @@ function Planner({ user, onSignOut }) {
   } = useData(user.id);
 
   const collab = useCollaboration(user.id, user.email);
+
+  // ── Global search shortcut ──────────────────────────────────────────────────
+  useEffect(() => {
+    const handle = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(o => !o);
+      }
+    };
+    window.addEventListener('keydown', handle);
+    return () => window.removeEventListener('keydown', handle);
+  }, []);
+
+  const handleSearchNavigate = (targetView, extra) => {
+    if (targetView === 'calendar') {
+      setView('calendar');
+      setViewKey(k => k + 1);
+      if (extra?.date) {
+        const d = new Date(extra.date + 'T00:00:00');
+        setSelectedDate(d);
+        setViewMonth(d);
+        setCalView('month');
+      }
+    } else {
+      changeView(targetView);
+    }
+  };
+  // ────────────────────────────────────────────────────────────────────────────
 
   // ── PWA install prompt ──────────────────────────────────────────────────────
   const [installPrompt, setInstallPrompt]     = useState(null);
@@ -253,6 +283,13 @@ function Planner({ user, onSignOut }) {
             </button>
           </div>
 
+          {/* Search */}
+          <button onClick={() => setSearchOpen(true)} className={styles.searchBtn}>
+            <Search size={13} />
+            <span className={styles.searchBtnText}>Buscar...</span>
+            <kbd className={styles.searchBtnKbd}>⌘K</kbd>
+          </button>
+
           {/* Nav items */}
           <div className={styles.navSection}>
             <div className={styles.navSectionLabel}>Vista</div>
@@ -343,6 +380,12 @@ function Planner({ user, onSignOut }) {
                 <div className={styles.mobileMonthLabel}>
                   {format(viewMonth, 'MMM yyyy', { locale: es })}
                 </div>
+              )}
+
+              {isMobile && (
+                <button onClick={() => setSearchOpen(true)} className={styles.mobileSearchBtn}>
+                  <Search size={16} />
+                </button>
               )}
 
               <div className={styles.segmentedControl}>
@@ -548,6 +591,14 @@ function Planner({ user, onSignOut }) {
           </div>
         </nav>
       )}
+
+      {/* Global search */}
+      <GlobalSearch
+        userId={user.id}
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onNavigate={handleSearchNavigate}
+      />
 
       {/* iOS install hint */}
       {showIOSHint && (
