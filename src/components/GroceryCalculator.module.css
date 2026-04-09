@@ -369,14 +369,18 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: all 0.15s ease;
+  transition: all 0.15s ease, opacity 0.2s ease;
   user-select: none;
   touch-action: manipulation;
-  animation: fadeUp 0.2s var(--ease-spring) both;
 }
 
 .keyAC:active {
   background: rgba(224,92,92,0.08);
   border-color: rgba(224,92,92,0.3);
   color: var(--coral);
+}
+
+.keyACHidden {
+  opacity: 0;
+  pointer-events: none;
 }

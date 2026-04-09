@@ -163,16 +163,14 @@ export default function GroceryCalculator() {
                 </div>
               ))}
 
-              {/* AC row */}
-              {hasContent && (
-                <button
-                  className={styles.keyAC}
-                  onPointerDown={() => handleKey('AC')}
-                >
-                  <RotateCcw size={13} strokeWidth={2} />
-                  Limpiar todo
-                </button>
-              )}
+              {/* AC row — always rendered to avoid layout shift */}
+              <button
+                className={`${styles.keyAC} ${!hasContent ? styles.keyACHidden : ''}`}
+                onPointerDown={() => hasContent && handleKey('AC')}
+              >
+                <RotateCcw size={13} strokeWidth={2} />
+                Limpiar todo
+              </button>
             </div>
           </div>
         </>
