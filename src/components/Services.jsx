@@ -18,11 +18,15 @@ const PRESETS = [
   { icon: '💧', label: 'Agua',         color: '#6B8FD4', cat: 'utilities' },
   { icon: '📶', label: 'Internet',     color: '#5FAD8E', cat: 'utilities' },
   { icon: '📱', label: 'Celular',      color: '#4ECDC4', cat: 'utilities' },
-  { icon: '🏛️', label: 'ABL / Municipal', color: '#A47BD4', cat: 'taxes' },
-  { icon: '📋', label: 'ARBA / Provincial', color: '#A47BD4', cat: 'taxes' },
-  { icon: '🛡️', label: 'Seguro',       color: '#E8925A', cat: 'insurance' },
+  { icon: '🏛️', label: 'Municipal',     color: '#A47BD4', cat: 'taxes' },
+  { icon: '📋', label: 'Provincial',    color: '#A47BD4', cat: 'taxes' },
+  { icon: '🏠', label: 'Alquiler',      color: '#E8925A', cat: 'utilities' },
+  { icon: '🛡️', label: 'Seguro',        color: '#E8925A', cat: 'insurance' },
   { icon: '📺', label: 'Streaming',    color: '#E05C5C', cat: 'subscription' },
   { icon: '🏋️', label: 'Gimnasio',     color: '#5FAD8E', cat: 'subscription' },
+  { icon: '🚗', label: 'VTV',          color: '#4ECDC4', cat: 'auto' },
+  { icon: '⛽', label: 'Patente',      color: '#4ECDC4', cat: 'auto' },
+  { icon: '🔧', label: 'Service auto', color: '#4ECDC4', cat: 'auto' },
 ];
 
 const CAT_LABELS = {
@@ -30,6 +34,8 @@ const CAT_LABELS = {
   taxes:        { label: 'Impuestos',     color: '#A47BD4', dim: 'rgba(164,123,212,0.12)' },
   insurance:    { label: 'Seguros',       color: '#E8925A', dim: 'rgba(232,146,90,0.12)' },
   subscription: { label: 'Suscripciones', color: '#5FAD8E', dim: 'rgba(95,173,142,0.12)' },
+  auto:         { label: 'Auto',          color: '#4ECDC4', dim: 'rgba(78,205,196,0.12)'  },
+  other:        { label: 'Otros',         color: '#8A8A9A', dim: 'rgba(138,138,154,0.12)' },
 };
 
 function thisMonth() { return format(new Date(), 'yyyy-MM'); }

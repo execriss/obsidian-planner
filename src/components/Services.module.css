@@ -206,7 +206,7 @@
 
 .catGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 6px;
   margin-bottom: 14px;
 }
@@ -721,7 +721,7 @@
 
   .formRow        { grid-template-columns: 1fr; }
   .formRowInner   { flex-direction: row; }
-  .catGrid        { grid-template-columns: repeat(2, 1fr); }
+  .catGrid        { grid-template-columns: repeat(3, 1fr); }
 
   .modalCard      { border-radius: 16px; padding: 20px; }
 
