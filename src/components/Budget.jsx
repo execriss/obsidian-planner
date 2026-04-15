@@ -291,19 +291,23 @@ function ItemRow({ item, onUpdateEntry, onEditItem, onRemove, isMobile, linkedSe
   return (
     <>
       <div className={`${styles.itemRow} ${deleting ? 'item-out' : ''}`}>
-        <InlineInput
-          value={item.name}
-          onSave={name => onEditItem(item.id, { name })}
-          className={styles.itemName}
-          inputClassName={styles.itemNameInput}
-          placeholder="Nombre del gasto"
-        />
-        {linkedService && (
-          <span className={styles.serviceLinkBadge} title={`Sincronizado con servicio: ${linkedService.name}`}>
-            <Link2 size={9} />
-            <span className={styles.serviceLinkLabel}>{linkedService.icon}</span>
-          </span>
-        )}
+        <div className={styles.itemNameCell}>
+          <InlineInput
+            value={item.name}
+            onSave={name => onEditItem(item.id, { name })}
+            className={styles.itemName}
+            inputClassName={styles.itemNameInput}
+            placeholder="Nombre del gasto"
+          />
+          {linkedService && (
+            <span
+              className={styles.serviceLinkDot}
+              title={`Vinculado con "${linkedService.name}" ${linkedService.icon}`}
+            >
+              <Link2 size={9} />
+            </span>
+          )}
+        </div>
 
         <input
           ref={amountRef}

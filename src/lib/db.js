@@ -633,6 +633,35 @@ function dbToBudgetIncome(r) {
            amount: Number(r.amount), notes: r.notes || '', sortOrder: r.sort_order };
 }
 
+// ─── PUSH SUBSCRIPTIONS ───────────────────────────────────
+
+export async function savePushSubscription(userId, subscription) {
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .upsert(
+      { user_id: userId, endpoint: subscription.endpoint, subscription, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' }
+    );
+  if (error) throw error;
+}
+
+export async function deletePushSubscription(userId) {
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .delete()
+    .eq('user_id', userId);
+  if (error) throw error;
+}
+
+export async function getPushSubscription(userId) {
+  const { data } = await supabase
+    .from('push_subscriptions')
+    .select('subscription')
+    .eq('user_id', userId)
+    .single();
+  return data?.subscription ?? null;
+}
+
 // ─── INVITATIONS ──────────────────────────────────────────
 
 export async function fetchIncomingInvitations(userEmail) {

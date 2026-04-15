@@ -160,6 +160,13 @@ export default {
 
     return err('Ruta no encontrada', 404);
   },
+
+  async scheduled(event, env) {
+    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false },
+    });
+    await sendDailySummaries(supabase, env);
+  },
 };
 
 // ─── Handlers: Tasks ──────────────────────────────────────────────────────────
@@ -1018,4 +1025,148 @@ function docs() {
   return new Response(html, {
     headers: { ...CORS, 'Content-Type': 'text/html; charset=utf-8' },
   });
+}
+
+// ─── Push Notifications ───────────────────────────────────────────────────────
+
+async function sendDailySummaries(supabase, env) {
+  const { data: subs } = await supabase
+    .from('push_subscriptions')
+    .select('user_id, subscription');
+  if (!subs?.length) return;
+
+  const today     = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+
+  await Promise.allSettled(subs.map(async ({ user_id, subscription }) => {
+    const { data: todayTasks } = await supabase
+      .from('tasks')
+      .select('text, done')
+      .eq('user_id', user_id)
+      .eq('date', today);
+
+    const { data: pendingYesterday } = await supabase
+      .from('tasks')
+      .select('text')
+      .eq('user_id', user_id)
+      .eq('date', yesterday)
+      .eq('done', false);
+
+    const pending   = (todayTasks  || []).filter(t => !t.done);
+    const completed = (todayTasks  || []).filter(t =>  t.done);
+    const leftover  = pendingYesterday || [];
+
+    // Skip if nothing to report
+    if (pending.length === 0 && leftover.length === 0) return;
+
+    let body = '';
+    if (pending.length > 0)  body += `${pending.length} tarea${pending.length > 1 ? 's' : ''} para hoy`;
+    if (completed.length > 0) body += ` · ${completed.length} completada${completed.length > 1 ? 's' : ''}`;
+    if (leftover.length > 0)  body += `\n⚠ ${leftover.length} pendiente${leftover.length > 1 ? 's' : ''} de ayer`;
+
+    await sendWebPush(subscription, {
+      title: '📋 Obsidian — Resumen del día',
+      body:  body.trim(),
+      url:   '/',
+    }, env);
+  }));
+}
+
+// ─── Web Push (VAPID + RFC 8291 aes128gcm) ───────────────────────────────────
+
+function b64u(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+function fromb64u(s) {
+  const b = s.replace(/-/g, '+').replace(/_/g, '/');
+  return Uint8Array.from(atob(b), c => c.charCodeAt(0));
+}
+function concat(...arrays) {
+  const out = new Uint8Array(arrays.reduce((n, a) => n + a.length, 0));
+  let i = 0;
+  for (const a of arrays) { out.set(a, i); i += a.length; }
+  return out;
+}
+
+async function hkdfExtract(salt, ikm) {
+  const k = await crypto.subtle.importKey('raw', salt, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return new Uint8Array(await crypto.subtle.sign('HMAC', k, ikm));
+}
+async function hkdfExpand(prk, info, len) {
+  const k = await crypto.subtle.importKey('raw', prk, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return new Uint8Array(await crypto.subtle.sign('HMAC', k, concat(info, new Uint8Array([1])))).slice(0, len);
+}
+
+async function vapidJWT(audience, env) {
+  const enc     = new TextEncoder();
+  const header  = b64u(enc.encode(JSON.stringify({ typ: 'JWT', alg: 'ES256' })));
+  const payload = b64u(enc.encode(JSON.stringify({
+    aud: audience,
+    exp: Math.floor(Date.now() / 1000) + 43200,
+    sub: 'mailto:admin@exegestion.com',
+  })));
+  const signable = `${header}.${payload}`;
+  const privKey  = await crypto.subtle.importKey(
+    'pkcs8', fromb64u(env.VAPID_PRIVATE_KEY),
+    { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, privKey, enc.encode(signable));
+  return `${signable}.${b64u(sig)}`;
+}
+
+async function encryptPushPayload(plaintext, p256dh, authSecret) {
+  const enc = new TextEncoder();
+
+  const recipientPub = await crypto.subtle.importKey(
+    'raw', fromb64u(p256dh), { name: 'ECDH', namedCurve: 'P-256' }, true, []
+  );
+  const ephemeral  = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+  const senderPub  = new Uint8Array(await crypto.subtle.exportKey('raw', ephemeral.publicKey));
+  const sharedBits = new Uint8Array(await crypto.subtle.deriveBits({ name: 'ECDH', public: recipientPub }, ephemeral.privateKey, 256));
+
+  const salt       = crypto.getRandomValues(new Uint8Array(16));
+  const authBytes  = fromb64u(authSecret);
+  const recipBytes = fromb64u(p256dh);
+
+  // PRK_key = HKDF-Extract(auth_secret, ecdh_secret)
+  const prk_key = await hkdfExtract(authBytes, sharedBits);
+  // IKM = HKDF-Expand(PRK_key, key_info, 32)
+  const key_info = concat(enc.encode('WebPush: info\0'), recipBytes, senderPub);
+  const ikm      = await hkdfExpand(prk_key, key_info, 32);
+  // PRK = HKDF-Extract(salt, IKM)
+  const prk      = await hkdfExtract(salt, ikm);
+  // CEK & nonce
+  const cek   = await hkdfExpand(prk, enc.encode('Content-Encoding: aes128gcm\0'), 16);
+  const nonce = await hkdfExpand(prk, enc.encode('Content-Encoding: nonce\0'), 12);
+
+  const aesKey    = await crypto.subtle.importKey('raw', cek, 'AES-GCM', false, ['encrypt']);
+  const padded    = concat(enc.encode(plaintext), new Uint8Array([2])); // delimiter
+  const ciphertext = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, aesKey, padded));
+
+  // aes128gcm header: salt(16) + rs(4) + idlen(1) + sender_pub(65) + ciphertext
+  const rs = new Uint8Array(4);
+  new DataView(rs.buffer).setUint32(0, 4096, false);
+  return concat(salt, rs, new Uint8Array([senderPub.length]), senderPub, ciphertext);
+}
+
+async function sendWebPush(subscription, payload, env) {
+  const { endpoint, keys: { p256dh, auth } } = subscription;
+  const audience  = new URL(endpoint).origin;
+  const jwt       = await vapidJWT(audience, env);
+  const body      = await encryptPushPayload(JSON.stringify(payload), p256dh, auth);
+
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Authorization':    `vapid t=${jwt},k=${env.VAPID_PUBLIC_KEY}`,
+      'Content-Encoding': 'aes128gcm',
+      'Content-Type':     'application/octet-stream',
+      'TTL':              '86400',
+    },
+    body,
+  });
+
+  // 410 Gone = subscription expired, could clean up here
+  return res;
 }

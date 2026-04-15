@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'pwa-icon.svg'],
       manifest: {
@@ -24,16 +27,8 @@ export default defineConfig({
           { src: 'pwa-512.png',  sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: {
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg}'],
-        navigateFallback: '/index.html',
-        runtimeCaching: [
-          {
-            // Supabase API: siempre red, nunca caché
-            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/,
-            handler: 'NetworkOnly',
-          },
-        ],
       },
     }),
   ],

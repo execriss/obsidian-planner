@@ -10,3 +10,9 @@ routes = [
 # Secrets — configurar con:
 #   wrangler secret put SUPABASE_URL
 #   wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+#   wrangler secret put VAPID_PUBLIC_KEY
+#   wrangler secret put VAPID_PRIVATE_KEY
+
+[triggers]
+# 9:30 AM hora Argentina (UTC-3) = 12:30 UTC
+crons = ["30 12 * * *"]

@@ -442,25 +442,32 @@
   transition: color 0.15s ease;
 }
 
-.serviceLinkBadge {
-  display: inline-flex;
+.itemNameCell {
+  display: flex;
   align-items: center;
-  gap: 3px;
-  padding: 1px 6px;
-  border-radius: 5px;
-  background: rgba(78, 205, 196, 0.12);
-  border: 1px solid rgba(78, 205, 196, 0.25);
-  color: #4ECDC4;
-  font-size: 9px;
-  font-weight: 600;
-  white-space: nowrap;
-  flex-shrink: 0;
-  cursor: default;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
 }
 
-.serviceLinkLabel {
-  font-size: 10px;
-  line-height: 1;
+.serviceLinkDot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(78, 205, 196, 0.12);
+  border: 1px solid rgba(78, 205, 196, 0.28);
+  color: #4ECDC4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: default;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.itemRow:hover .serviceLinkDot {
+  opacity: 1;
 }
 
 .itemName:hover {
