@@ -37,6 +37,7 @@ export default function App() {
 }
 
 const VALID_VIEWS = ['calendar', 'budget', 'grocery', 'servicios', 'habitos', 'notas', 'docs', 'settings'];
+const VIEW_ORDER  = VALID_VIEWS;
 
 function Planner({ user, onSignOut }) {
   const isMobile = useIsMobile();
@@ -49,6 +50,7 @@ function Planner({ user, onSignOut }) {
   const [calView, setCalView]           = useState('month');
   const [viewWeek, setViewWeek]         = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [viewKey, setViewKey]           = useState(0);
+  const [slideDir, setSlideDir]         = useState('right');
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [migrationMsg, setMigrationMsg] = useState('');
   const [sheetClosing, setSheetClosing] = useState(false);
@@ -217,6 +219,9 @@ function Planner({ user, onSignOut }) {
 
   const changeView = (v) => {
     if (v === view) return;
+    const oldIdx = VIEW_ORDER.indexOf(view);
+    const newIdx = VIEW_ORDER.indexOf(v);
+    setSlideDir(newIdx >= oldIdx ? 'right' : 'left');
     setView(v);
     setViewKey(k => k + 1);
     if (isMobile) setShowUserMenu(false);
@@ -601,7 +606,7 @@ function Planner({ user, onSignOut }) {
         ) : (
           <div
             key={viewKey}
-            className={`animate-viewIn ${isMobile ? styles.viewContainerMobile : styles.viewContainerDesktop}`}
+            className={`${isMobile ? (slideDir === 'right' ? 'animate-slideFromRight' : 'animate-slideFromLeft') : 'animate-viewIn'} ${isMobile ? styles.viewContainerMobile : styles.viewContainerDesktop}`}
           >
 {view === 'budget' && (
               <Budget
@@ -633,16 +638,24 @@ function Planner({ user, onSignOut }) {
       {/* ── MOBILE BOTTOM NAV ── */}
       {isMobile && (
         <nav className="mobile-bottom-nav">
-          {NAV_ITEMS.slice(0, 5).map(({ id, icon: Icon, shortLabel }) => (
-            <button
-              key={id}
-              onClick={() => changeView(id)}
-              className={view === id ? styles.mobileNavItemActive : styles.mobileNavItemInactive}
-            >
-              <Icon size={18} />
-              <span>{shortLabel}</span>
-            </button>
-          ))}
+          {NAV_ITEMS.slice(0, 5).map(({ id, icon: Icon, shortLabel }) => {
+            const isActive = view === id;
+            return (
+              <button
+                key={id}
+                onClick={() => changeView(id)}
+                className={isActive ? styles.mobileNavItemActive : styles.mobileNavItemInactive}
+              >
+                {isActive && <span className={styles.mobileNavDot} />}
+                <span className={isActive ? styles.mobileNavIconActive : styles.mobileNavIcon}>
+                  <Icon size={18} />
+                </span>
+                <span className={isActive ? styles.mobileNavLabelActive : styles.mobileNavLabel}>
+                  {shortLabel}
+                </span>
+              </button>
+            );
+          })}
           {/* More menu */}
           <div className={styles.mobileMoreWrapper}>
             <button

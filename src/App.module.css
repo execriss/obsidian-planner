@@ -992,9 +992,51 @@
 .mobileNavItemActive {
   color: var(--amber);
   background: var(--amber-glow);
+  position: relative;
 }
 
 .mobileNavItemInactive {
   color: var(--cream-muted);
   background: transparent;
+}
+
+/* Icon wrapper — animates on activation */
+.mobileNavIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s var(--ease-spring);
+}
+
+.mobileNavIconActive {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: navIconPop 0.38s var(--ease-spring) both;
+}
+
+/* Label */
+.mobileNavLabel {
+  font-size: 9px;
+  transition: color 0.15s ease;
+}
+
+.mobileNavLabelActive {
+  font-size: 9px;
+  font-weight: 600;
+  animation: navLabelIn 0.22s var(--ease-out) 0.06s both;
+}
+
+/* Indicator dot at top of active button */
+.mobileNavDot {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--amber);
+  animation: navDotIn 0.3s var(--ease-spring) both;
+  transform-origin: center;
 }
