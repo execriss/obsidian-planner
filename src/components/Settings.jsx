@@ -14,9 +14,11 @@ const TABS = [
 
 // ─── Notifications section ────────────────────────────────────────────────────
 
-function NotificationsSection({ userId }) {
+function NotificationsSection({ userId, apiKey }) {
   const [status, setStatus]   = useState('loading'); // loading | on | off | unsupported
   const [working, setWorking] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null); // null | 'ok' | 'error'
 
   useEffect(() => {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) {
@@ -45,6 +47,24 @@ function NotificationsSection({ userId }) {
       console.error('Push subscribe error:', e);
     } finally {
       setWorking(false);
+    }
+  };
+
+  const sendTest = async () => {
+    if (!apiKey) return;
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await fetch(`${API_BASE}/push/test`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      setTestResult(res.ok ? 'ok' : 'error');
+    } catch {
+      setTestResult('error');
+    } finally {
+      setTesting(false);
+      setTimeout(() => setTestResult(null), 4000);
     }
   };
 
@@ -95,10 +115,15 @@ function NotificationsSection({ userId }) {
               {working ? 'Activando...' : 'Activar notificaciones'}
             </button>
           ) : (
-            <button onClick={disable} disabled={working} className={styles.notifDisableBtn}>
-              <BellOff size={13} />
-              {working ? 'Desactivando...' : 'Desactivar'}
-            </button>
+            <div className={styles.notifActions}>
+              <button onClick={sendTest} disabled={testing || !apiKey} className={styles.notifTestBtn}>
+                {testing ? 'Enviando...' : testResult === 'ok' ? '✓ Enviada' : testResult === 'error' ? '✗ Error' : 'Enviar prueba'}
+              </button>
+              <button onClick={disable} disabled={working} className={styles.notifDisableBtn}>
+                <BellOff size={13} />
+                {working ? 'Desactivando...' : 'Desactivar'}
+              </button>
+            </div>
           )}
         </div>
       )}
@@ -171,7 +196,7 @@ export default function Settings({ user, collab }) {
       {activeTab === 'api' && (
         <div className="tab-content">
           {/* Notifications */}
-          <NotificationsSection userId={user.id} />
+          <NotificationsSection userId={user.id} apiKey={apiKey?.api_key ?? null} />
 
           {/* API Key card */}
           <div className={styles.card}>

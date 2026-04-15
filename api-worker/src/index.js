@@ -99,6 +99,10 @@ export default {
 
     if (method === 'GET' && path === '/summary/today') return summaryToday(userId, supabase);
 
+    // ── Push test ───────────────────────────────────────────────────────────────
+
+    if (method === 'POST' && path === '/push/test') return pushTest(userId, supabase, env);
+
     // ── Budget Items ────────────────────────────────────────────────────────────
 
     if (path === '/budget/items') {
@@ -1028,6 +1032,27 @@ function docs() {
 }
 
 // ─── Push Notifications ───────────────────────────────────────────────────────
+
+async function pushTest(userId, supabase, env) {
+  const { data: row } = await supabase
+    .from('push_subscriptions')
+    .select('subscription')
+    .eq('user_id', userId)
+    .single();
+
+  if (!row) return err('No hay suscripción push para este usuario', 404);
+
+  try {
+    await sendWebPush(row.subscription, {
+      title: '🔔 Obsidian — Prueba',
+      body:  'Las notificaciones están funcionando correctamente.',
+      url:   '/',
+    }, env);
+    return ok({ sent: true });
+  } catch (e) {
+    return err(`Error enviando push: ${e.message}`, 500);
+  }
+}
 
 async function sendDailySummaries(supabase, env) {
   const { data: subs } = await supabase

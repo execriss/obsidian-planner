@@ -333,3 +333,26 @@
 
 .notifDisableBtn:hover { color: var(--coral); border-color: var(--coral); }
 .notifDisableBtn:disabled { opacity: 0.5; pointer-events: none; }
+
+.notifActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.notifTestBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--blue);
+  color: var(--blue);
+  transition: all 0.15s ease;
+}
+
+.notifTestBtn:hover:not(:disabled) { background: var(--blue); color: white; }
+.notifTestBtn:disabled { opacity: 0.5; pointer-events: none; }
