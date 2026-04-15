@@ -451,27 +451,28 @@ function ServiceCard({ svc, i, paid, dueInfo, lastPayments, isDeleting, copied, 
           )}
         </div>
 
-        {paid && (
-          <div className={styles.paidAmount}>{new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(paid.amount)}</div>
-        )}
-
-        <div className={styles.actions}>
-          {!paid && (
-            <button onClick={() => onPay(svc.id)} className={styles.payBtn}>Pagar</button>
-          )}
-          {paid && (
-            <button onClick={() => onPay(svc.id)} className={styles.anotherPayBtn}>+ Otro pago</button>
-          )}
-          {svc.accountId && (
-            <IconBtn onClick={() => onCopy(svc.id, svc.accountId)}>
-              {copied === svc.id ? <Check size={12} color="var(--sage)" /> : <Copy size={12} />}
-            </IconBtn>
-          )}
-          {svc.website && (
-            <IconBtn onClick={() => window.open(svc.website, '_blank')}><ExternalLink size={12} /></IconBtn>
-          )}
-          <IconBtn onClick={() => onEdit(svc)}><Pencil size={12} /></IconBtn>
-          <IconBtn onClick={() => onDelete(svc.id)} danger><Trash2 size={12} /></IconBtn>
+        <div className={styles.svcActions}>
+          <div className={styles.primaryAction}>
+            {paid
+              ? <div className={styles.paidAmount}>{new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(paid.amount)}</div>
+              : <button onClick={() => onPay(svc.id)} className={styles.payBtn}>Pagar</button>
+            }
+          </div>
+          <div className={styles.secondaryActions}>
+            {paid && (
+              <button onClick={() => onPay(svc.id)} className={styles.anotherPayBtn}>+ Otro</button>
+            )}
+            {svc.accountId && (
+              <IconBtn onClick={() => onCopy(svc.id, svc.accountId)}>
+                {copied === svc.id ? <Check size={12} color="var(--sage)" /> : <Copy size={12} />}
+              </IconBtn>
+            )}
+            {svc.website && (
+              <IconBtn onClick={() => window.open(svc.website, '_blank')}><ExternalLink size={12} /></IconBtn>
+            )}
+            <IconBtn onClick={() => onEdit(svc)}><Pencil size={12} /></IconBtn>
+            <IconBtn onClick={() => onDelete(svc.id)} danger><Trash2 size={12} /></IconBtn>
+          </div>
         </div>
       </div>
 
