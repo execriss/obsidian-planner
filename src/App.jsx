@@ -33,11 +33,16 @@ export default function App() {
   return <Planner user={user} onSignOut={signOut} />;
 }
 
+const VALID_VIEWS = ['calendar', 'budget', 'grocery', 'habitos', 'notas', 'docs', 'settings'];
+
 function Planner({ user, onSignOut }) {
   const isMobile = useIsMobile();
   const [viewMonth, setViewMonth]       = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
-  const [view, setView]                 = useState('calendar');
+  const [view, setView]                 = useState(() => {
+    const saved = sessionStorage.getItem('pwa_view');
+    return saved && VALID_VIEWS.includes(saved) ? saved : 'calendar';
+  });
   const [calView, setCalView]           = useState('month');
   const [viewWeek, setViewWeek]         = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [viewKey, setViewKey]           = useState(0);
@@ -54,6 +59,22 @@ function Planner({ user, onSignOut }) {
   } = useData(user.id);
 
   const collab = useCollaboration(user.id, user.email);
+
+  // ── PWA navigation: deshabilitar back button + persistir vista ───────────────
+
+  // Persist view so the app restores correctly when Android reloads from background
+  useEffect(() => {
+    sessionStorage.setItem('pwa_view', view);
+  }, [view]);
+
+  // Trap: siempre pushea una entrada vacía al tope para que el back button
+  // nunca pueda salir de la app (absorbe el pop y vuelve a pushear)
+  useEffect(() => {
+    history.pushState(null, '');
+    const handle = () => history.pushState(null, '');
+    window.addEventListener('popstate', handle);
+    return () => window.removeEventListener('popstate', handle);
+  }, []);
 
   // ── Global search shortcut ──────────────────────────────────────────────────
   useEffect(() => {

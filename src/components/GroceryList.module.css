@@ -294,6 +294,128 @@
   margin-bottom: 8px;
 }
 
+/* ─── Category group list ─── */
+
+.catGroupList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.catGroup {
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--cat-color) 20%, transparent);
+  background: color-mix(in srgb, var(--cat-color) 4%, var(--obsidian-3));
+  overflow: hidden;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.catGroup:hover {
+  border-color: color-mix(in srgb, var(--cat-color) 35%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--cat-color) 10%, transparent),
+              0 4px 20px color-mix(in srgb, var(--cat-color) 8%, transparent);
+}
+
+.catGroupHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  position: relative;
+}
+
+.catGroupHeader::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--cat-color);
+  opacity: 0.7;
+}
+
+.catGroupHeader:hover {
+  background: color-mix(in srgb, var(--cat-color) 6%, transparent);
+}
+
+.catGroupEmoji {
+  font-size: 17px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.catGroupLabel {
+  flex: 1;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cat-color);
+  letter-spacing: 0.02em;
+}
+
+.catGroupCount {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--cat-color) 18%, transparent);
+  color: var(--cat-color);
+  border: 1px solid color-mix(in srgb, var(--cat-color) 28%, transparent);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.catGroupChevron {
+  color: var(--cat-color);
+  opacity: 0.7;
+  flex-shrink: 0;
+  transition: transform 0.35s var(--ease-spring);
+}
+
+.catGroupChevronClosed {
+  transform: rotate(-90deg);
+}
+
+/* smooth height with CSS grid trick */
+.catGroupItems {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.38s var(--ease-spring);
+}
+
+.catGroupItemsClosed {
+  grid-template-rows: 0fr;
+}
+
+.catGroupItemsInner {
+  overflow: hidden;
+}
+
+.catGroupItemsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0 8px 8px;
+}
+
+/* items inside a group have slightly different style */
+.catGroupItemsContent .itemRow {
+  border-radius: 10px;
+  border-color: transparent;
+  background: color-mix(in srgb, var(--cat-color) 5%, var(--obsidian-4));
+}
+
+.catGroupItemsContent .itemRow:hover {
+  border-color: color-mix(in srgb, var(--cat-color) 30%, transparent);
+  background: color-mix(in srgb, var(--cat-color) 8%, var(--obsidian-4));
+}
+
 /* ─── Cart section ─── */
 
 .cartSection {

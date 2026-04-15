@@ -43,6 +43,7 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
   const [newQty, setNewQty]             = useState('');
   const [newCat, setNewCat]             = useState('frutas');
   const [cartOpen, setCartOpen]         = useState(true);
+  const [collapsedCats, setCollapsedCats] = useState(new Set());
   const [checkingIds, setCheckingIds]   = useState(new Set());
   const [deletingIds, setDeletingIds]   = useState(new Set());
   const [showCalc, setShowCalc]         = useState(false);
@@ -54,6 +55,17 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
 
   const pending = items.filter(i => !i.done);
   const inCart  = items.filter(i =>  i.done);
+
+  const groupedPending = CATS
+    .map(cat => ({ cat, items: pending.filter(i => i.cat === cat.id) }))
+    .filter(g => g.items.length > 0);
+
+  const toggleCat = (catId) =>
+    setCollapsedCats(prev => {
+      const s = new Set(prev);
+      s.has(catId) ? s.delete(catId) : s.add(catId);
+      return s;
+    });
   const total   = items.length;
   const pct     = total > 0 ? Math.round((inCart.length / total) * 100) : 0;
 
@@ -226,13 +238,23 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
         </div>
       )}
 
-      {/* ── Ítems pendientes ── */}
-      {pending.length > 0 && (
-        <div className={styles.itemList}>
-          {pending.map((item, i) => (
-            <ItemRow key={item.id} item={item} i={i}
-              isChecking={checkingIds.has(item.id)} isDeleting={deletingIds.has(item.id)}
-              onToggle={toggleItem} onDelete={deleteItem} isMobile={isMobile} />
+      {/* ── Ítems pendientes agrupados por categoría ── */}
+      {groupedPending.length > 0 && (
+        <div className={styles.catGroupList}>
+          {groupedPending.map((group, gi) => (
+            <CategoryGroup
+              key={group.cat.id}
+              cat={group.cat}
+              items={group.items}
+              collapsed={collapsedCats.has(group.cat.id)}
+              onToggle={() => toggleCat(group.cat.id)}
+              groupIndex={gi}
+              checkingIds={checkingIds}
+              deletingIds={deletingIds}
+              onToggleItem={toggleItem}
+              onDelete={deleteItem}
+              isMobile={isMobile}
+            />
           ))}
         </div>
       )}
@@ -480,9 +502,52 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
   );
 }
 
+// ─── CategoryGroup ────────────────────────────────────────────────────────────
+
+function CategoryGroup({ cat, items, collapsed, onToggle, groupIndex, checkingIds, deletingIds, onToggleItem, onDelete, isMobile }) {
+  return (
+    <div
+      className={styles.catGroup}
+      style={{
+        '--cat-color': cat.color,
+        '--cat-dim':   cat.dim,
+        animationDelay: `${groupIndex * 0.06}s`,
+        animationName: 'fadeUp',
+        animationDuration: '0.3s',
+        animationTimingFunction: 'var(--ease-spring)',
+        animationFillMode: 'both',
+      }}
+    >
+      <button className={styles.catGroupHeader} onClick={onToggle}>
+        <span className={styles.catGroupEmoji}>{cat.emoji}</span>
+        <span className={styles.catGroupLabel}>{cat.label}</span>
+        <span className={styles.catGroupCount}>{items.length}</span>
+        <ChevronDown
+          size={14}
+          className={`${styles.catGroupChevron} ${collapsed ? styles.catGroupChevronClosed : ''}`}
+        />
+      </button>
+      <div className={`${styles.catGroupItems} ${collapsed ? styles.catGroupItemsClosed : ''}`}>
+        <div className={styles.catGroupItemsInner}>
+          <div className={styles.catGroupItemsContent}>
+          {items.map((item, i) => (
+            <ItemRow
+              key={item.id} item={item} i={i}
+              isChecking={checkingIds.has(item.id)} isDeleting={deletingIds.has(item.id)}
+              onToggle={onToggleItem} onDelete={onDelete}
+              isMobile={isMobile} hideCatBadge
+            />
+          ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── ItemRow ──────────────────────────────────────────────────────────────────
 
-function ItemRow({ item, i, isChecking, isDeleting, onToggle, onDelete, isMobile }) {
+function ItemRow({ item, i, isChecking, isDeleting, onToggle, onDelete, isMobile, hideCatBadge }) {
   const cat = catById[item.cat] || catById['otro'];
 
   return (
@@ -517,9 +582,11 @@ function ItemRow({ item, i, isChecking, isDeleting, onToggle, onDelete, isMobile
         <span className={styles.itemQty}>{item.qty}</span>
       )}
 
-      <span className={styles.itemCatBadge}>
-        {cat.emoji}{isMobile ? '' : ` ${cat.label}`}
-      </span>
+      {!hideCatBadge && (
+        <span className={styles.itemCatBadge}>
+          {cat.emoji}{isMobile ? '' : ` ${cat.label}`}
+        </span>
+      )}
 
       <button onClick={() => onDelete(item.id)} className={styles.itemDeleteBtn}>
         <Trash2 size={12} />
