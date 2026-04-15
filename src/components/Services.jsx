@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
   Plus, Trash2, Pencil, ExternalLink, Copy, Check,
-  Receipt,
+  Receipt, AlertTriangle, Clock,
 } from 'lucide-react';
 import { useServices } from '../hooks/useServices.js';
 import styles from './Services.module.css';
@@ -26,48 +26,74 @@ const PRESETS = [
 ];
 
 const CAT_LABELS = {
-  utilities:    { label: 'Servicios',    color: '#6B8FD4', dim: 'rgba(107,143,212,0.12)' },
-  taxes:        { label: 'Impuestos',    color: '#A47BD4', dim: 'rgba(164,123,212,0.12)' },
-  insurance:    { label: 'Seguros',      color: '#E8925A', dim: 'rgba(232,146,90,0.12)' },
+  utilities:    { label: 'Servicios',     color: '#6B8FD4', dim: 'rgba(107,143,212,0.12)' },
+  taxes:        { label: 'Impuestos',     color: '#A47BD4', dim: 'rgba(164,123,212,0.12)' },
+  insurance:    { label: 'Seguros',       color: '#E8925A', dim: 'rgba(232,146,90,0.12)' },
   subscription: { label: 'Suscripciones', color: '#5FAD8E', dim: 'rgba(95,173,142,0.12)' },
 };
 
 function thisMonth() { return format(new Date(), 'yyyy-MM'); }
 function fmtMoney(n) { return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(n); }
 
+// ─── Urgency helpers ──────────────────────────────────────────────────────────
+
+function getDueInfo(svc, paid) {
+  if (!svc.dueDay) return null;
+  const todayDay = new Date().getDate();
+  const daysLeft = svc.dueDay - todayDay;
+  if (paid)          return { status: 'paid',     daysLeft };
+  if (daysLeft < 0)  return { status: 'overdue',  daysLeft };
+  if (daysLeft === 0) return { status: 'today',   daysLeft: 0 };
+  if (daysLeft <= 3) return { status: 'urgent',   daysLeft };
+  return               { status: 'upcoming',  daysLeft };
+}
+
+function urgencyOrder(svc, paid, dueInfo) {
+  if (!dueInfo) return paid ? 99 : 50;
+  if (dueInfo.status === 'overdue')  return 0;
+  if (dueInfo.status === 'today')    return 1;
+  if (dueInfo.status === 'urgent')   return 2 + dueInfo.daysLeft;
+  if (dueInfo.status === 'upcoming') return 10 + dueInfo.daysLeft;
+  return 99; // paid
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export default function Services({ onAddExpense, userId }) {
+const EMPTY_FORM = { name: '', icon: '⚡', color: '#F0A500', accountId: '', website: '', cat: 'utilities', notes: '', dueDay: '', typicalAmount: '' };
+
+export default function Services({ userId }) {
   const { services, loading: dataLoading, addService, editService, removeService, addPayment } = useServices(userId);
   const loading = useMinLoading(dataLoading);
-  const [showForm, setShowForm] = useState(false);
-  const [editId, setEditId]     = useState(null);
-  const [form, setForm]         = useState({ name: '', icon: '⚡', color: '#F0A500', accountId: '', website: '', cat: 'utilities', notes: '' });
-  const [payingId, setPayingId] = useState(null);
+  const [showForm, setShowForm]   = useState(false);
+  const [editId, setEditId]       = useState(null);
+  const [form, setForm]           = useState(EMPTY_FORM);
+  const [payingId, setPayingId]   = useState(null);
   const [payAmount, setPayAmount] = useState('');
-  const [payDate, setPayDate]   = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [copied, setCopied]     = useState(null);
+  const [payDate, setPayDate]     = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [copied, setCopied]       = useState(null);
   const [deletingIds, setDeletingIds] = useState(new Set());
 
-  const resetForm = () => {
-    setForm({ name: '', icon: '⚡', color: '#F0A500', accountId: '', website: '', cat: 'utilities', notes: '' });
-    setShowForm(false);
-    setEditId(null);
-  };
+  const resetForm = () => { setForm(EMPTY_FORM); setShowForm(false); setEditId(null); };
 
   const saveService = async () => {
     if (!form.name.trim()) return;
-    if (editId) {
-      await editService(editId, form);
-      setEditId(null);
-    } else {
-      await addService({ ...form });
-    }
+    const payload = {
+      ...form,
+      dueDay:        form.dueDay        ? parseInt(form.dueDay, 10)    : null,
+      typicalAmount: form.typicalAmount ? parseFloat(form.typicalAmount) : null,
+    };
+    if (editId) { await editService(editId, payload); setEditId(null); }
+    else        { await addService(payload); }
     resetForm();
   };
 
   const startEdit = (s) => {
-    setForm({ name: s.name, icon: s.icon, color: s.color, accountId: s.accountId || '', website: s.website || '', cat: s.cat, notes: s.notes || '' });
+    setForm({
+      name: s.name, icon: s.icon, color: s.color, accountId: s.accountId || '',
+      website: s.website || '', cat: s.cat, notes: s.notes || '',
+      dueDay: s.dueDay ? String(s.dueDay) : '',
+      typicalAmount: s.typicalAmount ? String(s.typicalAmount) : '',
+    });
     setEditId(s.id);
     setShowForm(true);
   };
@@ -87,7 +113,7 @@ export default function Services({ onAddExpense, userId }) {
   };
 
   const openPayment = (id) => {
-    const svc = services.find(s => s.id === id);
+    const svc  = services.find(s => s.id === id);
     const last = svc?.payments?.slice().sort((a, b) => b.paidAt.localeCompare(a.paidAt))[0];
     setPayAmount(last?.amount ? String(last.amount) : '');
     setPayDate(format(new Date(), 'yyyy-MM-dd'));
@@ -97,41 +123,35 @@ export default function Services({ onAddExpense, userId }) {
   const confirmPayment = async () => {
     const amount = parseFloat(payAmount);
     if (!amount || !payingId) return;
-    const svc = services.find(s => s.id === payingId);
-    if (!svc) return;
-
     await addPayment(payingId, { month: thisMonth(), amount, date: payDate });
-
-    if (onAddExpense) {
-      await onAddExpense({
-        type: 'expense',
-        amount,
-        desc: svc.name,
-        category: 'Servicios',
-        date: payDate,
-      });
-    }
-
     setPayingId(null);
     setPayAmount('');
   };
 
   const getMonthStatus = (svc) => {
     const month = thisMonth();
-    const paid  = svc.payments?.find(p => p.month === month);
-    return paid || null;
+    return svc.payments?.find(p => p.month === month) || null;
   };
 
-  const grouped = Object.entries(CAT_LABELS).map(([catId, catMeta]) => ({
-    catId, ...catMeta,
-    items: services.filter(s => s.cat === catId),
-  })).filter(g => g.items.length > 0);
+  // Sort by urgency: overdue → today → urgent → upcoming → no due date → paid
+  const sortedServices = [...services].sort((a, b) => {
+    const paidA = getMonthStatus(a);
+    const paidB = getMonthStatus(b);
+    return urgencyOrder(a, paidA, getDueInfo(a, paidA)) - urgencyOrder(b, paidB, getDueInfo(b, paidB));
+  });
 
-  const pendingCount = services.filter(s => !getMonthStatus(s)).length;
-  const totalMonthly = services.reduce((sum, s) => {
+  const pendingCount  = services.filter(s => !getMonthStatus(s)).length;
+  const totalMonthly  = services.reduce((sum, s) => {
     const pay = s.payments?.filter(p => p.month === thisMonth()).reduce((a, b) => a + b.amount, 0) || 0;
     return sum + pay;
   }, 0);
+
+  // Amount comparison for payment modal
+  const payingSvc    = services.find(s => s.id === payingId);
+  const typicalAmt   = payingSvc?.typicalAmount;
+  const amountDiffPct = typicalAmt && payAmount
+    ? Math.round((parseFloat(payAmount) - typicalAmt) / typicalAmt * 100)
+    : null;
 
   if (loading) return <SectionSkeleton variant="services" />;
 
@@ -168,9 +188,9 @@ export default function Services({ onAddExpense, userId }) {
       {services.length > 0 && (
         <div className={styles.summaryGrid}>
           {[
-            { label: 'Servicios', value: services.length,              color: 'var(--cream)',  sub: 'registrados' },
+            { label: 'Servicios', value: services.length,               color: 'var(--cream)',  sub: 'registrados' },
             { label: 'Pagados',   value: services.length - pendingCount, color: 'var(--sage)',   sub: 'este mes' },
-            { label: 'Gastado',   value: fmtMoney(totalMonthly),        color: 'var(--coral)',  sub: 'este mes' },
+            { label: 'Gastado',   value: fmtMoney(totalMonthly),         color: 'var(--coral)',  sub: 'este mes' },
           ].map(({ label, value, color, sub }) => (
             <div key={label} className={styles.summaryCard}>
               <div className={styles.summaryLabel}>{label}</div>
@@ -181,7 +201,7 @@ export default function Services({ onAddExpense, userId }) {
         </div>
       )}
 
-      {/* Add form */}
+      {/* Add / Edit form */}
       {showForm && (
         <div className={`form-spring ${styles.form}`}>
           {!editId && (
@@ -217,13 +237,32 @@ export default function Services({ onAddExpense, userId }) {
               className={styles.input}
             />
           </div>
-          <div className={styles.formFieldWrap}>
+          <div className={styles.formRow}>
             <input
               value={form.website}
               onChange={e => setForm(f => ({ ...f, website: e.target.value }))}
               placeholder="Sitio web (ej: https://edesur.com.ar)"
               className={styles.input}
             />
+            <div className={styles.formRowInner}>
+              <input
+                type="number"
+                min="1"
+                max="31"
+                value={form.dueDay}
+                onChange={e => setForm(f => ({ ...f, dueDay: e.target.value }))}
+                placeholder="Día de vencimiento (1-31)"
+                className={styles.input}
+              />
+              <input
+                type="number"
+                min="0"
+                value={form.typicalAmount}
+                onChange={e => setForm(f => ({ ...f, typicalAmount: e.target.value }))}
+                placeholder="Monto típico ($)"
+                className={styles.input}
+              />
+            </div>
           </div>
 
           <div className={styles.catGrid}>
@@ -251,14 +290,9 @@ export default function Services({ onAddExpense, userId }) {
       {/* Payment modal */}
       {payingId && (
         <div className={styles.modalOverlay} onClick={() => setPayingId(null)}>
-          <div
-            onClick={e => e.stopPropagation()}
-            className={`form-spring ${styles.modalCard}`}
-          >
+          <div onClick={e => e.stopPropagation()} className={`form-spring ${styles.modalCard}`}>
             <div className={styles.modalTitle}>Registrar pago</div>
-            <div className={styles.modalSubtitle}>
-              {services.find(s => s.id === payingId)?.name}
-            </div>
+            <div className={styles.modalSubtitle}>{payingSvc?.name}</div>
             <div className={styles.modalGrid}>
               <div>
                 <label className={styles.fieldLabel}>Monto</label>
@@ -282,13 +316,24 @@ export default function Services({ onAddExpense, userId }) {
                 />
               </div>
             </div>
-            <p className={styles.modalHint}>
-              💡 Esto registrará el pago aquí <strong className={styles.modalHintStrong}>y también</strong> lo agregará como gasto en tu sección de finanzas.
-            </p>
+
+            {typicalAmt && (
+              <div className={styles.typicalHint}>
+                <span className={styles.typicalLabel}>Monto típico:</span>
+                <span className={styles.typicalValue}>{fmtMoney(typicalAmt)}</span>
+                {amountDiffPct !== null && amountDiffPct !== 0 && (
+                  <span className={`${styles.typicalDiff} ${amountDiffPct > 0 ? styles.typicalDiffUp : styles.typicalDiffDown}`}>
+                    {amountDiffPct > 0 ? '↑' : '↓'} {Math.abs(amountDiffPct)}%
+                  </span>
+                )}
+                {amountDiffPct === 0 && (
+                  <span className={styles.typicalDiffEqual}>= igual al habitual</span>
+                )}
+              </div>
+            )}
+
             <div className={styles.formActions}>
-              <button onClick={confirmPayment} className={styles.confirmBtn}>
-                ✓ Confirmar pago
-              </button>
+              <button onClick={confirmPayment} className={styles.confirmBtn}>✓ Confirmar pago</button>
               <button onClick={() => setPayingId(null)} className={styles.modalCancelBtn}>Cancelar</button>
             </div>
           </div>
@@ -304,47 +349,40 @@ export default function Services({ onAddExpense, userId }) {
         </div>
       )}
 
-      {/* Grouped service cards */}
-      {grouped.map(group => (
-        <div key={group.catId} className={styles.categoryGroup}>
-          <div className={styles.categoryHeader}>
-            <span className={styles.categoryLabel} style={{ color: group.color }}>{group.label}</span>
-            <span className={styles.categoryBadge} style={{ background: group.dim, color: group.color }}>{group.items.length}</span>
-          </div>
-          <div className={styles.categoryItems}>
-            {group.items.map((svc, i) => {
-              const paid        = getMonthStatus(svc);
-              const lastPayments = (svc.payments || []).slice().sort((a, b) => b.paidAt.localeCompare(a.paidAt));
-              return (
-                <ServiceCard
-                  key={svc.id}
-                  svc={svc} i={i} paid={paid} lastPayments={lastPayments}
-                  isDeleting={deletingIds.has(svc.id)}
-                  copied={copied}
-                  onPay={openPayment}
-                  onEdit={startEdit}
-                  onDelete={deleteService}
-                  onCopy={copyId}
-                />
-              );
-            })}
-          </div>
-        </div>
-      ))}
+      {/* Flat list sorted by urgency */}
+      <div className={styles.serviceList}>
+        {sortedServices.map((svc, i) => {
+          const paid         = getMonthStatus(svc);
+          const dueInfo      = getDueInfo(svc, paid);
+          const lastPayments = (svc.payments || []).slice().sort((a, b) => b.paidAt.localeCompare(a.paidAt));
+          return (
+            <ServiceCard
+              key={svc.id}
+              svc={svc} i={i} paid={paid} dueInfo={dueInfo} lastPayments={lastPayments}
+              isDeleting={deletingIds.has(svc.id)}
+              copied={copied}
+              onPay={openPayment}
+              onEdit={startEdit}
+              onDelete={deleteService}
+              onCopy={copyId}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 // ─── ServiceCard ──────────────────────────────────────────────────────────────
 
-function ServiceCard({ svc, i, paid, lastPayments, isDeleting, copied, onPay, onEdit, onDelete, onCopy }) {
+function ServiceCard({ svc, i, paid, dueInfo, lastPayments, isDeleting, copied, onPay, onEdit, onDelete, onCopy }) {
   return (
     <div
-      className={`${styles.serviceCard} ${paid ? styles.serviceCardPaid : ''} ${isDeleting ? 'item-out' : ''}`}
+      className={`${styles.serviceCard} ${paid ? styles.serviceCardPaid : ''} ${dueInfo?.status === 'overdue' ? styles.serviceCardOverdue : ''} ${isDeleting ? 'item-out' : ''}`}
       style={{
         '--accent-dim':    `${svc.color}18`,
         '--accent-border': `${svc.color}44`,
-        animationDelay:    `${i * 0.06}s`,
+        animationDelay:    `${i * 0.05}s`,
       }}
     >
       {/* Main row */}
@@ -354,33 +392,26 @@ function ServiceCard({ svc, i, paid, lastPayments, isDeleting, copied, onPay, on
         <div className={styles.svcInfo}>
           <div className={styles.svcNameRow}>
             <span className={styles.svcName}>{svc.name}</span>
-            {paid ? (
-              <span className={styles.chipPaid}>
-                <Check size={8} strokeWidth={3} /> Pagado {format(new Date(paid.date + 'T12:00:00'), 'd MMM', { locale: es })}
-              </span>
-            ) : (
-              <span className={styles.chipPending}>Pendiente</span>
-            )}
+            <DueChip paid={paid} dueInfo={dueInfo} />
           </div>
           {svc.accountId && (
             <div className={styles.svcAccountId}>ID: {svc.accountId}</div>
           )}
+          {svc.notes && (
+            <div className={styles.svcNotes}>{svc.notes}</div>
+          )}
         </div>
 
         {paid && (
-          <div className={styles.paidAmount}>{fmtMoney(paid.amount)}</div>
+          <div className={styles.paidAmount}>{new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(paid.amount)}</div>
         )}
 
         <div className={styles.actions}>
           {!paid && (
-            <button onClick={() => onPay(svc.id)} className={styles.payBtn}>
-              Pagar
-            </button>
+            <button onClick={() => onPay(svc.id)} className={styles.payBtn}>Pagar</button>
           )}
           {paid && (
-            <button onClick={() => onPay(svc.id)} className={styles.anotherPayBtn}>
-              + Otro pago
-            </button>
+            <button onClick={() => onPay(svc.id)} className={styles.anotherPayBtn}>+ Otro pago</button>
           )}
           {svc.accountId && (
             <IconBtn onClick={() => onCopy(svc.id, svc.accountId)}>
@@ -388,9 +419,7 @@ function ServiceCard({ svc, i, paid, lastPayments, isDeleting, copied, onPay, on
             </IconBtn>
           )}
           {svc.website && (
-            <IconBtn onClick={() => window.open(svc.website, '_blank')}>
-              <ExternalLink size={12} />
-            </IconBtn>
+            <IconBtn onClick={() => window.open(svc.website, '_blank')}><ExternalLink size={12} /></IconBtn>
           )}
           <IconBtn onClick={() => onEdit(svc)}><Pencil size={12} /></IconBtn>
           <IconBtn onClick={() => onDelete(svc.id)} danger><Trash2 size={12} /></IconBtn>
@@ -405,7 +434,7 @@ function ServiceCard({ svc, i, paid, lastPayments, isDeleting, copied, onPay, on
             {lastPayments.slice(0, 4).map(p => (
               <div key={p.id} className={styles.historyItem}>
                 <span className={styles.historyMonth}>{p.month} · </span>
-                <span className={styles.historyAmount}>{fmtMoney(p.amount)}</span>
+                <span className={styles.historyAmount}>{new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(p.amount)}</span>
               </div>
             ))}
           </div>
@@ -415,12 +444,50 @@ function ServiceCard({ svc, i, paid, lastPayments, isDeleting, copied, onPay, on
   );
 }
 
+// ─── DueChip ─────────────────────────────────────────────────────────────────
+
+function DueChip({ paid, dueInfo }) {
+  if (!dueInfo) {
+    if (paid) {
+      return (
+        <span className={styles.chipPaid}>
+          <Check size={8} strokeWidth={3} />
+          Pagado {format(new Date(paid.date + 'T12:00:00'), 'd MMM', { locale: es })}
+        </span>
+      );
+    }
+    return <span className={styles.chipPending}>Pendiente</span>;
+  }
+
+  if (paid) {
+    return (
+      <span className={styles.chipPaid}>
+        <Check size={8} strokeWidth={3} />
+        Pagado {format(new Date(paid.date + 'T12:00:00'), 'd MMM', { locale: es })}
+      </span>
+    );
+  }
+
+  if (dueInfo.status === 'overdue') {
+    return (
+      <span className={styles.chipOverdue}>
+        <AlertTriangle size={8} strokeWidth={3} />
+        Vencido (día {dueInfo.daysLeft * -1 + new Date().getDate()})
+      </span>
+    );
+  }
+  if (dueInfo.status === 'today') {
+    return <span className={styles.chipToday}><Clock size={8} strokeWidth={3} /> Vence hoy</span>;
+  }
+  if (dueInfo.status === 'urgent') {
+    return <span className={styles.chipUrgent}><Clock size={8} strokeWidth={3} /> Vence en {dueInfo.daysLeft} día{dueInfo.daysLeft > 1 ? 's' : ''}</span>;
+  }
+  return <span className={styles.chipUpcoming}>Día {new Date().getDate() + dueInfo.daysLeft}</span>;
+}
+
 function IconBtn({ children, onClick, danger }) {
   return (
-    <button
-      onClick={onClick}
-      className={`${styles.iconBtn} ${danger ? styles.iconBtnDanger : ''}`}
-    >
+    <button onClick={onClick} className={`${styles.iconBtn} ${danger ? styles.iconBtnDanger : ''}`}>
       {children}
     </button>
   );

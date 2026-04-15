@@ -180,8 +180,10 @@
   margin-bottom: 10px;
 }
 
-.formFieldWrap {
-  margin-bottom: 10px;
+.formRowInner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .input {
@@ -333,19 +335,51 @@
   border-color: var(--sage);
 }
 
-.modalHint {
+.typicalHint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 11px;
-  color: var(--cream-muted);
-  margin-bottom: 18px;
-  line-height: 1.5;
   padding: 10px 14px;
   background: var(--obsidian-4);
   border-radius: 9px;
   border: 1px solid var(--border);
+  margin-bottom: 18px;
 }
 
-.modalHintStrong {
+.typicalLabel {
+  color: var(--cream-muted);
+}
+
+.typicalValue {
+  font-weight: 700;
   color: var(--cream);
+}
+
+.typicalDiff {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 6px;
+  margin-left: auto;
+}
+
+.typicalDiffUp {
+  background: rgba(224, 92, 92, 0.15);
+  color: var(--coral);
+  border: 1px solid rgba(224, 92, 92, 0.3);
+}
+
+.typicalDiffDown {
+  background: rgba(95, 173, 142, 0.15);
+  color: var(--sage);
+  border: 1px solid rgba(95, 173, 142, 0.3);
+}
+
+.typicalDiffEqual {
+  font-size: 10px;
+  color: var(--cream-muted);
+  margin-left: auto;
 }
 
 .confirmBtn {
@@ -399,36 +433,9 @@
   color: var(--cream-muted);
 }
 
-/* ─── Category group ─── */
+/* ─── Flat service list ─── */
 
-.categoryGroup {
-  margin-bottom: 28px;
-}
-
-.categoryHeader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
-}
-
-.categoryLabel {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.categoryBadge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 1px 7px;
-  border-radius: 6px;
-}
-
-.categoryItems {
+.serviceList {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -447,6 +454,11 @@
 
 .serviceCardPaid {
   border-color: rgba(95, 173, 142, 0.3);
+}
+
+.serviceCardOverdue {
+  border-color: rgba(224, 92, 92, 0.35);
+  background: color-mix(in srgb, var(--coral) 3%, var(--obsidian-3));
 }
 
 .serviceCard:hover {
@@ -503,6 +515,7 @@
   display: flex;
   align-items: center;
   gap: 3px;
+  white-space: nowrap;
 }
 
 .chipPending {
@@ -515,10 +528,80 @@
   border: 1px solid rgba(240, 165, 0, 0.3);
 }
 
+.chipOverdue {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(224, 92, 92, 0.15);
+  color: var(--coral);
+  border: 1px solid rgba(224, 92, 92, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.chipToday {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(240, 165, 0, 0.18);
+  color: #F0A500;
+  border: 1px solid rgba(240, 165, 0, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.chipUrgent {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(232, 146, 90, 0.15);
+  color: #E8925A;
+  border: 1px solid rgba(232, 146, 90, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+@keyframes svcPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+.chipToday {
+  animation: svcPulse 1.8s ease-in-out infinite;
+}
+
+.chipUpcoming {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(107, 143, 212, 0.1);
+  color: #6B8FD4;
+  border: 1px solid rgba(107, 143, 212, 0.25);
+  white-space: nowrap;
+}
+
 .svcAccountId {
   font-size: 11px;
   color: var(--cream-muted);
   font-family: monospace;
+}
+
+.svcNotes {
+  font-size: 11px;
+  color: var(--cream-muted);
+  margin-top: 3px;
+  line-height: 1.4;
+  font-style: italic;
 }
 
 .paidAmount {
@@ -637,6 +720,7 @@
   .summaryValue   { font-size: 18px; }
 
   .formRow        { grid-template-columns: 1fr; }
+  .formRowInner   { flex-direction: row; }
   .catGrid        { grid-template-columns: repeat(2, 1fr); }
 
   .modalCard      { border-radius: 16px; padding: 20px; }

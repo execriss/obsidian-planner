@@ -16,7 +16,7 @@ import WeekView from './components/WeekView.jsx';
 import DayView from './components/DayView.jsx';
 import DayPanel from './components/DayPanel.jsx';
 import GroceryList from './components/GroceryList.jsx';
-// import Services from './components/Services.jsx';
+import Services from './components/Services.jsx';
 import Habits from './components/Habits.jsx';
 import QuickNotes from './components/QuickNotes.jsx';
 import Documents from './components/Documents.jsx';
@@ -228,7 +228,7 @@ function Planner({ user, onSignOut }) {
     { id: 'calendar',  icon: Calendar,     label: 'Calendario', shortLabel: 'Inicio' },
 { id: 'budget',    icon: Wallet,        label: 'Presupuesto', shortLabel: 'Ppto.' },
     { id: 'grocery',   icon: ShoppingCart,  label: 'Compras',   shortLabel: 'Compras' },
-    // { id: 'servicios', icon: Receipt,       label: 'Servicios', shortLabel: 'Serv.' },
+    { id: 'servicios', icon: Receipt,       label: 'Servicios', shortLabel: 'Serv.' },
     { id: 'habitos',   icon: Flame,         label: 'Hábitos',   shortLabel: 'Hábitos' },
     { id: 'notas',     icon: StickyNote,    label: 'Notas',     shortLabel: 'Notas' },
     { id: 'docs',      icon: FileKey2,      label: 'Documentos',shortLabel: 'Docs' },
@@ -546,7 +546,7 @@ function Planner({ user, onSignOut }) {
           >
 {view === 'budget'    && <Budget userId={user.id} viewMonth={viewMonth} sharedOwners={budgetOwners} />}
             {view === 'grocery'   && <GroceryList userId={user.id} sharedOwners={groceryOwners} />}
-            {/* view === 'servicios' && <Services onAddExpense={addExpense} userId={user.id} /> */}
+            {view === 'servicios' && <Services userId={user.id} />}
             {view === 'habitos'   && <Habits userId={user.id} />}
             {view === 'notas'     && <QuickNotes userId={user.id} />}
             {view === 'docs'      && <Documents userId={user.id} />}
