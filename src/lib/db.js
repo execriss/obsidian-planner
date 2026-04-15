@@ -189,7 +189,8 @@ export async function createService(userId, svc) {
     .from('services')
     .insert({ user_id: userId, name: svc.name, icon: svc.icon, color: svc.color || 'amber',
               account_id: svc.accountId, website: svc.website, cat: svc.cat || 'otro', notes: svc.notes,
-              due_day: svc.dueDay || null, typical_amount: svc.typicalAmount || null })
+              due_day: svc.dueDay || null, typical_amount: svc.typicalAmount || null,
+              budget_item_id: svc.budgetItemId || null })
     .select('*, service_payments(*)').single();
   if (error) throw error;
   return dbToService(data);
@@ -206,6 +207,7 @@ export async function updateService(svcId, updates) {
   if (updates.notes         !== undefined) upd.notes          = updates.notes;
   if (updates.dueDay        !== undefined) upd.due_day        = updates.dueDay || null;
   if (updates.typicalAmount !== undefined) upd.typical_amount = updates.typicalAmount || null;
+  if (updates.budgetItemId  !== undefined) upd.budget_item_id = updates.budgetItemId || null;
   const { data, error } = await supabase
     .from('services')
     .update(upd)
@@ -242,6 +244,7 @@ function dbToService(row) {
     notes:         row.notes,
     dueDay:        row.due_day,
     typicalAmount: row.typical_amount ? Number(row.typical_amount) : null,
+    budgetItemId:  row.budget_item_id || null,
     payments:      (row.service_payments || []).map(p => ({
       id: p.id, month: p.month, amount: Number(p.amount), date: p.date, paidAt: p.paid_at,
     })),

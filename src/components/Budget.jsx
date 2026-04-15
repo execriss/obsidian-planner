@@ -3,13 +3,10 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
   Wallet, Plus, Trash2, Check, ChevronDown,
-  FileText, Pencil, X, TrendingUp, TrendingDown,
-  CircleDollarSign,
+  FileText, X, CircleDollarSign, Link2,
 } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile.js';
-import { useBudget } from '../hooks/useBudget.js';
 import OwnerToggle from './OwnerToggle.jsx';
-import { useMinLoading } from '../hooks/useMinLoading.js';
 import SectionSkeleton from './SectionSkeleton.jsx';
 import styles from './Budget.module.css';
 
@@ -227,7 +224,7 @@ function SummaryBar({ merged, income }) {
 
 // ─── ItemRow ─────────────────────────────────────────────────────────────────
 
-function ItemRow({ item, onUpdateEntry, onEditItem, onRemove, isMobile }) {
+function ItemRow({ item, onUpdateEntry, onEditItem, onRemove, isMobile, linkedService }) {
   const [showNotes, setShowNotes] = useState(false);
   const [deleting, setDeleting]   = useState(false);
   const amountRef = useRef(null);
@@ -301,6 +298,12 @@ function ItemRow({ item, onUpdateEntry, onEditItem, onRemove, isMobile }) {
           inputClassName={styles.itemNameInput}
           placeholder="Nombre del gasto"
         />
+        {linkedService && (
+          <span className={styles.serviceLinkBadge} title={`Sincronizado con servicio: ${linkedService.name}`}>
+            <Link2 size={9} />
+            <span className={styles.serviceLinkLabel}>{linkedService.icon}</span>
+          </span>
+        )}
 
         <input
           ref={amountRef}
@@ -375,7 +378,7 @@ function ItemRow({ item, onUpdateEntry, onEditItem, onRemove, isMobile }) {
 
 function CategorySection({
   catName, catColor, items, onUpdateEntry, onEditItem, onRemoveItem,
-  onEditCategory, onRemoveCategory, onAddItem, isMobile,
+  onEditCategory, onRemoveCategory, onAddItem, isMobile, linkedServicesMap,
 }) {
   const [open, setOpen]             = useState(true);
   const [editingName, setEditingName] = useState(false);
@@ -522,6 +525,7 @@ function CategorySection({
                 onEditItem={onEditItem}
                 onRemove={onRemoveItem}
                 isMobile={isMobile}
+                linkedService={linkedServicesMap?.get(item.id) ?? null}
               />
             ))}
           </div>
@@ -536,17 +540,19 @@ function CategorySection({
 
 // ─── Budget (main) ───────────────────────────────────────────────────────────
 
-export default function Budget({ userId, viewMonth, sharedOwners = [] }) {
+export default function Budget({
+  budgetData, viewMonth, sharedOwners = [],
+  activeOwnerId, onActiveOwnerChange,
+  onUpdateEntry, linkedServicesMap,
+}) {
   const isMobile = useIsMobile();
-  const month = format(viewMonth, 'yyyy-MM');
-  const [activeOwnerId, setActiveOwnerId] = useState(null);
   const {
-    merged, categories, income, loading: dataLoading, error, retry,
-    addItem, editItem, removeItem, updateEntry,
+    merged, categories, income, loading, error, retry,
+    addItem, editItem, removeItem,
     editCategory, removeCategory,
     addIncome, editIncome, removeIncome,
-  } = useBudget(userId, month, activeOwnerId);
-  const loading = useMinLoading(dataLoading);
+  } = budgetData;
+  const updateEntry = onUpdateEntry;
 
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCatName, setNewCatName]   = useState('');
@@ -614,7 +620,7 @@ export default function Budget({ userId, viewMonth, sharedOwners = [] }) {
           <OwnerToggle
             sharedOwners={sharedOwners}
             activeOwnerId={activeOwnerId}
-            onSelect={setActiveOwnerId}
+            onSelect={onActiveOwnerChange}
           />
         </div>
       )}
@@ -678,6 +684,7 @@ export default function Budget({ userId, viewMonth, sharedOwners = [] }) {
                 onRemoveCategory={removeCategory}
                 onAddItem={addItem}
                 isMobile={isMobile}
+                linkedServicesMap={linkedServicesMap}
               />
             );
           })}

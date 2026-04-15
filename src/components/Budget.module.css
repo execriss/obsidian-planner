@@ -442,6 +442,27 @@
   transition: color 0.15s ease;
 }
 
+.serviceLinkBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: rgba(78, 205, 196, 0.12);
+  border: 1px solid rgba(78, 205, 196, 0.25);
+  color: #4ECDC4;
+  font-size: 9px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.serviceLinkLabel {
+  font-size: 10px;
+  line-height: 1;
+}
+
 .itemName:hover {
   color: var(--amber);
 }

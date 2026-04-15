@@ -10,6 +10,9 @@ import { es } from 'date-fns/locale';
 import { useAuth } from './contexts/AuthContext.jsx';
 import { useData } from './hooks/useData.js';
 import { useCollaboration } from './hooks/useCollaboration.js';
+import { useBudget } from './hooks/useBudget.js';
+import { useServices } from './hooks/useServices.js';
+import { upsertBudgetEntry } from './lib/db.js';
 import AuthGate from './components/AuthGate.jsx';
 import BigCalendar from './components/BigCalendar.jsx';
 import WeekView from './components/WeekView.jsx';
@@ -33,7 +36,7 @@ export default function App() {
   return <Planner user={user} onSignOut={signOut} />;
 }
 
-const VALID_VIEWS = ['calendar', 'budget', 'grocery', 'habitos', 'notas', 'docs', 'settings'];
+const VALID_VIEWS = ['calendar', 'budget', 'grocery', 'servicios', 'habitos', 'notas', 'docs', 'settings'];
 
 function Planner({ user, onSignOut }) {
   const isMobile = useIsMobile();
@@ -59,6 +62,62 @@ function Planner({ user, onSignOut }) {
   } = useData(user.id);
 
   const collab = useCollaboration(user.id, user.email);
+
+  // ── Budget + Services (lifted to Planner for cross-sync) ─────────────────────
+  const budgetMonth = format(viewMonth, 'yyyy-MM');
+  const [budgetActiveOwner, setBudgetActiveOwner] = useState(null);
+  const budgetData    = useBudget(user.id, budgetMonth, budgetActiveOwner);
+  const servicesData  = useServices(user.id);
+
+  // Map: budgetItemId → service (for Budget to show link badges)
+  const linkedServicesMap = useMemo(() =>
+    servicesData.services.reduce((map, svc) => {
+      if (svc.budgetItemId) map.set(svc.budgetItemId, svc);
+      return map;
+    }, new Map()),
+  [servicesData.services]);
+
+  // Cross-sync: paying a service → upsert the linked budget entry
+  const handlePayService = useCallback(async (serviceId, payment) => {
+    const svc = servicesData.services.find(s => s.id === serviceId);
+    await servicesData.addPayment(serviceId, payment);
+
+    if (svc?.budgetItemId && budgetActiveOwner === null) {
+      const existingEntry = budgetData.entries.find(e => e.itemId === svc.budgetItemId);
+      await upsertBudgetEntry(user.id, {
+        itemId:  svc.budgetItemId,
+        month:   payment.month,
+        amount:  existingEntry?.amount ?? svc.typicalAmount ?? payment.amount,
+        paid:    payment.amount,
+        notes:   existingEntry?.notes  ?? '',
+      });
+      // Refresh budget state if the payment month matches the current view
+      if (payment.month === budgetMonth) budgetData.retry();
+    }
+  }, [servicesData, budgetData, budgetActiveOwner, user.id, budgetMonth]);
+
+  // Cross-sync: marking a budget entry as paid → create the linked service payment
+  const handleBudgetUpdateEntry = useCallback(async (itemId, updates) => {
+    const prevEntry  = budgetData.entries.find(e => e.itemId === itemId);
+    const wasUnpaid  = !prevEntry || prevEntry.paid === 0;
+
+    await budgetData.updateEntry(itemId, updates);
+
+    if (updates.paid > 0 && wasUnpaid && budgetActiveOwner === null) {
+      const linkedSvc = linkedServicesMap.get(itemId);
+      if (linkedSvc) {
+        const alreadyPaid = linkedSvc.payments?.find(p => p.month === budgetMonth);
+        if (!alreadyPaid) {
+          await servicesData.addPayment(linkedSvc.id, {
+            month:  budgetMonth,
+            amount: updates.paid,
+            date:   format(new Date(), 'yyyy-MM-dd'),
+          });
+        }
+      }
+    }
+  }, [budgetData, linkedServicesMap, servicesData, budgetActiveOwner, budgetMonth]);
+  // ─────────────────────────────────────────────────────────────────────────────
 
   // ── PWA navigation: deshabilitar back button + persistir vista ───────────────
 
@@ -544,9 +603,25 @@ function Planner({ user, onSignOut }) {
             key={viewKey}
             className={`animate-viewIn ${isMobile ? styles.viewContainerMobile : styles.viewContainerDesktop}`}
           >
-{view === 'budget'    && <Budget userId={user.id} viewMonth={viewMonth} sharedOwners={budgetOwners} />}
+{view === 'budget' && (
+              <Budget
+                budgetData={budgetData}
+                viewMonth={viewMonth}
+                sharedOwners={budgetOwners}
+                activeOwnerId={budgetActiveOwner}
+                onActiveOwnerChange={setBudgetActiveOwner}
+                onUpdateEntry={handleBudgetUpdateEntry}
+                linkedServicesMap={linkedServicesMap}
+              />
+            )}
             {view === 'grocery'   && <GroceryList userId={user.id} sharedOwners={groceryOwners} />}
-            {view === 'servicios' && <Services userId={user.id} />}
+            {view === 'servicios' && (
+              <Services
+                servicesData={servicesData}
+                budgetItems={budgetData.items}
+                onPay={handlePayService}
+              />
+            )}
             {view === 'habitos'   && <Habits userId={user.id} />}
             {view === 'notas'     && <QuickNotes userId={user.id} />}
             {view === 'docs'      && <Documents userId={user.id} />}

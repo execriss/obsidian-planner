@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
   Plus, Trash2, Pencil, ExternalLink, Copy, Check,
-  Receipt, AlertTriangle, Clock,
+  Receipt, AlertTriangle, Clock, Link2,
 } from 'lucide-react';
-import { useServices } from '../hooks/useServices.js';
 import styles from './Services.module.css';
 import SectionSkeleton from './SectionSkeleton.jsx';
 import { useMinLoading } from '../hooks/useMinLoading.js';
@@ -65,10 +64,10 @@ function urgencyOrder(svc, paid, dueInfo) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-const EMPTY_FORM = { name: '', icon: '⚡', color: '#F0A500', accountId: '', website: '', cat: 'utilities', notes: '', dueDay: '', typicalAmount: '' };
+const EMPTY_FORM = { name: '', icon: '⚡', color: '#F0A500', accountId: '', website: '', cat: 'utilities', notes: '', dueDay: '', typicalAmount: '', budgetItemId: '' };
 
-export default function Services({ userId }) {
-  const { services, loading: dataLoading, addService, editService, removeService, addPayment } = useServices(userId);
+export default function Services({ servicesData, budgetItems = [], onPay }) {
+  const { services, loading: dataLoading, addService, editService, removeService } = servicesData;
   const loading = useMinLoading(dataLoading);
   const [showForm, setShowForm]   = useState(false);
   const [editId, setEditId]       = useState(null);
@@ -85,8 +84,9 @@ export default function Services({ userId }) {
     if (!form.name.trim()) return;
     const payload = {
       ...form,
-      dueDay:        form.dueDay        ? parseInt(form.dueDay, 10)    : null,
+      dueDay:        form.dueDay        ? parseInt(form.dueDay, 10)     : null,
       typicalAmount: form.typicalAmount ? parseFloat(form.typicalAmount) : null,
+      budgetItemId:  form.budgetItemId  || null,
     };
     if (editId) { await editService(editId, payload); setEditId(null); }
     else        { await addService(payload); }
@@ -99,6 +99,7 @@ export default function Services({ userId }) {
       website: s.website || '', cat: s.cat, notes: s.notes || '',
       dueDay: s.dueDay ? String(s.dueDay) : '',
       typicalAmount: s.typicalAmount ? String(s.typicalAmount) : '',
+      budgetItemId: s.budgetItemId || '',
     });
     setEditId(s.id);
     setShowForm(true);
@@ -129,7 +130,7 @@ export default function Services({ userId }) {
   const confirmPayment = async () => {
     const amount = parseFloat(payAmount);
     if (!amount || !payingId) return;
-    await addPayment(payingId, { month: thisMonth(), amount, date: payDate });
+    await onPay(payingId, { month: thisMonth(), amount, date: payDate });
     setPayingId(null);
     setPayAmount('');
   };
@@ -138,6 +139,16 @@ export default function Services({ userId }) {
     const month = thisMonth();
     return svc.payments?.find(p => p.month === month) || null;
   };
+
+  // Budget items grouped by category for the selector
+  const groupedBudgetItems = useMemo(() => {
+    const map = new Map();
+    budgetItems.forEach(item => {
+      if (!map.has(item.category)) map.set(item.category, []);
+      map.get(item.category).push(item);
+    });
+    return Array.from(map, ([cat, items]) => ({ cat, items }));
+  }, [budgetItems]);
 
   // Sort by urgency: overdue → today → urgent → upcoming → no due date → paid
   const sortedServices = [...services].sort((a, b) => {
@@ -284,6 +295,28 @@ export default function Services({ userId }) {
             ))}
           </div>
 
+          {groupedBudgetItems.length > 0 && (
+            <div className={styles.formFieldWrap}>
+              <label className={styles.budgetLinkLabel}>
+                <Link2 size={11} /> Vincular con ítem de presupuesto
+              </label>
+              <select
+                value={form.budgetItemId || ''}
+                onChange={e => setForm(f => ({ ...f, budgetItemId: e.target.value || null }))}
+                className={styles.select}
+              >
+                <option value="">Sin vincular</option>
+                {groupedBudgetItems.map(({ cat, items }) => (
+                  <optgroup key={cat} label={cat}>
+                    {items.map(item => (
+                      <option key={item.id} value={item.id}>{item.name}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className={styles.formActions}>
             <button onClick={saveService} className={styles.submitBtn}>
               {editId ? 'Guardar cambios' : 'Agregar servicio'}
@@ -361,12 +394,16 @@ export default function Services({ userId }) {
           const paid         = getMonthStatus(svc);
           const dueInfo      = getDueInfo(svc, paid);
           const lastPayments = (svc.payments || []).slice().sort((a, b) => b.paidAt.localeCompare(a.paidAt));
+          const linkedBudgetItem = svc.budgetItemId
+              ? budgetItems.find(i => i.id === svc.budgetItemId) ?? null
+              : null;
           return (
             <ServiceCard
               key={svc.id}
               svc={svc} i={i} paid={paid} dueInfo={dueInfo} lastPayments={lastPayments}
               isDeleting={deletingIds.has(svc.id)}
               copied={copied}
+              linkedBudgetItem={linkedBudgetItem}
               onPay={openPayment}
               onEdit={startEdit}
               onDelete={deleteService}
@@ -381,7 +418,7 @@ export default function Services({ userId }) {
 
 // ─── ServiceCard ──────────────────────────────────────────────────────────────
 
-function ServiceCard({ svc, i, paid, dueInfo, lastPayments, isDeleting, copied, onPay, onEdit, onDelete, onCopy }) {
+function ServiceCard({ svc, i, paid, dueInfo, lastPayments, isDeleting, copied, linkedBudgetItem, onPay, onEdit, onDelete, onCopy }) {
   return (
     <div
       className={`${styles.serviceCard} ${paid ? styles.serviceCardPaid : ''} ${dueInfo?.status === 'overdue' ? styles.serviceCardOverdue : ''} ${isDeleting ? 'item-out' : ''}`}
@@ -405,6 +442,12 @@ function ServiceCard({ svc, i, paid, dueInfo, lastPayments, isDeleting, copied, 
           )}
           {svc.notes && (
             <div className={styles.svcNotes}>{svc.notes}</div>
+          )}
+          {linkedBudgetItem && (
+            <div className={styles.budgetLinkBadge}>
+              <Link2 size={9} />
+              {linkedBudgetItem.category} · {linkedBudgetItem.name}
+            </div>
           )}
         </div>
 
