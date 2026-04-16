@@ -31,6 +31,20 @@ function fmtMoney(n) {
   }).format(n);
 }
 
+function fmtMoneyShort(n) {
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '-' : '';
+  if (abs >= 1_000_000) {
+    const val = (abs / 1_000_000).toFixed(1).replace(/\.0$/, '');
+    return `${sign}$${val}M`;
+  }
+  if (abs >= 1_000) {
+    const val = (abs / 1_000).toFixed(0);
+    return `${sign}$${val}K`;
+  }
+  return fmtMoney(n);
+}
+
 function parseAmount(str) {
   if (!str) return 0;
   const cleaned = String(str).replace(/[^0-9.,\-]/g, '').replace(/\./g, '').replace(',', '.');
@@ -188,35 +202,35 @@ function IncomeSection({ income, onAdd, onEdit, onRemove }) {
 
 // ─── SummaryBar ──────────────────────────────────────────────────────────────
 
-function SummaryBar({ merged, income }) {
+function SummaryBar({ merged, income, isMobile }) {
   const totalBudgeted = merged.reduce((s, i) => s + i.amount, 0);
   const totalPaid     = merged.reduce((s, i) => s + i.paid, 0);
   const totalPending  = totalBudgeted - totalPaid;
   const totalIncome   = income.reduce((s, i) => s + i.amount, 0);
   const balance       = totalIncome - totalPaid;
-  const estimated     = totalIncome - totalBudgeted;
+  const fmt = isMobile ? fmtMoneyShort : fmtMoney;
 
   return (
     <div className={styles.summaryBar}>
       <div className={styles.summaryCell}>
         <div className={styles.summaryCellLabel}>Ingresos</div>
-        <div className={styles.summaryCellValue}>{fmtMoney(totalIncome)}</div>
+        <div className={styles.summaryCellValue}>{fmt(totalIncome)}</div>
       </div>
       <div className={styles.summaryCell}>
         <div className={styles.summaryCellLabel}>Presupuestado</div>
-        <div className={styles.summaryCellValue}>{fmtMoney(totalBudgeted)}</div>
+        <div className={styles.summaryCellValue}>{fmt(totalBudgeted)}</div>
       </div>
       <div className={styles.summaryCell}>
         <div className={styles.summaryCellLabel}>Pagado</div>
-        <div className={styles.summaryCellValue}>{fmtMoney(totalPaid)}</div>
+        <div className={styles.summaryCellValue}>{fmt(totalPaid)}</div>
       </div>
       <div className={`${styles.summaryCell} ${totalPending >= 0 ? '' : styles.summaryNegative}`}>
         <div className={styles.summaryCellLabel}>Pendiente</div>
-        <div className={styles.summaryCellValue}>{fmtMoney(totalPending)}</div>
+        <div className={styles.summaryCellValue}>{fmt(totalPending)}</div>
       </div>
       <div className={`${styles.summaryCell} ${balance >= 0 ? styles.summaryPositive : styles.summaryNegative}`}>
         <div className={styles.summaryCellLabel}>Balance</div>
-        <div className={styles.summaryCellValue}>{fmtMoney(balance)}</div>
+        <div className={styles.summaryCellValue}>{fmt(balance)}</div>
       </div>
     </div>
   );
@@ -233,17 +247,19 @@ function ItemRow({ item, onUpdateEntry, onEditItem, onRemove, isMobile, linkedSe
   const isPaidFull    = item.paid > 0 && item.paid >= item.amount;
   const isPaidPartial = item.paid > 0 && item.paid < item.amount;
 
+  const fmt = isMobile ? fmtMoneyShort : fmtMoney;
+
   useEffect(() => {
     if (amountRef.current && document.activeElement !== amountRef.current) {
-      amountRef.current.value = item.amount > 0 ? fmtMoney(item.amount) : '';
+      amountRef.current.value = item.amount > 0 ? fmt(item.amount) : '';
     }
-  }, [item.amount]);
+  }, [item.amount, isMobile]);
 
   useEffect(() => {
     if (paidRef.current && document.activeElement !== paidRef.current) {
-      paidRef.current.value = item.paid > 0 ? fmtMoney(item.paid) : '';
+      paidRef.current.value = item.paid > 0 ? fmt(item.paid) : '';
     }
-  }, [item.paid]);
+  }, [item.paid, isMobile]);
 
   const handlePay = () => {
     if (isPaidFull) {
@@ -313,7 +329,7 @@ function ItemRow({ item, onUpdateEntry, onEditItem, onRemove, isMobile, linkedSe
           ref={amountRef}
           type="text"
           className={styles.amountInput}
-          defaultValue={item.amount > 0 ? fmtMoney(item.amount) : ''}
+          defaultValue={item.amount > 0 ? fmt(item.amount) : ''}
           onFocus={e => { e.target.value = item.amount > 0 ? String(item.amount) : ''; }}
           onBlur={e => handleAmountBlur(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') e.target.blur(); }}
@@ -325,7 +341,7 @@ function ItemRow({ item, onUpdateEntry, onEditItem, onRemove, isMobile, linkedSe
           ref={paidRef}
           type="text"
           className={paidInputClass}
-          defaultValue={item.paid > 0 ? fmtMoney(item.paid) : ''}
+          defaultValue={item.paid > 0 ? fmt(item.paid) : ''}
           onFocus={e => { e.target.value = item.paid > 0 ? String(item.paid) : ''; }}
           onBlur={e => handlePaidBlur(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') e.target.blur(); }}
@@ -670,7 +686,7 @@ export default function Budget({
           />
 
           {/* Summary */}
-          <SummaryBar merged={merged} income={income} />
+          <SummaryBar merged={merged} income={income} isMobile={isMobile} />
 
           {/* Categories */}
           {Array.from(groupedByCategory).map(([catName, catItems]) => {

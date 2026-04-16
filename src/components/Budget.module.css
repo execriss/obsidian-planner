@@ -968,7 +968,7 @@
   }
 
   .summaryCellValue {
-    font-size: 13px;
+    font-size: 14px;
   }
 
   .summaryCellLabel {
@@ -977,7 +977,7 @@
 
   /* On mobile: name | amount | paid | payBtn | deleteBtn */
   .itemRow {
-    grid-template-columns: 1fr 86px 86px 26px 26px;
+    grid-template-columns: 1fr 58px 58px 26px 26px;
     gap: 4px;
     padding: 8px 10px;
   }
