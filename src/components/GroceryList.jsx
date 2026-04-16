@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import {
   ShoppingCart, Plus, Trash2, Check, ChevronDown, ChevronUp,
-  Sparkles, RotateCcw, Calculator, X, History, Tag,
+  Sparkles, RotateCcw, Calculator, X, History, Tag, Pencil,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -646,8 +646,8 @@ function ItemRow({ item, i, isChecking, isDeleting, onToggle, onEdit, onDelete, 
         {item.done && <Check size={12} color="white" strokeWidth={3} />}
       </button>
 
-      <div className={styles.itemText} onClick={!item.done ? openEdit : undefined} role={!item.done ? 'button' : undefined}>
-        <span className={`${styles.itemLabel} ${item.done ? styles.itemLabelDone : ''} ${!item.done ? styles.itemLabelEditable : ''}`}>
+      <div className={styles.itemText}>
+        <span className={`${styles.itemLabel} ${item.done ? styles.itemLabelDone : ''}`}>
           {item.text}
         </span>
         {item.qty && item.qty !== '1' && (
@@ -659,6 +659,12 @@ function ItemRow({ item, i, isChecking, isDeleting, onToggle, onEdit, onDelete, 
         <span className={styles.itemCatBadge}>
           {cat.emoji}{isMobile ? '' : ` ${cat.label}`}
         </span>
+      )}
+
+      {!item.done && (
+        <button onClick={openEdit} className={styles.itemEditBtn} aria-label="Editar ítem">
+          <Pencil size={12} />
+        </button>
       )}
 
       <button onClick={() => onDelete(item.id)} className={styles.itemDeleteBtn}>
