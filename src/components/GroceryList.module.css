@@ -1118,6 +1118,27 @@
   border: 1px solid var(--border);
 }
 
+.itemQtyInline {
+  font-size: 10px;
+  font-weight: 600;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--obsidian-4);
+  color: var(--cream-dim);
+  border: 1px solid var(--border);
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.itemLabelEditable {
+  cursor: text;
+}
+
+.itemLabelEditable:hover {
+  color: var(--amber);
+}
+
 .itemCatBadge {
   font-size: 9px;
   font-weight: 600;
@@ -1148,6 +1169,146 @@
   color: var(--coral);
   background: var(--coral-dim);
   transform: scale(1.1);
+}
+
+/* ─── Item Edit Mode ─── */
+
+.itemEditRow {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--cat-color) 6%, var(--obsidian-3));
+  border: 1px solid color-mix(in srgb, var(--cat-color) 35%, transparent);
+  animation: fadeUp 0.15s var(--ease-spring) both;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.itemEditInputs {
+  display: flex;
+  gap: 8px;
+}
+
+.itemEditTextInput {
+  flex: 1;
+  background: var(--obsidian-4);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--cream);
+  outline: none;
+  font-family: var(--font-body);
+  transition: border-color 0.15s ease;
+}
+
+.itemEditTextInput:focus {
+  border-color: var(--cat-color, var(--sage));
+}
+
+.itemEditQtyInput {
+  width: 64px;
+  flex-shrink: 0;
+  background: var(--obsidian-4);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--cream);
+  outline: none;
+  text-align: center;
+  font-family: var(--font-body);
+  transition: border-color 0.15s ease;
+}
+
+.itemEditQtyInput:focus {
+  border-color: var(--cat-color, var(--sage));
+}
+
+.itemEditCats {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.itemEditCats::-webkit-scrollbar {
+  display: none;
+}
+
+.itemEditCatBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  border: 1px solid var(--border);
+  background: transparent;
+  transition: all 0.15s var(--ease-spring);
+}
+
+.itemEditCatBtn:hover {
+  border-color: var(--border-light);
+  background: var(--obsidian-4);
+  transform: scale(1.1);
+}
+
+.itemEditCatBtnActive {
+  border-color: var(--cat-color);
+  background: var(--cat-dim);
+  transform: scale(1.1);
+}
+
+.itemEditActions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.itemEditCancelBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream-muted);
+  border: 1px solid var(--border);
+  background: transparent;
+  transition: all 0.15s ease;
+}
+
+.itemEditCancelBtn:hover {
+  color: var(--coral);
+  background: var(--coral-dim);
+  border-color: var(--coral);
+}
+
+.itemEditSaveBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  background: var(--cat-color, var(--sage));
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.itemEditSaveBtn:hover:not(:disabled) {
+  opacity: 0.85;
+  transform: scale(1.05);
+}
+
+.itemEditSaveBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 /* ─── Responsive ─── */

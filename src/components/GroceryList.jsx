@@ -35,7 +35,7 @@ function fmtARS(n) {
 export default function GroceryList({ userId, sharedOwners = [] }) {
   const isMobile = useIsMobile();
   const [activeOwnerId, setActiveOwnerId] = useState(null);
-  const { items, sessions, loading: dataLoading, addItem: dbAddItem, toggleItem: dbToggleItem, removeItem, clearDone, clearAll, resetList, saveSession } = useGrocery(userId, activeOwnerId);
+  const { items, sessions, loading: dataLoading, addItem: dbAddItem, editItem, toggleItem: dbToggleItem, removeItem, clearDone, clearAll, resetList, saveSession } = useGrocery(userId, activeOwnerId);
   const loading = useMinLoading(dataLoading);
 
   const [showForm, setShowForm]         = useState(false);
@@ -252,6 +252,7 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
               checkingIds={checkingIds}
               deletingIds={deletingIds}
               onToggleItem={toggleItem}
+              onEdit={editItem}
               onDelete={deleteItem}
               isMobile={isMobile}
             />
@@ -276,7 +277,7 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
               {inCart.map((item, i) => (
                 <ItemRow key={item.id} item={item} i={i}
                   isChecking={checkingIds.has(item.id)} isDeleting={deletingIds.has(item.id)}
-                  onToggle={toggleItem} onDelete={deleteItem} isMobile={isMobile} />
+                  onToggle={toggleItem} onEdit={editItem} onDelete={deleteItem} isMobile={isMobile} />
               ))}
             </div>
           )}
@@ -504,7 +505,7 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
 
 // ─── CategoryGroup ────────────────────────────────────────────────────────────
 
-function CategoryGroup({ cat, items, collapsed, onToggle, groupIndex, checkingIds, deletingIds, onToggleItem, onDelete, isMobile }) {
+function CategoryGroup({ cat, items, collapsed, onToggle, groupIndex, checkingIds, deletingIds, onToggleItem, onEdit, onDelete, isMobile }) {
   return (
     <div
       className={styles.catGroup}
@@ -534,7 +535,7 @@ function CategoryGroup({ cat, items, collapsed, onToggle, groupIndex, checkingId
             <ItemRow
               key={item.id} item={item} i={i}
               isChecking={checkingIds.has(item.id)} isDeleting={deletingIds.has(item.id)}
-              onToggle={onToggleItem} onDelete={onDelete}
+              onToggle={onToggleItem} onEdit={onEdit} onDelete={onDelete}
               isMobile={isMobile} hideCatBadge
             />
           ))}
@@ -547,8 +548,81 @@ function CategoryGroup({ cat, items, collapsed, onToggle, groupIndex, checkingId
 
 // ─── ItemRow ──────────────────────────────────────────────────────────────────
 
-function ItemRow({ item, i, isChecking, isDeleting, onToggle, onDelete, isMobile, hideCatBadge }) {
+function ItemRow({ item, i, isChecking, isDeleting, onToggle, onEdit, onDelete, isMobile, hideCatBadge }) {
+  const [editing, setEditing]   = useState(false);
+  const [editText, setEditText] = useState('');
+  const [editQty, setEditQty]   = useState('');
+  const [editCat, setEditCat]   = useState('');
   const cat = catById[item.cat] || catById['otro'];
+
+  const openEdit = (e) => {
+    e.stopPropagation();
+    setEditText(item.text);
+    setEditQty(item.qty || '1');
+    setEditCat(item.cat || 'otro');
+    setEditing(true);
+  };
+
+  const handleSave = () => {
+    const text = editText.trim();
+    if (!text) return;
+    onEdit(item.id, { text, qty: editQty.trim() || '1', cat: editCat });
+    setEditing(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleSave();
+    if (e.key === 'Escape') setEditing(false);
+  };
+
+  if (editing) {
+    const editCatObj = catById[editCat] || catById['otro'];
+    return (
+      <div
+        className={styles.itemEditRow}
+        style={{ '--cat-color': editCatObj.color, '--cat-dim': editCatObj.dim }}
+      >
+        <div className={styles.itemEditInputs}>
+          <input
+            autoFocus
+            value={editText}
+            onChange={e => setEditText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className={styles.itemEditTextInput}
+            placeholder="Nombre del producto"
+          />
+          <input
+            value={editQty}
+            onChange={e => setEditQty(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className={styles.itemEditQtyInput}
+            placeholder="Cant."
+          />
+        </div>
+        <div className={styles.itemEditCats}>
+          {CATS.map(c => (
+            <button
+              key={c.id}
+              onClick={() => setEditCat(c.id)}
+              className={`${styles.itemEditCatBtn} ${editCat === c.id ? styles.itemEditCatBtnActive : ''}`}
+              style={editCat === c.id ? { '--cat-color': c.color, '--cat-dim': c.dim } : {}}
+              title={c.label}
+            >
+              {c.emoji}
+            </button>
+          ))}
+        </div>
+        <div className={styles.itemEditActions}>
+          <button onClick={() => setEditing(false)} className={styles.itemEditCancelBtn}>
+            <X size={13} />
+          </button>
+          <button onClick={handleSave} className={styles.itemEditSaveBtn} disabled={!editText.trim()}>
+            <Check size={13} />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -572,15 +646,14 @@ function ItemRow({ item, i, isChecking, isDeleting, onToggle, onDelete, isMobile
         {item.done && <Check size={12} color="white" strokeWidth={3} />}
       </button>
 
-      <div className={styles.itemText}>
-        <span className={`${styles.itemLabel} ${item.done ? styles.itemLabelDone : ''}`}>
+      <div className={styles.itemText} onClick={!item.done ? openEdit : undefined} role={!item.done ? 'button' : undefined}>
+        <span className={`${styles.itemLabel} ${item.done ? styles.itemLabelDone : ''} ${!item.done ? styles.itemLabelEditable : ''}`}>
           {item.text}
         </span>
+        {item.qty && item.qty !== '1' && (
+          <span className={styles.itemQtyInline}>{item.qty}</span>
+        )}
       </div>
-
-      {item.qty && item.qty !== '1' && (
-        <span className={styles.itemQty}>{item.qty}</span>
-      )}
 
       {!hideCatBadge && (
         <span className={styles.itemCatBadge}>

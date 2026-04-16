@@ -48,6 +48,11 @@ export function useGrocery(userId, ownerId = null) {
     await deleteGroceryItemsByUser(dataUserId).catch(console.error);
   }, [dataUserId]);
 
+  const editItem = useCallback(async (id, changes) => {
+    setItems(prev => prev.map(i => i.id === id ? { ...i, ...changes } : i));
+    await updateGroceryItem(id, changes).catch(console.error);
+  }, []);
+
   const resetList = useCallback(async () => {
     setItems(prev => prev.map(i => ({ ...i, done: false })));
     await resetGroceryItems(dataUserId).catch(console.error);
@@ -59,5 +64,5 @@ export function useGrocery(userId, ownerId = null) {
     return saved;
   }, [dataUserId]);
 
-  return { items, sessions, loading, addItem, toggleItem, removeItem, clearDone, clearAll, resetList, saveSession };
+  return { items, sessions, loading, addItem, editItem, toggleItem, removeItem, clearDone, clearAll, resetList, saveSession };
 }
