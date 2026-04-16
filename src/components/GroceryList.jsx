@@ -35,7 +35,7 @@ function fmtARS(n) {
 export default function GroceryList({ userId, sharedOwners = [] }) {
   const isMobile = useIsMobile();
   const [activeOwnerId, setActiveOwnerId] = useState(null);
-  const { items, sessions, loading: dataLoading, addItem: dbAddItem, editItem, toggleItem: dbToggleItem, removeItem, clearDone, clearAll, resetList, saveSession } = useGrocery(userId, activeOwnerId);
+  const { items, sessions, loading: dataLoading, addItem: dbAddItem, editItem, toggleItem: dbToggleItem, removeItem, clearAll, resetList, saveSession } = useGrocery(userId, activeOwnerId);
   const loading = useMinLoading(dataLoading);
 
   const [showForm, setShowForm]         = useState(false);
@@ -51,7 +51,6 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
   const [discounts, setDiscounts]       = useState([]);
   const [showHistory, setShowHistory]   = useState(false);
   const [savedAnim, setSavedAnim]       = useState(false);
-  const [resetConfirm, setResetConfirm] = useState(false);
 
   const pending = items.filter(i => !i.done);
   const inCart  = items.filter(i =>  i.done);
@@ -91,11 +90,6 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
     }, 200);
   }, [removeItem]);
 
-  const handleReset = async () => {
-    if (!resetConfirm) { setResetConfirm(true); setTimeout(() => setResetConfirm(false), 3000); return; }
-    await resetList();
-    setResetConfirm(false);
-  };
 
   const totalNum = parseFloat(totalInput.replace(/\./g, '').replace(',', '.')) || 0;
 
@@ -283,16 +277,9 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
           )}
 
           <div className={styles.cartActions}>
-            <button onClick={clearDone} className={styles.cartClearBtn}>
-              <Trash2 size={11} />
-              Vaciar carrito
-            </button>
-            <button
-              onClick={handleReset}
-              className={`${styles.resetBtn} ${resetConfirm ? styles.resetBtnConfirm : ''}`}
-            >
+            <button onClick={resetList} className={styles.resetBtn}>
               <RotateCcw size={11} />
-              {resetConfirm ? '¿Confirmar reseteo?' : 'Resetear lista'}
+              Reusar lista
             </button>
           </div>
         </div>
