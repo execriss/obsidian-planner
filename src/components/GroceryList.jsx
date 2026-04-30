@@ -41,8 +41,8 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
   const [activeOwnerId, setActiveOwnerId] = useState(null);
   const [groceryMonth, setGroceryMonth]   = useState(TODAY_MONTH);
 
-  const groceryDate    = useMemo(() => parse(groceryMonth, 'yyyy-MM', new Date()), [groceryMonth]);
-  const isCurrentMonth = groceryMonth === TODAY_MONTH;
+  const groceryDate = useMemo(() => parse(groceryMonth, 'yyyy-MM', new Date()), [groceryMonth]);
+  const isPastMonth = groceryMonth < TODAY_MONTH;
 
   const { items, sessions, loading: dataLoading, addItem: dbAddItem, editItem, toggleItem: dbToggleItem, removeItem, clearAll, resetList, initMonth, saveSession } = useGrocery(userId, groceryMonth, activeOwnerId);
   const loading = useMinLoading(dataLoading);
@@ -56,10 +56,8 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
 
   const handlePrevMonth = () =>
     setGroceryMonth(m => format(subMonths(parse(m, 'yyyy-MM', new Date()), 1), 'yyyy-MM'));
-  const handleNextMonth = () => {
-    const next = format(addMonths(groceryDate, 1), 'yyyy-MM');
-    if (next <= TODAY_MONTH) setGroceryMonth(next);
-  };
+  const handleNextMonth = () =>
+    setGroceryMonth(m => format(addMonths(parse(m, 'yyyy-MM', new Date()), 1), 'yyyy-MM'));
 
   const [showForm, setShowForm]         = useState(false);
   const [newText, setNewText]           = useState('');
@@ -174,13 +172,13 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
                 <MonthPicker
                   month={groceryMonth}
                   budgetDate={groceryDate}
-                  onSelect={m => m <= TODAY_MONTH && setGroceryMonth(m)}
+                  onSelect={setGroceryMonth}
                   accentColor="var(--sage)"
                 />
                 <button
                   className={styles.monthNavBtn}
                   onClick={handleNextMonth}
-                  disabled={groceryMonth >= TODAY_MONTH}
+                  disabled={false}
                   aria-label="Mes siguiente"
                 >
                   <ChevronRight size={13} />
@@ -188,7 +186,7 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
               </div>
             </div>
           </div>
-          {isCurrentMonth && (
+          {!isPastMonth && (
             <button
               onClick={() => setShowForm(!showForm)}
               className={`${styles.addBtn} ${showForm ? styles.addBtnActive : ''}`}
@@ -226,7 +224,7 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
       </div>
 
       {/* ── Banner mes sin lista ── */}
-      {!loading && items.length === 0 && !isCurrentMonth && (
+      {!loading && items.length === 0 && !!isPastMonth && (
         <div className={styles.initBanner}>
           <Sparkles size={14} className={styles.initBannerIcon} />
           <span className={styles.initBannerText}>
@@ -239,14 +237,14 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
       )}
 
       {/* ── Aviso lectura solo ── */}
-      {!isCurrentMonth && items.length > 0 && (
+      {!!isPastMonth && items.length > 0 && (
         <div className={styles.readonlyBanner}>
           Estás viendo {format(groceryDate, 'MMMM yyyy', { locale: es })} — solo lectura
         </div>
       )}
 
       {/* ── Form agregar ── */}
-      {showForm && isCurrentMonth && (
+      {showForm && !isPastMonth && (
         <div className={`form-spring ${styles.form}`}>
           <div className={styles.formInputRow}>
             <input
@@ -337,7 +335,7 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
             </div>
           )}
 
-          {isCurrentMonth && (
+          {!isPastMonth && (
             <div className={styles.cartActions}>
               <button onClick={resetList} className={styles.resetBtn}>
                 <RotateCcw size={11} />
@@ -539,7 +537,7 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
       )}
 
       {/* ── Footer ── */}
-      {total > 0 && isCurrentMonth && (
+      {total > 0 && !isPastMonth && (
         <div className={styles.footer}>
           <button onClick={clearAll} className={styles.clearAllBtn}>
             Vaciar lista completa
