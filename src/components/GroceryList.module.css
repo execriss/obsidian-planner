@@ -71,6 +71,82 @@
   margin-top: 3px;
 }
 
+/* ─── Month nav ─── */
+
+.monthNav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 3px;
+}
+
+.monthNavBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  color: var(--cream-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.monthNavBtn:hover:not(:disabled) { background: var(--obsidian-3); color: var(--cream); }
+.monthNavBtn:disabled { opacity: 0.3; cursor: default; }
+
+/* ─── Init / readonly banners ─── */
+
+.initBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(95, 173, 142, 0.07);
+  border: 1px solid rgba(95, 173, 142, 0.2);
+  margin-bottom: 20px;
+  animation: fadeUp 0.3s var(--ease-out) both;
+  flex-wrap: wrap;
+}
+
+.initBannerIcon { color: var(--sage); flex-shrink: 0; }
+
+.initBannerText {
+  flex: 1;
+  font-size: 12px;
+  color: var(--cream-muted);
+  min-width: 120px;
+}
+
+.initBannerBtn {
+  padding: 5px 12px;
+  border-radius: 7px;
+  background: var(--sage);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.initBannerBtn:hover { opacity: 0.85; }
+.initBannerBtn:disabled { opacity: 0.5; cursor: default; }
+
+.readonlyBanner {
+  font-size: 11px;
+  color: var(--cream-muted);
+  text-align: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--obsidian-3);
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+  animation: fadeUp 0.3s var(--ease-out) both;
+}
+
 /* ─── Add button ─── */
 
 .addBtn {

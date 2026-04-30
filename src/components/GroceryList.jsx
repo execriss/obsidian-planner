@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   ShoppingCart, Plus, Trash2, Check, ChevronDown, ChevronUp,
   Sparkles, RotateCcw, Calculator, X, History, Tag, Pencil,
+  ChevronLeft, ChevronRight,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parse, addMonths, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useIsMobile } from '../hooks/useIsMobile.js';
 import { useGrocery } from '../hooks/useGrocery.js';
@@ -12,6 +13,9 @@ import SectionSkeleton from './SectionSkeleton.jsx';
 import { useMinLoading } from '../hooks/useMinLoading.js';
 import OwnerToggle from './OwnerToggle.jsx';
 import GroceryCalculator from './GroceryCalculator.jsx';
+import MonthPicker from './MonthPicker.jsx';
+
+const TODAY_MONTH = format(new Date(), 'yyyy-MM');
 
 const CATS = [
   { id: 'frutas',    label: 'Frutas y Verduras', emoji: '🥦', color: '#5FAD8E', dim: 'rgba(95,173,142,0.15)' },
@@ -35,8 +39,27 @@ function fmtARS(n) {
 export default function GroceryList({ userId, sharedOwners = [] }) {
   const isMobile = useIsMobile();
   const [activeOwnerId, setActiveOwnerId] = useState(null);
-  const { items, sessions, loading: dataLoading, addItem: dbAddItem, editItem, toggleItem: dbToggleItem, removeItem, clearAll, resetList, saveSession } = useGrocery(userId, activeOwnerId);
+  const [groceryMonth, setGroceryMonth]   = useState(TODAY_MONTH);
+
+  const groceryDate    = useMemo(() => parse(groceryMonth, 'yyyy-MM', new Date()), [groceryMonth]);
+  const isCurrentMonth = groceryMonth === TODAY_MONTH;
+
+  const { items, sessions, loading: dataLoading, addItem: dbAddItem, editItem, toggleItem: dbToggleItem, removeItem, clearAll, resetList, initMonth, saveSession } = useGrocery(userId, groceryMonth, activeOwnerId);
   const loading = useMinLoading(dataLoading);
+
+  const [initializing, setInitializing] = useState(false);
+  const handleInitMonth = async () => {
+    const prevMonth = format(subMonths(groceryDate, 1), 'yyyy-MM');
+    setInitializing(true);
+    try { await initMonth(prevMonth); } finally { setInitializing(false); }
+  };
+
+  const handlePrevMonth = () =>
+    setGroceryMonth(m => format(subMonths(parse(m, 'yyyy-MM', new Date()), 1), 'yyyy-MM'));
+  const handleNextMonth = () => {
+    const next = format(addMonths(groceryDate, 1), 'yyyy-MM');
+    if (next <= TODAY_MONTH) setGroceryMonth(next);
+  };
 
   const [showForm, setShowForm]         = useState(false);
   const [newText, setNewText]           = useState('');
@@ -144,18 +167,36 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
             </div>
             <div>
               <h1 className={styles.title}>Compras del Super</h1>
-              <p className={styles.subtitle}>
-                {total === 0 ? 'Lista vacía' : `${inCart.length} de ${total} artículo${total !== 1 ? 's' : ''}`}
-              </p>
+              <div className={styles.monthNav}>
+                <button className={styles.monthNavBtn} onClick={handlePrevMonth} aria-label="Mes anterior">
+                  <ChevronLeft size={13} />
+                </button>
+                <MonthPicker
+                  month={groceryMonth}
+                  budgetDate={groceryDate}
+                  onSelect={m => m <= TODAY_MONTH && setGroceryMonth(m)}
+                  accentColor="var(--sage)"
+                />
+                <button
+                  className={styles.monthNavBtn}
+                  onClick={handleNextMonth}
+                  disabled={groceryMonth >= TODAY_MONTH}
+                  aria-label="Mes siguiente"
+                >
+                  <ChevronRight size={13} />
+                </button>
+              </div>
             </div>
           </div>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className={`${styles.addBtn} ${showForm ? styles.addBtnActive : ''}`}
-          >
-            <Plus size={13} className={`${styles.addBtnIcon} ${showForm ? styles.addBtnIconRotated : ''}`} />
-            {!isMobile && 'Agregar'}
-          </button>
+          {isCurrentMonth && (
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className={`${styles.addBtn} ${showForm ? styles.addBtnActive : ''}`}
+            >
+              <Plus size={13} className={`${styles.addBtnIcon} ${showForm ? styles.addBtnIconRotated : ''}`} />
+              {!isMobile && 'Agregar'}
+            </button>
+          )}
         </div>
 
         {total > 0 && (
@@ -184,8 +225,28 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
         )}
       </div>
 
+      {/* ── Banner mes sin lista ── */}
+      {!loading && items.length === 0 && !isCurrentMonth && (
+        <div className={styles.initBanner}>
+          <Sparkles size={14} className={styles.initBannerIcon} />
+          <span className={styles.initBannerText}>
+            No hay lista para {format(groceryDate, 'MMMM', { locale: es })}.
+          </span>
+          <button className={styles.initBannerBtn} onClick={handleInitMonth} disabled={initializing}>
+            {initializing ? 'Copiando...' : 'Copiar mes anterior'}
+          </button>
+        </div>
+      )}
+
+      {/* ── Aviso lectura solo ── */}
+      {!isCurrentMonth && items.length > 0 && (
+        <div className={styles.readonlyBanner}>
+          Estás viendo {format(groceryDate, 'MMMM yyyy', { locale: es })} — solo lectura
+        </div>
+      )}
+
       {/* ── Form agregar ── */}
-      {showForm && (
+      {showForm && isCurrentMonth && (
         <div className={`form-spring ${styles.form}`}>
           <div className={styles.formInputRow}>
             <input
@@ -276,12 +337,14 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
             </div>
           )}
 
-          <div className={styles.cartActions}>
-            <button onClick={resetList} className={styles.resetBtn}>
-              <RotateCcw size={11} />
-              Reusar lista
-            </button>
-          </div>
+          {isCurrentMonth && (
+            <div className={styles.cartActions}>
+              <button onClick={resetList} className={styles.resetBtn}>
+                <RotateCcw size={11} />
+                Reusar lista
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -476,7 +539,7 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
       )}
 
       {/* ── Footer ── */}
-      {total > 0 && (
+      {total > 0 && isCurrentMonth && (
         <div className={styles.footer}>
           <button onClick={clearAll} className={styles.clearAllBtn}>
             Vaciar lista completa

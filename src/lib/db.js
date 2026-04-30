@@ -102,23 +102,24 @@ export async function generateApiKey(userId) {
 
 // ─── GROCERY ITEMS ────────────────────────────────────────
 
-export async function fetchGroceryItems(userId) {
-  const { data, error } = await supabase
-    .from('grocery_items')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: true });
+const dbToGroceryItem = (r) =>
+  ({ id: r.id, text: r.text, qty: r.qty, cat: r.cat, done: r.done, month: r.month });
+
+export async function fetchGroceryItems(userId, month) {
+  let q = supabase.from('grocery_items').select('*').eq('user_id', userId);
+  if (month) q = q.eq('month', month);
+  const { data, error } = await q.order('created_at', { ascending: true });
   if (error) throw error;
-  return data.map(r => ({ id: r.id, text: r.text, qty: r.qty, cat: r.cat, done: r.done }));
+  return data.map(dbToGroceryItem);
 }
 
 export async function createGroceryItem(userId, item) {
   const { data, error } = await supabase
     .from('grocery_items')
-    .insert({ user_id: userId, text: item.text, qty: item.qty || '1', cat: item.cat || 'otro', done: false })
+    .insert({ user_id: userId, text: item.text, qty: item.qty || '1', cat: item.cat || 'otro', done: false, month: item.month || null })
     .select().single();
   if (error) throw error;
-  return { id: data.id, text: data.text, qty: data.qty, cat: data.cat, done: data.done };
+  return dbToGroceryItem(data);
 }
 
 export async function updateGroceryItem(itemId, updates) {
@@ -128,7 +129,7 @@ export async function updateGroceryItem(itemId, updates) {
     .eq('id', itemId)
     .select().single();
   if (error) throw error;
-  return { id: data.id, text: data.text, qty: data.qty, cat: data.cat, done: data.done };
+  return dbToGroceryItem(data);
 }
 
 export async function deleteGroceryItem(itemId) {
@@ -136,17 +137,29 @@ export async function deleteGroceryItem(itemId) {
   if (error) throw error;
 }
 
-export async function deleteGroceryItemsByUser(userId) {
-  const { error } = await supabase.from('grocery_items').delete().eq('user_id', userId);
+export async function deleteGroceryItemsByMonth(userId, month) {
+  const { error } = await supabase
+    .from('grocery_items').delete().eq('user_id', userId).eq('month', month);
   if (error) throw error;
 }
 
-export async function resetGroceryItems(userId) {
-  const { error } = await supabase
-    .from('grocery_items')
-    .update({ done: false })
-    .eq('user_id', userId);
+export async function resetGroceryItems(userId, month) {
+  let q = supabase.from('grocery_items').update({ done: false }).eq('user_id', userId);
+  if (month) q = q.eq('month', month);
+  const { error } = await q;
   if (error) throw error;
+}
+
+export async function copyGroceryItems(userId, fromMonth, toMonth) {
+  const { data, error } = await supabase
+    .from('grocery_items').select('text,qty,cat').eq('user_id', userId).eq('month', fromMonth);
+  if (error) throw error;
+  if (!data.length) return [];
+  const rows = data.map(r => ({ user_id: userId, text: r.text, qty: r.qty, cat: r.cat, done: false, month: toMonth }));
+  const { data: inserted, error: err2 } = await supabase
+    .from('grocery_items').insert(rows).select();
+  if (err2) throw err2;
+  return inserted.map(dbToGroceryItem);
 }
 
 export async function fetchGrocerySessions(userId) {

@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   fetchGroceryItems, createGroceryItem, updateGroceryItem,
-  deleteGroceryItem, deleteGroceryItemsByUser, resetGroceryItems,
+  deleteGroceryItem, deleteGroceryItemsByMonth, resetGroceryItems, copyGroceryItems,
   fetchGrocerySessions, createGrocerySession,
 } from '../lib/db.js';
 
-export function useGrocery(userId, ownerId = null) {
+export function useGrocery(userId, month, ownerId = null) {
   const dataUserId = ownerId ?? userId;
 
   const [items, setItems]       = useState([]);
@@ -13,18 +13,18 @@ export function useGrocery(userId, ownerId = null) {
   const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
-    if (!dataUserId) return;
+    if (!dataUserId || !month) return;
     setLoading(true);
-    Promise.all([fetchGroceryItems(dataUserId), fetchGrocerySessions(dataUserId)])
+    Promise.all([fetchGroceryItems(dataUserId, month), fetchGrocerySessions(dataUserId)])
       .then(([its, sess]) => { setItems(its); setSessions(sess); })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [dataUserId]);
+  }, [dataUserId, month]);
 
   const addItem = useCallback(async (item) => {
-    const created = await createGroceryItem(dataUserId, item);
+    const created = await createGroceryItem(dataUserId, { ...item, month });
     setItems(prev => [...prev, created]);
-  }, [dataUserId]);
+  }, [dataUserId, month]);
 
   const toggleItem = useCallback(async (id) => {
     setItems(prev => prev.map(i => i.id === id ? { ...i, done: !i.done } : i));
@@ -45,8 +45,8 @@ export function useGrocery(userId, ownerId = null) {
 
   const clearAll = useCallback(async () => {
     setItems([]);
-    await deleteGroceryItemsByUser(dataUserId).catch(console.error);
-  }, [dataUserId]);
+    await deleteGroceryItemsByMonth(dataUserId, month).catch(console.error);
+  }, [dataUserId, month]);
 
   const editItem = useCallback(async (id, changes) => {
     setItems(prev => prev.map(i => i.id === id ? { ...i, ...changes } : i));
@@ -55,8 +55,13 @@ export function useGrocery(userId, ownerId = null) {
 
   const resetList = useCallback(async () => {
     setItems(prev => prev.map(i => ({ ...i, done: false })));
-    await resetGroceryItems(dataUserId).catch(console.error);
-  }, [dataUserId]);
+    await resetGroceryItems(dataUserId, month).catch(console.error);
+  }, [dataUserId, month]);
+
+  const initMonth = useCallback(async (fromMonth) => {
+    const copied = await copyGroceryItems(dataUserId, fromMonth, month);
+    setItems(copied);
+  }, [dataUserId, month]);
 
   const saveSession = useCallback(async (session) => {
     const saved = await createGrocerySession(dataUserId, session);
@@ -64,5 +69,5 @@ export function useGrocery(userId, ownerId = null) {
     return saved;
   }, [dataUserId]);
 
-  return { items, sessions, loading, addItem, editItem, toggleItem, removeItem, clearDone, clearAll, resetList, saveSession };
+  return { items, sessions, loading, addItem, editItem, toggleItem, removeItem, clearDone, clearAll, resetList, initMonth, saveSession };
 }
