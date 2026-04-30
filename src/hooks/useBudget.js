@@ -108,6 +108,25 @@ export function useBudget(userId, month, ownerId = null) {
     await Promise.all(affected.map(i => deleteBudgetItem(i.id))).catch(console.error);
   }, [items]);
 
+  // ── Init month from template ──────────────────────────
+  const initMonth = useCallback(async (prevIncome = []) => {
+    const newEntries = await Promise.all(
+      items.map(item => upsertBudgetEntry(dataUserId, {
+        itemId: item.id, month,
+        amount: item.defaultAmount, paid: 0, notes: '',
+      }))
+    );
+    setEntries(newEntries);
+    if (prevIncome.length > 0) {
+      const newIncome = await Promise.all(
+        prevIncome.map(inc => createBudgetIncome(dataUserId, {
+          source: inc.source, amount: inc.amount, month, sortOrder: inc.sortOrder ?? 0,
+        }))
+      );
+      setIncome(newIncome);
+    }
+  }, [dataUserId, month, items]);
+
   // ── Income ────────────────────────────────────────────
   const addIncome = useCallback(async (data) => {
     const created = await createBudgetIncome(dataUserId, { ...data, month });
@@ -127,7 +146,7 @@ export function useBudget(userId, month, ownerId = null) {
   return {
     items, entries, income, loading, error, retry: load,
     merged, categories,
-    addItem, editItem, removeItem, updateEntry,
+    addItem, editItem, removeItem, updateEntry, initMonth,
     editCategory, removeCategory,
     addIncome, editIncome, removeIncome,
   };

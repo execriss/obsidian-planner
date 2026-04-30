@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
-  Wallet, Plus, Trash2, Check, ChevronDown,
-  FileText, X, CircleDollarSign, Link2,
+  Wallet, Plus, Trash2, Check, ChevronDown, ChevronLeft, ChevronRight,
+  FileText, X, CircleDollarSign, Link2, Sparkles,
 } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile.js';
 import OwnerToggle from './OwnerToggle.jsx';
@@ -561,18 +561,28 @@ function CategorySection({
 // ─── Budget (main) ───────────────────────────────────────────────────────────
 
 export default function Budget({
-  budgetData, viewMonth, sharedOwners = [],
+  budgetData, budgetMonth, sharedOwners = [],
   activeOwnerId, onActiveOwnerChange,
   onUpdateEntry, linkedServicesMap,
+  onPrevMonth, onNextMonth, onInitMonth,
 }) {
   const isMobile = useIsMobile();
   const {
-    merged, categories, income, loading, error, retry,
+    entries, merged, categories, income, loading, error, retry,
     addItem, editItem, removeItem,
     editCategory, removeCategory,
     addIncome, editIncome, removeIncome,
   } = budgetData;
   const updateEntry = onUpdateEntry;
+
+  const budgetDate = useMemo(() => parse(budgetMonth, 'yyyy-MM', new Date()), [budgetMonth]);
+  const isUninitialized = !loading && merged.length > 0 && entries.length === 0 && income.length === 0;
+  const [initializing, setInitializing] = useState(false);
+
+  const handleInit = async () => {
+    setInitializing(true);
+    try { await onInitMonth(); } finally { setInitializing(false); }
+  };
 
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCatName, setNewCatName]   = useState('');
@@ -652,9 +662,17 @@ export default function Budget({
         </div>
         <div className={styles.headerText}>
           <h1 className={styles.title}>Presupuesto</h1>
-          <span className={styles.monthBadge}>
-            {format(viewMonth, 'MMMM yyyy', { locale: es })}
-          </span>
+          <div className={styles.monthNav}>
+            <button className={styles.monthNavBtn} onClick={onPrevMonth} aria-label="Mes anterior">
+              <ChevronLeft size={13} />
+            </button>
+            <span className={styles.monthBadge}>
+              {format(budgetDate, 'MMMM yyyy', { locale: es })}
+            </span>
+            <button className={styles.monthNavBtn} onClick={onNextMonth} aria-label="Mes siguiente">
+              <ChevronRight size={13} />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -677,6 +695,23 @@ export default function Budget({
         </div>
       ) : (
         <>
+          {/* Init banner */}
+          {isUninitialized && onInitMonth && (
+            <div className={styles.initBanner}>
+              <Sparkles size={14} className={styles.initBannerIcon} />
+              <span className={styles.initBannerText}>
+                {format(budgetDate, 'MMMM', { locale: es })} no tiene presupuesto guardado — los montos son de la plantilla.
+              </span>
+              <button
+                className={styles.initBannerBtn}
+                onClick={handleInit}
+                disabled={initializing}
+              >
+                {initializing ? 'Iniciando...' : 'Inicializar mes'}
+              </button>
+            </div>
+          )}
+
           {/* Income */}
           <IncomeSection
             income={income}

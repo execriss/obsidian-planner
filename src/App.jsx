@@ -5,14 +5,14 @@ import {
   ShoppingCart, Receipt, Flame, StickyNote, FileKey2, X, Wallet, Download, Share, Search,
 } from 'lucide-react';
 import { useIsMobile } from './hooks/useIsMobile.js';
-import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfWeek, isToday, isSameMonth } from 'date-fns';
+import { format, parse, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfWeek, isToday, isSameMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from './contexts/AuthContext.jsx';
 import { useData } from './hooks/useData.js';
 import { useCollaboration } from './hooks/useCollaboration.js';
 import { useBudget } from './hooks/useBudget.js';
 import { useServices } from './hooks/useServices.js';
-import { upsertBudgetEntry } from './lib/db.js';
+import { upsertBudgetEntry, fetchBudgetIncome } from './lib/db.js';
 import AuthGate from './components/AuthGate.jsx';
 import BigCalendar from './components/BigCalendar.jsx';
 import WeekView from './components/WeekView.jsx';
@@ -66,8 +66,14 @@ function Planner({ user, onSignOut }) {
   const collab = useCollaboration(user.id, user.email);
 
   // ── Budget + Services (lifted to Planner for cross-sync) ─────────────────────
-  const budgetMonth = format(viewMonth, 'yyyy-MM');
+  const [budgetMonth, setBudgetMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [budgetActiveOwner, setBudgetActiveOwner] = useState(null);
+
+  const parseBudgetMonth = (m) => parse(m, 'yyyy-MM', new Date());
+  const handlePrevBudgetMonth = () =>
+    setBudgetMonth(m => format(subMonths(parseBudgetMonth(m), 1), 'yyyy-MM'));
+  const handleNextBudgetMonth = () =>
+    setBudgetMonth(m => format(addMonths(parseBudgetMonth(m), 1), 'yyyy-MM'));
   const budgetData    = useBudget(user.id, budgetMonth, budgetActiveOwner);
   const servicesData  = useServices(user.id);
 
@@ -119,6 +125,12 @@ function Planner({ user, onSignOut }) {
       }
     }
   }, [budgetData, linkedServicesMap, servicesData, budgetActiveOwner, budgetMonth]);
+
+  const handleInitBudgetMonth = useCallback(async () => {
+    const prevMonth = format(subMonths(parseBudgetMonth(budgetMonth), 1), 'yyyy-MM');
+    const prevIncome = await fetchBudgetIncome(budgetActiveOwner ?? user.id, prevMonth);
+    await budgetData.initMonth(prevIncome);
+  }, [budgetMonth, budgetData, budgetActiveOwner, user.id]);
   // ─────────────────────────────────────────────────────────────────────────────
 
   // ── PWA navigation: deshabilitar back button + persistir vista ───────────────
@@ -620,7 +632,10 @@ function Planner({ user, onSignOut }) {
 {view === 'budget' && (
               <Budget
                 budgetData={budgetData}
-                viewMonth={viewMonth}
+                budgetMonth={budgetMonth}
+                onPrevMonth={handlePrevBudgetMonth}
+                onNextMonth={handleNextBudgetMonth}
+                onInitMonth={handleInitBudgetMonth}
                 sharedOwners={budgetOwners}
                 activeOwnerId={budgetActiveOwner}
                 onActiveOwnerChange={setBudgetActiveOwner}

@@ -54,13 +54,72 @@
   line-height: 1;
 }
 
+.monthNav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.monthNavBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  color: var(--cream-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.monthNavBtn:hover { background: var(--obsidian-3); color: var(--cream); }
+
 .monthBadge {
-  display: inline-block;
   font-size: 11px;
   color: var(--cream-muted);
-  margin-top: 3px;
   text-transform: capitalize;
 }
+
+/* ─── Init Banner ─── */
+
+.initBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(240, 165, 0, 0.07);
+  border: 1px solid rgba(240, 165, 0, 0.2);
+  margin-bottom: 20px;
+  animation: fadeUp 0.3s var(--ease-out) both;
+  flex-wrap: wrap;
+}
+
+.initBannerIcon { color: var(--amber); flex-shrink: 0; }
+
+.initBannerText {
+  flex: 1;
+  font-size: 12px;
+  color: var(--cream-muted);
+  min-width: 160px;
+}
+
+.initBannerBtn {
+  padding: 5px 12px;
+  border-radius: 7px;
+  background: var(--amber);
+  color: var(--obsidian);
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.initBannerBtn:hover { opacity: 0.85; }
+.initBannerBtn:disabled { opacity: 0.5; cursor: default; }
 
 /* ─── Income Section ─── */
 
