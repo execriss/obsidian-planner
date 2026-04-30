@@ -550,6 +550,127 @@
   margin-bottom: 12px;
 }
 
+/* ─── Cart total balance ─── */
+
+.cartTotal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  margin: 8px 0 4px;
+  border-radius: 10px;
+  background: rgba(95, 173, 142, 0.08);
+  border: 1px solid rgba(95, 173, 142, 0.18);
+}
+
+.cartTotalLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cream-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cartTotalValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--sage);
+  font-family: var(--font-display);
+}
+
+/* ─── Confirm check form ─── */
+
+.confirmRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--obsidian-3);
+  border: 1px solid var(--cat-color, var(--border));
+  margin: 2px 0;
+  flex-wrap: wrap;
+}
+
+.confirmName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cream);
+  flex: 1;
+  min-width: 80px;
+}
+
+.confirmInputs {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.confirmQtyInput {
+  width: 56px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--obsidian-2);
+  color: var(--cream);
+  font-size: 12px;
+  font-family: inherit;
+  text-align: center;
+}
+
+.confirmPriceInput {
+  width: 90px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--obsidian-2);
+  color: var(--cream);
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.confirmQtyInput:focus,
+.confirmPriceInput:focus {
+  outline: none;
+  border-color: var(--cat-color, var(--amber));
+}
+
+.confirmActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.confirmCancelBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--cream-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.confirmCancelBtn:hover { background: var(--obsidian-4); color: var(--cream); }
+
+.confirmOkBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: none;
+  background: var(--sage);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.confirmOkBtn:hover { opacity: 0.85; }
+
 .cartActions {
   display: flex;
   gap: 8px;
@@ -1192,6 +1313,19 @@
   background: var(--obsidian-4);
   color: var(--cream-dim);
   border: 1px solid var(--border);
+}
+
+.itemPrice {
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: rgba(95, 173, 142, 0.12);
+  color: var(--sage);
+  border: 1px solid rgba(95, 173, 142, 0.2);
+  vertical-align: middle;
+  flex-shrink: 0;
 }
 
 .itemQtyInline {

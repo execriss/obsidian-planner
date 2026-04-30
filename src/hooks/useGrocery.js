@@ -32,6 +32,11 @@ export function useGrocery(userId, month, ownerId = null) {
     await updateGroceryItem(id, { done: !item.done }).catch(console.error);
   }, [items]);
 
+  const confirmCheck = useCallback(async (id, qty, price) => {
+    setItems(prev => prev.map(i => i.id === id ? { ...i, qty, price: price || null, done: true } : i));
+    await updateGroceryItem(id, { qty, price: price || null, done: true }).catch(console.error);
+  }, []);
+
   const removeItem = useCallback(async (id) => {
     setItems(prev => prev.filter(i => i.id !== id));
     await deleteGroceryItem(id).catch(console.error);
@@ -69,5 +74,5 @@ export function useGrocery(userId, month, ownerId = null) {
     return saved;
   }, [dataUserId]);
 
-  return { items, sessions, loading, addItem, editItem, toggleItem, removeItem, clearDone, clearAll, resetList, initMonth, saveSession };
+  return { items, sessions, loading, addItem, editItem, toggleItem, confirmCheck, removeItem, clearDone, clearAll, resetList, initMonth, saveSession };
 }

@@ -44,7 +44,7 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
   const groceryDate = useMemo(() => parse(groceryMonth, 'yyyy-MM', new Date()), [groceryMonth]);
   const isPastMonth = groceryMonth < TODAY_MONTH;
 
-  const { items, sessions, loading: dataLoading, addItem: dbAddItem, editItem, toggleItem: dbToggleItem, removeItem, clearAll, resetList, initMonth, saveSession } = useGrocery(userId, groceryMonth, activeOwnerId);
+  const { items, sessions, loading: dataLoading, addItem: dbAddItem, editItem, toggleItem: dbToggleItem, confirmCheck: dbConfirmCheck, removeItem, clearAll, resetList, initMonth, saveSession } = useGrocery(userId, groceryMonth, activeOwnerId);
   const loading = useMinLoading(dataLoading);
 
   const [initializing, setInitializing] = useState(false);
@@ -102,6 +102,16 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
       setCheckingIds(prev => { const s = new Set(prev); s.delete(id); return s; });
     }, 260);
   }, [dbToggleItem]);
+
+  const confirmCheckItem = useCallback((id, qty, price) => {
+    setCheckingIds(prev => new Set([...prev, id]));
+    setTimeout(() => {
+      dbConfirmCheck(id, qty, price);
+      setCheckingIds(prev => { const s = new Set(prev); s.delete(id); return s; });
+    }, 260);
+  }, [dbConfirmCheck]);
+
+  const totalSpent = inCart.reduce((s, i) => s + (i.price || 0), 0);
 
   const deleteItem = useCallback((id) => {
     setDeletingIds(prev => new Set([...prev, id]));
@@ -305,6 +315,7 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
               checkingIds={checkingIds}
               deletingIds={deletingIds}
               onToggleItem={toggleItem}
+              onConfirmCheck={confirmCheckItem}
               onEdit={editItem}
               onDelete={deleteItem}
               isMobile={isMobile}
@@ -332,6 +343,12 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
                   isChecking={checkingIds.has(item.id)} isDeleting={deletingIds.has(item.id)}
                   onToggle={toggleItem} onEdit={editItem} onDelete={deleteItem} isMobile={isMobile} />
               ))}
+              {totalSpent > 0 && (
+                <div className={styles.cartTotal}>
+                  <span className={styles.cartTotalLabel}>Total</span>
+                  <span className={styles.cartTotalValue}>{fmtARS(totalSpent)}</span>
+                </div>
+              )}
             </div>
           )}
 
@@ -346,8 +363,8 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
         </div>
       )}
 
-      {/* ── CALCULADORA ── */}
-      {total > 0 && (
+      {/* ── CALCULADORA (temporalmente oculta) ── */}
+      {false && total > 0 && (
         <div className={styles.calcSection}>
           <button
             onClick={() => setShowCalc(!showCalc)}
@@ -553,7 +570,7 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
 
 // ─── CategoryGroup ────────────────────────────────────────────────────────────
 
-function CategoryGroup({ cat, items, collapsed, onToggle, groupIndex, checkingIds, deletingIds, onToggleItem, onEdit, onDelete, isMobile }) {
+function CategoryGroup({ cat, items, collapsed, onToggle, groupIndex, checkingIds, deletingIds, onToggleItem, onConfirmCheck, onEdit, onDelete, isMobile }) {
   return (
     <div
       className={styles.catGroup}
@@ -583,7 +600,7 @@ function CategoryGroup({ cat, items, collapsed, onToggle, groupIndex, checkingId
             <ItemRow
               key={item.id} item={item} i={i}
               isChecking={checkingIds.has(item.id)} isDeleting={deletingIds.has(item.id)}
-              onToggle={onToggleItem} onEdit={onEdit} onDelete={onDelete}
+              onToggle={onToggleItem} onConfirmCheck={onConfirmCheck} onEdit={onEdit} onDelete={onDelete}
               isMobile={isMobile} hideCatBadge
             />
           ))}
@@ -596,12 +613,28 @@ function CategoryGroup({ cat, items, collapsed, onToggle, groupIndex, checkingId
 
 // ─── ItemRow ──────────────────────────────────────────────────────────────────
 
-function ItemRow({ item, i, isChecking, isDeleting, onToggle, onEdit, onDelete, isMobile, hideCatBadge }) {
-  const [editing, setEditing]   = useState(false);
-  const [editText, setEditText] = useState('');
-  const [editQty, setEditQty]   = useState('');
-  const [editCat, setEditCat]   = useState('');
+function ItemRow({ item, i, isChecking, isDeleting, onToggle, onConfirmCheck, onEdit, onDelete, isMobile, hideCatBadge }) {
+  const [editing, setEditing]       = useState(false);
+  const [editText, setEditText]     = useState('');
+  const [editQty, setEditQty]       = useState('');
+  const [editCat, setEditCat]       = useState('');
+  const [confirming, setConfirming] = useState(false);
+  const [confirmQty, setConfirmQty] = useState(item.qty);
+  const [confirmPrice, setConfirmPrice] = useState('');
   const cat = catById[item.cat] || catById['otro'];
+
+  const handleCheckClick = () => {
+    if (item.done) { onToggle(item.id); return; }
+    setConfirmQty(item.qty);
+    setConfirmPrice('');
+    setConfirming(true);
+  };
+
+  const handleConfirm = () => {
+    const price = parseFloat(String(confirmPrice).replace(/\./g, '').replace(',', '.')) || 0;
+    onConfirmCheck(item.id, confirmQty.trim() || '1', price || null);
+    setConfirming(false);
+  };
 
   const openEdit = (e) => {
     e.stopPropagation();
@@ -622,6 +655,38 @@ function ItemRow({ item, i, isChecking, isDeleting, onToggle, onEdit, onDelete, 
     if (e.key === 'Enter') handleSave();
     if (e.key === 'Escape') setEditing(false);
   };
+
+  if (confirming) {
+    return (
+      <div className={`form-spring ${styles.confirmRow}`} style={{ '--cat-color': cat.color }}>
+        <span className={styles.confirmName}>{item.text}</span>
+        <div className={styles.confirmInputs}>
+          <input
+            className={styles.confirmQtyInput}
+            value={confirmQty}
+            onChange={e => setConfirmQty(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') handleConfirm(); if (e.key === 'Escape') setConfirming(false); }}
+            placeholder="Cant."
+            aria-label="Cantidad"
+          />
+          <input
+            autoFocus
+            className={styles.confirmPriceInput}
+            value={confirmPrice}
+            onChange={e => setConfirmPrice(e.target.value.replace(/[^0-9.,]/g, ''))}
+            onKeyDown={e => { if (e.key === 'Enter') handleConfirm(); if (e.key === 'Escape') setConfirming(false); }}
+            placeholder="$ Precio"
+            inputMode="numeric"
+            aria-label="Precio"
+          />
+        </div>
+        <div className={styles.confirmActions}>
+          <button onClick={() => setConfirming(false)} className={styles.confirmCancelBtn}><X size={13} /></button>
+          <button onClick={handleConfirm} className={styles.confirmOkBtn}><Check size={13} /></button>
+        </div>
+      </div>
+    );
+  }
 
   if (editing) {
     const editCatObj = catById[editCat] || catById['otro'];
@@ -688,7 +753,7 @@ function ItemRow({ item, i, isChecking, isDeleting, onToggle, onEdit, onDelete, 
       }}
     >
       <button
-        onClick={() => onToggle(item.id)}
+        onClick={handleCheckClick}
         className={`${item.done ? styles.itemCheckboxDone : styles.itemCheckbox} ${isChecking ? 'check-done' : ''}`}
       >
         {item.done && <Check size={12} color="white" strokeWidth={3} />}
@@ -700,6 +765,9 @@ function ItemRow({ item, i, isChecking, isDeleting, onToggle, onEdit, onDelete, 
         </span>
         {item.qty && item.qty !== '1' && (
           <span className={styles.itemQtyInline}>{item.qty}</span>
+        )}
+        {item.done && item.price > 0 && (
+          <span className={styles.itemPrice}>{fmtARS(item.price)}</span>
         )}
       </div>
 

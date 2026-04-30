@@ -103,7 +103,7 @@ export async function generateApiKey(userId) {
 // ─── GROCERY ITEMS ────────────────────────────────────────
 
 const dbToGroceryItem = (r) =>
-  ({ id: r.id, text: r.text, qty: r.qty, cat: r.cat, done: r.done, month: r.month });
+  ({ id: r.id, text: r.text, qty: r.qty, cat: r.cat, done: r.done, month: r.month, price: r.price != null ? Number(r.price) : null });
 
 export async function fetchGroceryItems(userId, month) {
   let q = supabase.from('grocery_items').select('*').eq('user_id', userId);
