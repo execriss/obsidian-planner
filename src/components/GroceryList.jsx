@@ -224,7 +224,7 @@ export default function GroceryList({ userId, sharedOwners = [] }) {
       </div>
 
       {/* ── Banner mes sin lista ── */}
-      {!loading && items.length === 0 && !!isPastMonth && (
+      {!loading && items.length === 0 && groceryMonth !== TODAY_MONTH && (
         <div className={styles.initBanner}>
           <Sparkles size={14} className={styles.initBannerIcon} />
           <span className={styles.initBannerText}>
