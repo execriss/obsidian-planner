@@ -15,7 +15,10 @@ export function AuthProvider({ children }) {
     });
 
     // Listener de cambios
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'TOKEN_REFRESHED' && !session) {
+        supabase.auth.signOut();
+      }
       setUser(session?.user ?? null);
     });
 
