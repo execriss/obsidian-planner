@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   Calendar, ChevronLeft, ChevronRight,
   Sparkles, CheckSquare, TrendingUp, TrendingDown, LogOut, User, Settings2,
@@ -275,6 +275,15 @@ function Planner({ user, onSignOut }) {
     setViewWeek(startOfWeek(today, { weekStartsOn: 1 }));
   };
 
+  const swipeX = useRef(null);
+  const onSwipeStart = (e) => { swipeX.current = e.touches[0].clientX; };
+  const onSwipeEnd   = (e) => {
+    if (swipeX.current === null || calView !== 'month') return;
+    const dx = e.changedTouches[0].clientX - swipeX.current;
+    if (Math.abs(dx) > 50) changeMonth(dx < 0 ? 'next' : 'prev');
+    swipeX.current = null;
+  };
+
   const pendingToday = tasks.filter(t => isToday(new Date(t.date)) && !t.done).length;
   const monthIncome  = expenses.filter(e => e.type === 'income'   && isSameMonth(new Date(e.date), viewMonth)).reduce((s, e) => s + e.amount, 0);
   const monthExpense = expenses.filter(e => e.type === 'expense'  && isSameMonth(new Date(e.date), viewMonth)).reduce((s, e) => s + e.amount, 0);
@@ -492,7 +501,7 @@ function Planner({ user, onSignOut }) {
             </div>
 
             {/* Calendar content */}
-            <div className={styles.calendarContent}>
+            <div className={styles.calendarContent} onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd}>
               {calView === 'month' && (
                 <>
                   <BigCalendar
