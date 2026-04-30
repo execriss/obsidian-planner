@@ -17,6 +17,7 @@ const TABS = [
 function NotificationsSection({ userId, apiKey }) {
   const [status, setStatus]   = useState('loading'); // loading | on | off | unsupported
   const [working, setWorking] = useState(false);
+  const [enableError, setEnableError] = useState(null);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null); // null | 'ok' | 'error'
 
@@ -32,6 +33,7 @@ function NotificationsSection({ userId, apiKey }) {
 
   const enable = async () => {
     setWorking(true);
+    setEnableError(null);
     try {
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') { setStatus('off'); setWorking(false); return; }
@@ -45,6 +47,7 @@ function NotificationsSection({ userId, apiKey }) {
       setStatus('on');
     } catch (e) {
       console.error('Push subscribe error:', e);
+      setEnableError(e?.message || 'Error desconocido');
     } finally {
       setWorking(false);
     }
@@ -110,10 +113,15 @@ function NotificationsSection({ userId, apiKey }) {
               : 'Activá las notificaciones para recibir un resumen diario de tus tareas.'}
           </p>
           {status === 'off' ? (
-            <button onClick={enable} disabled={working} className={styles.notifEnableBtn}>
-              <Bell size={13} />
-              {working ? 'Activando...' : 'Activar notificaciones'}
-            </button>
+            <>
+              <button onClick={enable} disabled={working} className={styles.notifEnableBtn}>
+                <Bell size={13} />
+                {working ? 'Activando...' : 'Activar notificaciones'}
+              </button>
+              {enableError && (
+                <p className={styles.notifError}>{enableError}</p>
+              )}
+            </>
           ) : (
             <div className={styles.notifActions}>
               <button onClick={sendTest} disabled={testing || !apiKey} className={styles.notifTestBtn}>

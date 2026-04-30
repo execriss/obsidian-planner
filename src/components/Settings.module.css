@@ -356,3 +356,10 @@
 
 .notifTestBtn:hover:not(:disabled) { background: var(--blue); color: white; }
 .notifTestBtn:disabled { opacity: 0.5; pointer-events: none; }
+
+.notifError {
+  font-size: 11px;
+  color: var(--coral);
+  line-height: 1.5;
+  word-break: break-all;
+}
