@@ -558,13 +558,79 @@ function CategorySection({
   );
 }
 
+// ─── MonthPicker ─────────────────────────────────────────────────────────────
+
+const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+const TODAY_MONTH  = format(new Date(), 'yyyy-MM');
+
+function MonthPicker({ budgetMonth, budgetDate, onSelect }) {
+  const [open, setOpen] = useState(false);
+  const [pickerYear, setPickerYear] = useState(() => parseInt(budgetMonth.slice(0, 4)));
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    if (open) setPickerYear(parseInt(budgetMonth.slice(0, 4)));
+  }, [open, budgetMonth]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (!wrapRef.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div className={styles.monthPickerWrap} ref={wrapRef}>
+      <button
+        className={styles.monthPickerTrigger}
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        aria-label="Seleccionar mes"
+      >
+        <span>{format(budgetDate, 'MMMM yyyy', { locale: es })}</span>
+        <ChevronDown size={10} className={open ? styles.triggerChevronOpen : ''} />
+      </button>
+
+      {open && (
+        <div className={styles.monthPickerDropdown}>
+          <div className={styles.pickerYearRow}>
+            <button className={styles.pickerYearBtn} onClick={() => setPickerYear(y => y - 1)}>
+              <ChevronLeft size={13} />
+            </button>
+            <span className={styles.pickerYear}>{pickerYear}</span>
+            <button className={styles.pickerYearBtn} onClick={() => setPickerYear(y => y + 1)}>
+              <ChevronRight size={13} />
+            </button>
+          </div>
+          <div className={styles.pickerGrid}>
+            {MONTH_LABELS.map((label, i) => {
+              const monthStr = `${pickerYear}-${String(i + 1).padStart(2, '0')}`;
+              const isSelected = monthStr === budgetMonth;
+              const isToday    = monthStr === TODAY_MONTH;
+              return (
+                <button
+                  key={label}
+                  className={`${styles.pickerMonth} ${isSelected ? styles.pickerMonthSelected : ''} ${isToday && !isSelected ? styles.pickerMonthToday : ''}`}
+                  onClick={() => { onSelect(monthStr); setOpen(false); }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Budget (main) ───────────────────────────────────────────────────────────
 
 export default function Budget({
   budgetData, budgetMonth, sharedOwners = [],
   activeOwnerId, onActiveOwnerChange,
   onUpdateEntry, linkedServicesMap,
-  onPrevMonth, onNextMonth, onInitMonth,
+  onPrevMonth, onNextMonth, onSelectMonth, onInitMonth,
 }) {
   const isMobile = useIsMobile();
   const {
@@ -666,9 +732,7 @@ export default function Budget({
             <button className={styles.monthNavBtn} onClick={onPrevMonth} aria-label="Mes anterior">
               <ChevronLeft size={13} />
             </button>
-            <span className={styles.monthBadge}>
-              {format(budgetDate, 'MMMM yyyy', { locale: es })}
-            </span>
+            <MonthPicker budgetMonth={budgetMonth} budgetDate={budgetDate} onSelect={onSelectMonth} />
             <button className={styles.monthNavBtn} onClick={onNextMonth} aria-label="Mes siguiente">
               <ChevronRight size={13} />
             </button>

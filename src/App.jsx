@@ -635,6 +635,7 @@ function Planner({ user, onSignOut }) {
                 budgetMonth={budgetMonth}
                 onPrevMonth={handlePrevBudgetMonth}
                 onNextMonth={handleNextBudgetMonth}
+                onSelectMonth={setBudgetMonth}
                 onInitMonth={handleInitBudgetMonth}
                 sharedOwners={budgetOwners}
                 activeOwnerId={budgetActiveOwner}
