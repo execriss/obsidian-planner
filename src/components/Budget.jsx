@@ -209,7 +209,7 @@ function SummaryBar({ merged, income, isMobile }) {
   const totalPending  = totalBudgeted - totalPaid;
   const totalIncome   = income.reduce((s, i) => s + i.amount, 0);
   const balance       = totalIncome - totalPaid;
-  const fmt = isMobile ? fmtMoneyShort : fmtMoney;
+  const fmt = fmtMoney;
 
   return (
     <div className={styles.summaryBar}>
