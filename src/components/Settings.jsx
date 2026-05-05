@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Copy, RefreshCw, Check, Eye, EyeOff, Key, ExternalLink, Users, Bell, BellOff } from 'lucide-react';
+import { Copy, RefreshCw, Check, Eye, EyeOff, Key, ExternalLink, Users, Bell, BellOff, RotateCcw } from 'lucide-react';
 import { getApiKey, generateApiKey, savePushSubscription, deletePushSubscription, getPushSubscription } from '../lib/db.js';
 import Collaborators from './Collaborators.jsx';
 import styles from './Settings.module.css';
@@ -157,10 +157,23 @@ export default function Settings({ user, collab }) {
   const [showKey, setShowKey]     = useState(false);
 
   const pendingCount = collab?.incomingInvitations?.length ?? 0;
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     getApiKey(user.id).then(data => { setApiKey(data); setLoading(false); });
   }, [user.id]);
+
+  const handleUpdate = async () => {
+    setUpdating(true);
+    try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        await reg.update();
+      }
+    } finally {
+      window.location.reload(true);
+    }
+  };
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -203,6 +216,28 @@ export default function Settings({ user, collab }) {
       {/* ── API & Cuenta tab ── */}
       {activeTab === 'api' && (
         <div className="tab-content">
+          {/* Update app */}
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <div className={styles.iconBox}>
+                <RotateCcw size={15} color="var(--amber)" />
+              </div>
+              <div className={styles.cardTitleGroup}>
+                <div>Actualizar app</div>
+                <div>Forzá la descarga de la última versión</div>
+              </div>
+            </div>
+            <div className={styles.divider} />
+            <button
+              onClick={handleUpdate}
+              disabled={updating}
+              className={styles.updateBtn}
+            >
+              <RotateCcw size={13} className={updating ? styles.spinIcon : undefined} />
+              {updating ? 'Actualizando...' : 'Actualizar app'}
+            </button>
+          </div>
+
           {/* Notifications */}
           <NotificationsSection userId={user.id} apiKey={apiKey?.api_key ?? null} />
 
