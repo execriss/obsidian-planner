@@ -656,10 +656,12 @@
   transition-delay: 0s;
 }
 
-.payBtnPaid:hover {
-  background: rgba(224, 92, 92, 0.1);
-  color: var(--coral);
-  transition-delay: 0.6s;
+@media (hover: hover) {
+  .payBtnPaid:hover {
+    background: rgba(224, 92, 92, 0.1);
+    color: var(--coral);
+    transition-delay: 0.6s;
+  }
 }
 
 /* ─── Notes ─── */
